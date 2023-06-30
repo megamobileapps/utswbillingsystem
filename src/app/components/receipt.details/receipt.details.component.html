@@ -1,0 +1,141 @@
+<div class="card" *ngIf="printOnNormalPrinter">
+    <div class="card-header">
+        <p class="h2 text text-center">UpToSchoolWorksheets</p>
+        <p class=" text text-center">SJC Building, Ground floor, Opposite HP Petrol Pump, Sarjapura Main Road, Sompura Gate, Bangalore-562125</p>
+        <p class=" text text-center">E-mail:contact@uptoschoolworksheets.com Mobile: 9611146074</p>
+    </div>
+    <div class="card-body">
+        <p class="h2 text text-center">PAID BILL</p>
+        <div class="row">
+            <div class="col-6">
+                <table>
+                    <tr>
+                        <td><strong>Customer Name:</strong></td>
+                        <td>{{currentCart!.username}}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Customer Phone:</strong></td>
+                        <td>{{currentCart!.phonenumber}}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-6">
+                <table>
+                    <tr>
+                        <td><strong>Bill no:</strong></td>
+                        <td>{{txId}}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Date:</strong></td>
+                        <td>{{txDate| date:'fullDate'}}</td>
+
+                    </tr>
+                    
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <table class="table table-border">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>S.N.</th>
+                            <th>Item</th>
+                            <th>MRP</th>
+                            <th>Discount(%)</th>
+                            <th>Price/piece</th>
+                            <th>Quantity</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tr *ngFor="let cartItem of currentCart!.invoicedatalist, let i=index">
+                        <td>{{i+1}}</td>
+                            <td>{{cartItem.productName}}</td>
+                            <td>{{cartItem.initialPrice}}</td>
+                            <td>{{cartItem.discount}}</td>
+                            <td>{{cartItem.productPrice}}</td>
+                            <td>{{cartItem.quantityProvider.value}}</td>
+                            <td>{{cartItem.quantityProvider.value*cartItem.productPrice}}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-12">
+                <div class="row">
+                    <div class="col-7"></div>
+                    <div class="col-5">
+                        <table>
+                            <tr>
+                                <td>Gross Amount:</td>
+                                <td>{{grossAmount}}</td>
+        
+                            </tr>
+                            <tr>
+                                <td>Saving:</td>
+                                <td>{{grossAmount - totalAmount}}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Net Amount:</strong></td>
+                                <td><p class="h2 text">{{totalAmount}}</p></td>
+                            </tr>
+                            <tr>
+                                <td>Total Items:</td>
+                                <td>{{totalQuantity}}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+<div *ngIf="!printOnNormalPrinter">
+    <p></p>
+    <p></p>
+    <p></p>
+    <p></p>
+    <p></p>
+    <p></p>
+    
+    <div>   UpToSchoolWorksheets  (R)</div>
+    <div>Co.  : Sripank Software Solutions</div>
+    <div>GSTIN: 29AIPPG66702H1ZP</div>
+    <div>Ph: 9611146074</div>
+    <div>-------------------------------</div>
+    <div>          PAID BILL</div>
+    <div>Customer Name :{{currentCart!.username}}</div>
+    <div>Customer Phone:{{currentCart!.phonenumber}}</div>
+    <div>Bill no       : {{txId}}</div>
+    <div>Date:{{txDate| date:'fullDate'}}</div>
+    <div></div>
+    <div>-------------------------------</div>
+    <div>S. Item          </div>
+    <div>MRP Disc(%) Price Qty Total</div>
+    <div>-------------------------------</div>
+    <div *ngFor="let cartItem of currentCart!.invoicedatalist, let i=index">
+        {{i+1}} 
+        {{cartItem.productName.toString() |slice:0:100}}
+        <div> 
+            {{cartItem.initialPrice.toString() |slice:0:5}} 
+            {{cartItem.discount.toString() |slice:0:7}} 
+            {{cartItem.productPrice.toString() |slice:0:5}} 
+            {{cartItem.quantityProvider.value.toString() |slice:0:3}} 
+            {{(cartItem.quantityProvider.value*cartItem.productPrice).toString() |slice:0:5}}
+        </div>
+    </div>
+    <div>-------------------------------</div>
+    <div>Net Amount:{{totalAmount}}</div>
+    <div>Total Items:{{totalQuantity}}</div>
+    <div>Saving:{{grossAmount - totalAmount}}</div>
+   
+    <div>       Thank You</div>
+    <div>       Please Visit Again</div>
+    <p>.</p>
+    <p>.</p>
+    <p>.</p>
+    <p>.</p>
+    <p>.</p>
+    <p>.</p>
+    <p>.</p>
+
+</div>

@@ -1,0 +1,63 @@
+<div class="container">
+    <div class="row pt-4">
+
+   
+<form [formGroup]="deliveryForm" (ngSubmit)="onSubmit()" class="bg-light" 
+name="deliveryForm" id="deliveryForm" action="">
+
+<div class="row">
+    <div class="form-group col-md-6">
+        <label for="cPayname" class="control-label"> Customer Name:*</label>
+       
+            <input id="cPayname" name="cPayname" class="input form-control" 
+            type="text" placeholder="Customer Name" 
+            formControlName="cPayname"  
+            [ngClass]="{ 'is-invalid': submitted && f['cPayname'].errors }" 
+            required="">
+            <div *ngIf="submitted && f['cPayname'].errors" class="invalid-feedback">
+                <div *ngIf="f['cPayname'].errors['required']">Customer Name is required</div>
+            </div>
+       
+    </div>   
+</div>
+
+<div class="row">
+    
+    <div class="form-group col-md-6">
+        <label for="cPayMobile" class="control-label"> Mobile No.<span style="color:red;">(only 10 digits, Do not start with + or 0)</span>:*</label>
+        
+            <input name="cPayMobile" formControlName="cPayMobile" id="cPayMobile" 
+            pattern="[1-9]{1}[0-9]{9}" maxlength="10"
+            class="input form-control" type="text" 
+            title="Please enter exactly 10 digits. Do not start with 91 or 0" 
+            [ngClass]="{ 'is-invalid': submitted && f['cPayMobile'].errors }"
+            placeholder="Mobile No"  value="" required="">
+      
+    </div>
+</div>
+<div class="row">
+    <div class="form-group  col-md-6">
+        <label for="cPayEmail" class="control-label"> Email:</label>
+        
+            <input name="cPayEmail" formControlName="cPayEmail" id="cPayEmail" 
+            [ngClass]="{ 'is-invalid': submitted && f['cPayEmail'].errors }"
+            class="input form-control" type="text" placeholder="Email"  value="" >
+       
+    </div>
+    
+</div>
+
+
+</form>
+
+<div class="row m-4">
+
+    <button class="btn  btn-warning offset-md-4 col-md-2 " 
+        (click)="onSubmit()"    
+        value="Click to Pay">Click to Print
+      
+    </button> 
+
+</div> <!-- for row -->
+</div>
+</div>

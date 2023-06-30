@@ -3,7 +3,12 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  apiUrl:'http://localhost:4200',
+  // apiBackend:'https://www.uptoschoolworksheets.com'
+  // apiBackend:'http://192.168.1.6',
+  apiBackend:'http://localhost',
+  pathToDeployDir:''
 };
 
 /*
