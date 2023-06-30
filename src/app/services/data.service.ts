@@ -13,6 +13,7 @@ import { environment } from "src/environments/environment";
     inofficeratesurl= '/in/ci/Inofficerates';
     inofficecatsurl='/in/ci/Inofficerates/grades';
     saveBillUrl='/in/ci/Posinvoice/add'; //TODO v1 url
+    addItemUrl='/in/ci/Inofficerates/additem';//add item in inofficerate
 
     httpOptions = {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' })
@@ -56,6 +57,14 @@ import { environment } from "src/environments/environment";
   }
   saveInvoiceDataOnServer(data:any){
     return this._http.post<any>(`${environment.apiBackend}${this.saveBillUrl}`,
+                               { data })
+            .pipe(map(dmap => {
+                return dmap;
+            }));
+  }
+
+  addItem(data:any){
+    return this._http.post<any>(`${environment.apiBackend}${this.addItemUrl}`,
                                { data })
             .pipe(map(dmap => {
                 return dmap;

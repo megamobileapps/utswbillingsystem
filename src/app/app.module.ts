@@ -14,6 +14,7 @@ import { CategoryfilterPipe } from './pipes/utswtopicfilter';
 import { SearchStrfilterPipe } from './pipes/utswsearchfilter';
 import { ReceiptDetailsComponent } from './components/receipt.details/receipt.details.component';
 import { CheckoutComponent } from './components/checkout/checkout.component';
+import { InventoryComponent } from './components/inventory/inventory.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -22,7 +23,8 @@ import { CheckoutComponent } from './components/checkout/checkout.component';
     CategoryfilterPipe,
     SearchStrfilterPipe,
     ReceiptDetailsComponent,
-    CheckoutComponent
+    CheckoutComponent,
+    InventoryComponent
   ],
   imports: [
     BrowserModule,
