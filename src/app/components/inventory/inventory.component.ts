@@ -91,8 +91,7 @@ export class InventoryComponent implements OnInit {
 
     this.loading = true;
     var formData = this.getFormData;
-    var data = {"posuserid":ReceiptDetailsComponent.CONST_POSUSERID, 
-                "posuserpswd":ReceiptDetailsComponent.CONST_POSUSERPSWD,  
+    var data = { 
                 "posoperation":"additem",
                 "itemdetails":formData};
 

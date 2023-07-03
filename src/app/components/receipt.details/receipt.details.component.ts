@@ -38,8 +38,7 @@ export class ReceiptDetailsComponent implements OnInit {
     //
     var extraData = {};
     //nameValuePairs["soldsubjects"] = _getSoldSubQuanity(cart.cart);
-    data = {...data, ...{"posuserid":ReceiptDetailsComponent.CONST_POSUSERID, 
-                    "posuserpswd":ReceiptDetailsComponent.CONST_POSUSERPSWD,  
+    data = {...data, ...{
                     "amount":this._cartService.totalAmount,
                     "invoicedate":this.datePipe.transform(this.currentCart?.invoicedateNum,'yyyy-MM-dd'),
                     "salepoint":"office",

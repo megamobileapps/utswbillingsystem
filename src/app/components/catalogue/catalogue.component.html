@@ -1,6 +1,6 @@
 <div class="container-fluid">
     <div class="row">
-        <div class="col-12 d-flex justify-content-between align-items-center">
+        <!-- <div class="col-12 d-flex justify-content-between align-items-center">
             <div class="btn-group btn-group-lg" role="group">
                 <button type="button" (click)="createNewCart()" class="btn btn-primary active" aria-current="page">New Cart</button>
                 <button type="button" (click)="clearCart()"  class="btn btn-primary">Clear Cart</button>
@@ -13,9 +13,10 @@
             <div class="btn-group btn-group-lg" role="group">
                 <a [routerLink]="['/addinventory']" class="btn btn-info">Add Inventory</a>
             </div>
-        </div>
-        <div class="col-6">
-            <div class="card" >
+        </div> -->
+        <div class="col-md-7 col-sm-12">
+            <div class="row">
+            <div class="card col-md-6 col-sm-12" >
                 <div class="card-header d-flex justify-content-between align-items-center">
                     
                     <form class="form-inline" >
@@ -33,22 +34,18 @@
                     
                 </div>
                 <div class="card-body  overflow-auto" style="height:400px;">
+                    <p class="text text-center h5 bg-light">Filtered List</p>
                     <div class="list-group">
                         <div 
                         *ngFor="let ofItem of catalogueItems|searchstrfilter:searchStr"
                         href="#" class="list-group-item list-group-item-action " aria-current="true">
-                          <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">{{ofItem.subject}}</h5>
-                            <small><button (click)="addToCart(ofItem)" class="btn btn-sm btn-primary">Buy</button></small>
+                        <app-displayitem [ofItem]="ofItem" [enableBuy]="true"></app-displayitem>
                           </div>
-                          <p class="mb-1">{{ofItem.subId}}</p>
-                          <small>Available:{{ofItem.quantity}} Price:{{ofItem.pcost}} - {{ofItem.discount}}% = {{ofItem.netvalue}}</small>
-                        </div>
                     </div>
                 </div>
             </div>
-            <div class="card">
-                <div class="card-header">All Items</div>
+            <div class="card col-md-6 col-sm-12">
+                <div class="h5 card-header text text-center">All Items(Quick Filter)</div>
                     <div class="card-body  overflow-auto" style="height:400px;">
                         <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
                             <div class="btn-group mr-2" role="group" aria-label="First group">
@@ -65,125 +62,25 @@
                                 *ngFor="let ofItem of catalogueItems|categoryfilter:selectedCat"
                                  class="list-group-item list-group-item-action " 
                                 aria-current="true">
-                                  <div class="d-flex w-100 justify-content-between">
-                                    <h5 class="mb-1">{{ofItem.subject}}</h5>
-                                    <small>
-                                        <button 
-                                        (click)="addToCart(ofItem)" 
-                                        class="btn btn-sm btn-primary">Buy</button>
-                                    </small>
+                                    <app-displayitem [ofItem]="ofItem" [enableBuy]="true"></app-displayitem>
                                   </div>
-                                  <p class="mb-1">{{ofItem.subId}}</p>
-                                  <small>Available:{{ofItem.quantity}} Price:{{ofItem.pcost}} - {{ofItem.discount}}% = {{ofItem.netvalue}}</small>
-                                </div>
                             </div>
                             
                         </div>
                     </div>
                </div>
         </div>
-        <div class="col-6">
-            <div class="card">
-                <div class="card-header">
-                    Transaction Details
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-6">
-                            <strong>Transaction Id:</strong>   {{txId}}
-                        </div>
-                        <div class="col-6">
-                            <strong>Date:</strong>  {{today| date:'fullDate'}}
-                        </div>
-                    </div>
-                    
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-header">
-                    Purchased Items
-                </div>
-                <div class="card-body">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>S.N.</th>
-                                <th>Item</th>
-                                <th colspan="2">Quantity</th>
-                                <th>Amount</th>
-                            </tr>
-                        </thead>
-                        <tr class="py-0" *ngFor="let item of cart, let i=index">
-                            <td class="py-0">{{i}}</td>
-                            <td class="py-0"> <p>{{item.productName}}<br/><small class="text-primary">{{item.initialPrice}}- {{item.discount}}={{item.productPrice}} {{item.hsn}} {{item.gst}}%</small></p></td>
-                            <td colspan="2" class="py-0">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <div >
-                                        <div cass="input-group ">
-                                            <span  class="input-group-btn">
-                                                <button class="btn btn-danger value-control btn-sm" 
-                                                (click)="reduceQuantity(item)" data-action="minus" data-min="0"  
-                                                data-target="font-size"><i class="bi bi-dash"></i></button>
-                                            </span>
-                                            <span  style="width: 20px;" >
-                                                {{item.quantityProvider.getValue()}}
-                                            </span>
-                                            <span  class="input-group-btn">
-                                                <button 
-                                                    (click)="addQuantity(item)" class="btn btn-danger btn-sm value-control" 
-                                                    data-action="plus" data-max="99" data-target="font-size"><i class="bi bi-plus"></i>
-                                                </button>
-                                            </span>
-                                        </div>
-                                </div>
-                                </div>
-
-                            </td>
-                            <td class="py-0">{{item.quantityProvider.value * item.productPrice}}</td>
-
-                        </tr>
-                       
-                           
-                       
-                    </table>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-header">
-                    Total
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-3">Item count</div>
-                        <div class="col-9">{{totalQuantity}}</div>
-                        <div class="col-3">Amount</div>
-                        <div class="col-9">{{totalAmount}}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-body">
-                    <div class="btn-group btn-group-lg" role="group">
-                        <a [routerLink]="['/checkout']"  class="btn btn-primary">Payment</a>
-
-                    </div>
-                    <div class="btn-group btn-group-lg" role="group">
-                        <a [routerLink]="['/receipt']" class="btn btn-info">Print</a>
-
-                    </div>
-                </div>
-            </div>
-        </div>
+    </div>
+    <div class="col-md-5 col-sm-12">
+        <app-cart></app-cart>
+    </div>
         <div class="col-12">
            <div class="card">
             <div class="card-body">
-                
-                
+                <p class="text text-center">Sripank Software Solutions</p>
             </div>
            </div>
         </div>
-        <div class="col-12">
-            
-        </div>
+       
     </div>
 </div>

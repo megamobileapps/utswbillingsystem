@@ -1,0 +1,42 @@
+<div class="row">
+    <div class="card">
+        <div class="card-header text text-center h5">
+            Transaction Details
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-6">
+                    <strong>Transaction Id:</strong>   {{txId}}
+                </div>
+                <div class="col-6">
+                    <strong>Date:</strong>  {{today| date:'fullDate'}}
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            Total
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-3">Item count</div>
+                <div class="col-3">{{totalQuantity}}</div>
+                <div class="col-3 text h5">Amount</div>
+                <div class="col-3  text h5">{{totalAmount}}</div>
+                <div class="col-12">
+                    <app-checkout></app-checkout>
+                </div>
+            </div>
+        </div>
+    </div>
+   
+    <div class="card">
+        <div class="card-header">
+            Purchased Items
+        </div>
+        <app-displaycart></app-displaycart>
+    </div>
+    
+</div>

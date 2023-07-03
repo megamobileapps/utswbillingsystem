@@ -59,4 +59,12 @@ export class CheckoutComponent implements OnInit {
   get currentCart():CartDetails|undefined|null{
     return this._cartService.currentCart;
   }
+
+  get customerName():String|null|undefined{
+    return this._cartService.currentCart?.username;
+  }
+
+  get customerPh():String|null|undefined{
+    return this._cartService.currentCart?.phonenumber;
+  }
 }

@@ -1,0 +1,13 @@
+<div class="card-body">
+    <div class="row">
+        <div class="col-1"><strong>S.</strong></div>
+        <div class="col-5"><strong>Item</strong></div>
+        <div class="col-3"><strong>Quantity</strong></div>
+        <div class="col-3"><strong>Amount</strong></div>
+    </div>
+        
+    <div class="row py-0" *ngFor="let item of cart, let i=index">
+        <app-displaycartitem [indexI]="i+1" [item]="item"></app-displaycartitem>
+
+    </div>
+</div>

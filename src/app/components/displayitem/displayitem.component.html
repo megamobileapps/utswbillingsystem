@@ -1,0 +1,17 @@
+<div *ngIf="!isMobileScreen" class="py-0">
+    <div class="d-flex w-100 justify-content-between">
+        <p class="mb-1 text"><strong>{{ofItem!.subject}} MRP: {{ofItem!.pcost}}</strong></p>
+        <small *ngIf="enableBuy"><button (click)="addToCart(ofItem)" class="btn btn-sm btn-primary">Buy</button></small>
+    </div>
+    <p class="mb-1">{{ofItem!.subId}}
+    <small>Available:{{ofItem!.quantity}} Price:{{ofItem!.pcost}} - {{ofItem!.discount}}% = {{ofItem!.netvalue}}</small></p>
+</div>
+
+<div *ngIf="isMobileScreen" class="py-0">
+    <div class="d-flex w-100 justify-content-between">
+        <p class="mb-1 text"><strong>{{ofItem!.subject}} MRP: {{ofItem!.pcost}}</strong></p>
+        <small *ngIf="enableBuy"><button (click)="addToCart(ofItem)" class="btn btn-sm btn-primary">Buy</button></small>
+    </div>
+    <p class="mb-1">{{ofItem!.subId}}
+    <small>Available:{{ofItem!.quantity}} Price:{{ofItem!.pcost}} - {{ofItem!.discount}}% = {{ofItem!.netvalue}}</small></p>
+</div>

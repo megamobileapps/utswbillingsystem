@@ -15,6 +15,13 @@ import { SearchStrfilterPipe } from './pipes/utswsearchfilter';
 import { ReceiptDetailsComponent } from './components/receipt.details/receipt.details.component';
 import { CheckoutComponent } from './components/checkout/checkout.component';
 import { InventoryComponent } from './components/inventory/inventory.component';
+import { DisplayitemComponent } from './components/displayitem/displayitem.component';
+import { DisplaycartitemComponent } from './components/displaycartitem/displaycartitem.component';
+import { DisplaycartComponent } from './components/displaycart/displaycart.component';
+import { TopheaderComponent } from './components/topheader/topheader.component';
+import { CartComponent } from './components/cart/cart.component';
+import { LoginComponent } from './components/auth/login/login.component';
+import { LogoutComponent } from './components/auth/login/logout.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -24,7 +31,14 @@ import { InventoryComponent } from './components/inventory/inventory.component';
     SearchStrfilterPipe,
     ReceiptDetailsComponent,
     CheckoutComponent,
-    InventoryComponent
+    InventoryComponent,
+    DisplayitemComponent,
+    DisplaycartitemComponent,
+    DisplaycartComponent,
+    TopheaderComponent,
+    CartComponent,
+    LoginComponent,
+    LogoutComponent
   ],
   imports: [
     BrowserModule,

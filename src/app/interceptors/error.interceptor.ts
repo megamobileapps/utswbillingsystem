@@ -5,7 +5,8 @@ import { catchError } from 'rxjs/operators';
 
 
 import { ActivatedRoute, Router } from '@angular/router';
-import { AuthService } from '../services/auth.service';
+import { AuthService } from '../components/auth/auth.service';
+
 
 @Injectable()
 export class ErrorInterceptor implements HttpInterceptor {

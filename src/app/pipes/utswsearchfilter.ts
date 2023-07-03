@@ -21,6 +21,8 @@ export class SearchStrfilterPipe implements PipeTransform {
             item.grade.toLowerCase().indexOf(filter.toString()) != -1
             ||item.subject.toLowerCase().indexOf(filter.toString()) != -1
             ||item.subId.toLowerCase().indexOf(filter.toString()) != -1
+            || item.pcost.toString().toLowerCase().indexOf(filter.toString()) != -1
+            || item.barcode.toString().toLowerCase().indexOf(filter.toString()) != -1
             );
     }
 }

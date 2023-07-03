@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, CanActivateChild, CanDeactivate, CanLoad, CanMatch, Route, Router, RouterStateSnapshot, UrlSegment, UrlTree } from '@angular/router';
 import { Observable } from 'rxjs';
-import { AuthService } from '../services/auth.service';
-
+import {AuthService} from './auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -23,7 +22,7 @@ export class AuthGuard implements CanActivate, CanActivateChild, CanDeactivate<u
   /* . . . */
 
   checkLogin(url: string): true|UrlTree {
-    if (this.authService.userValue) {
+    if (this.authService.userValue && this.authService.userValue.username != "") {
       // Store the attempted URL for redirecting
       this.authService.redirectUrl = url;
       return true;
