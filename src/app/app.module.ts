@@ -6,7 +6,7 @@ import { BillComponent } from './components/bill/bill.component';
 import { CatalogueComponent } from './components/catalogue/catalogue.component';
 import { AppRoutingModule } from './app-routing.module';
 import {APP_BASE_HREF, DatePipe, CommonModule} from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { BasicAuthInterceptor } from './interceptors/basic-auth.interceptor';
 import { ErrorInterceptor } from './interceptors/error.interceptor';
@@ -22,6 +22,10 @@ import { TopheaderComponent } from './components/topheader/topheader.component';
 import { CartComponent } from './components/cart/cart.component';
 import { LoginComponent } from './components/auth/login/login.component';
 import { LogoutComponent } from './components/auth/login/logout.component';
+import { NgSelectModule } from '@ng-select/ng-select';
+import { GenerateBarcodeComponent } from './components/generate-barcode/generate-barcode.component';
+import { UtswGenericfilterPipe } from './pipes/utswgenericfilter';
+import { NgxBarcode6Module } from 'ngx-barcode6';
 @NgModule({
   declarations: [
     AppComponent,
@@ -29,6 +33,7 @@ import { LogoutComponent } from './components/auth/login/logout.component';
     CatalogueComponent,
     CategoryfilterPipe,
     SearchStrfilterPipe,
+    UtswGenericfilterPipe,
     ReceiptDetailsComponent,
     CheckoutComponent,
     InventoryComponent,
@@ -38,19 +43,25 @@ import { LogoutComponent } from './components/auth/login/logout.component';
     TopheaderComponent,
     CartComponent,
     LoginComponent,
-    LogoutComponent
+    LogoutComponent,
+    GenerateBarcodeComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
+    FormsModule,
     ReactiveFormsModule,
-    HttpClientModule
+    HttpClientModule,
+    NgSelectModule,
+    NgxBarcode6Module
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: BasicAuthInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
     {provide: APP_BASE_HREF, useValue: '/in/billing/'} ,
-    DatePipe
+    DatePipe,
+    SearchStrfilterPipe,
+    UtswGenericfilterPipe
   ],
   bootstrap: [AppComponent]
 })

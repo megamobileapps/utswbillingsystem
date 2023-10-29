@@ -1,0 +1,104 @@
+
+<div class="container">
+    <div class="row">
+        <div class="col-8">
+
+        </div>
+        <div class="col-4">
+            
+        </div>
+    </div>
+</div>
+<!-- <div class="container">
+    <div class="row">
+        <div class="col-12">
+            <p>Generate Barcode</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4">
+            <label for="level1">{{levelWiseFieldName[0]}}</label>
+            <ng-select
+                id="level1"
+                [items]="data[0]|async"
+                [bindLabel]="showFieldInDD"
+                [trackByFn]="trackByFn"
+                [minTermLength]="minLengthTerm" 
+                [loading]="dataLoading"
+                typeToSearchText="case sensitive Please enter {{minLengthTerm}} or more characters"
+                [typeahead]="searchDataInput[0]"
+                [addTag]="true"
+                [(ngModel)]="selectedValue[0]"
+                [multiple]="false"
+                [searchable]="true"
+                (add)="addNew(0,$event)"
+                (change)="onSelect(0,$event)"
+                >
+                </ng-select>
+        </div>
+        <div class="col-4">
+            <label for="level2">{{levelWiseFieldName[1]}}</label>
+            <ng-select
+                id="level2"
+                [items]="data[1]|async"
+                [bindLabel]="showFieldInDD"
+                [trackByFn]="trackByFn"
+                [minTermLength]="minLengthTerm" 
+                [loading]="dataLoading"
+                typeToSearchText="Please enter {{minLengthTerm}} or more characters"
+                [typeahead]="searchDataInput[1]"
+                [addTag]="true"
+                [(ngModel)]="selectedValue[1]"
+                [multiple]="false"
+                [searchable]="true"
+                (add)="addNew(1,$event)"
+                (change)="onSelect(1,$event)"
+                [disabled]="!this.selectedCategories[0]"
+                >
+                </ng-select>
+        </div>
+        <div class="col-4">
+            <label for="leve31">{{levelWiseFieldName[2]}}</label>
+            <ng-select
+                id="level3"
+                [items]="data[2]|async"
+                [bindLabel]="showFieldInDD"
+                [trackByFn]="trackByFn"
+                [minTermLength]="minLengthTerm" 
+                [loading]="dataLoading"
+                typeToSearchText="Please enter {{minLengthTerm}} or more characters"
+                [typeahead]="searchDataInput[2]"
+                [addTag]="true"
+                [(ngModel)]="selectedValue[2]"
+                [multiple]="false"
+                [searchable]="true"
+                (add)="addNew(2,$event)"
+                (change)="onSelect(2,$event)"
+                [disabled]="!this.selectedCategories[1]"
+            >
+            </ng-select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4">
+            Selected Label {{getSelectedLabel()}}
+        </div>
+        <div class="col-2">
+            <div style="text-align:center">
+                <ngx-barcode6
+                  [bc-format]="'CODE128'"
+                  [bc-value]="label"
+                  [bc-display-value]="true"
+                >
+                </ngx-barcode6>
+              </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-4">
+            <button type="button" (click)="clear()">Clear</button>
+        </div>
+    </div>
+</div>
+
+-->
