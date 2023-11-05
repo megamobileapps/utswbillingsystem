@@ -1,0 +1,6 @@
+<p>Drop here start</p>
+<mat-chip-list cdkDropList class="droppable-chipset" (cdkDropListDropped)="onItemDropped($event)" style="background-color: red;">
+    <mat-chip *ngFor="let item of droppedItems" cdkDrag>{{ item }}</mat-chip>
+  </mat-chip-list>
+  
+  <p>Drop here end</p>

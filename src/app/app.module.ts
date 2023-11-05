@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
+import {AppMaterialModule } from './app-material/app-material.module'
 import { AppComponent } from './app.component';
 import { BillComponent } from './components/bill/bill.component';
 import { CatalogueComponent } from './components/catalogue/catalogue.component';
@@ -26,6 +27,12 @@ import { NgSelectModule } from '@ng-select/ng-select';
 import { GenerateBarcodeComponent } from './components/generate-barcode/generate-barcode.component';
 import { UtswGenericfilterPipe } from './pipes/utswgenericfilter';
 import { NgxBarcode6Module } from 'ngx-barcode6';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { DraggableChipsetComponent } from './components/draggable-chipset/draggable-chipset.component';
+import { DroppableChipsetComponent } from './components/droppable-chipset/droppable-chipset.component';
+
+
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -44,7 +51,9 @@ import { NgxBarcode6Module } from 'ngx-barcode6';
     CartComponent,
     LoginComponent,
     LogoutComponent,
-    GenerateBarcodeComponent
+    GenerateBarcodeComponent,
+    DraggableChipsetComponent,
+    DroppableChipsetComponent
   ],
   imports: [
     BrowserModule,
@@ -53,7 +62,9 @@ import { NgxBarcode6Module } from 'ngx-barcode6';
     ReactiveFormsModule,
     HttpClientModule,
     NgSelectModule,
-    NgxBarcode6Module
+    NgxBarcode6Module,
+    BrowserAnimationsModule,
+    AppMaterialModule
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: BasicAuthInterceptor, multi: true },

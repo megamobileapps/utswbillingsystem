@@ -1,0 +1,58 @@
+<mat-chip-list cdkDropList 
+    #todoList1="cdkDropList"
+      [cdkDropListData]="draggableItems"
+      [cdkDropListConnectedTo]="[doneList1]"
+      
+      (cdkDropListDropped)="drop($event)"
+        class="draggable-chipset">
+    <mat-chip *ngFor="let item of draggableItems" cdkDrag>{{ item }}</mat-chip>
+</mat-chip-list>
+  
+<p>Drop here start</p>
+    <mat-chip-list cdkDropList 
+    class="droppable-chipset" 
+    #doneList1="cdkDropList"
+    [cdkDropListData]="droppedItems"
+    [cdkDropListConnectedTo]="[todoList1]"
+    
+    (cdkDropListDropped)="drop($event)">
+        <mat-chip *ngFor="let item of droppedItems" cdkDrag>{{ item }}</mat-chip>
+    </mat-chip-list>
+<p>Drop here end</p>
+
+<div class="example-container">
+  <div class="row">
+    <div class="col-6">
+        <h2>To do</h2>
+  
+    <div
+      cdkDropList
+      #todoList="cdkDropList"
+      [cdkDropListData]="todo"
+      [cdkDropListConnectedTo]="[doneList]"
+      class="example-list"
+      (cdkDropListDropped)="drop($event)">
+      <div class="example-box" *ngFor="let item of todo" cdkDrag>{{item}}</div>
+    </div>
+    </div>
+    <div class="col-6">
+        <h2>Done</h2>
+  
+    <div
+      cdkDropList
+      #doneList="cdkDropList"
+      [cdkDropListData]="done"
+      [cdkDropListConnectedTo]="[todoList]"
+      class="example-list"
+      (cdkDropListDropped)="drop($event)">
+      <div class="example-box" *ngFor="let item of done" cdkDrag>{{item}}</div>
+    </div>
+    </div>
+  </div>
+    
+  </div>
+  
+  <div class="example-container">
+    
+  </div>
+  

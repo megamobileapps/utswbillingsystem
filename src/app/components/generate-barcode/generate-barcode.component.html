@@ -1,11 +1,138 @@
 
 <div class="container">
     <div class="row">
-        <div class="col-8">
-
-        </div>
         <div class="col-4">
-            
+            <div
+                cdkDropList
+                #doneList1="cdkDropList"
+                [cdkDropListData]="done"
+                [cdkDropListConnectedTo]="[todoList1,todoList2]"
+                class="example-list"
+                (cdkDropListDropped)="drop2($event)">
+                <div class="example-box" *ngFor="let item of done" cdkDrag>{{item}}</div>
+            </div>
+            <hr style="color:red;height: 20px;"/>
+            <p class="h4">New list for Keyword and Code name</p>
+            <div
+                cdkDropList
+                #codeFormat1="cdkDropList"
+                [cdkDropListData]="selectedKeywords"
+                [cdkDropListConnectedTo]="[todoList1,todoList2]"
+                class="example-list"
+                (cdkDropListDropped)="drop3($event)">
+                <div class="example-box" *ngFor="let item of selectedKeywords" cdkDrag>{{item.name}}-{{item.value}}</div>
+            </div>
+
+            <!-- <mat-chip-list cdkDropList 
+                #doneList1="cdkDropList"
+                [cdkDropListData]="draggableItems"
+                [cdkDropListConnectedTo]="[todoList1]"
+                
+                (cdkDropListDropped)="drop2($event)"
+                    class="draggable-chipset">
+                <mat-chip *ngFor="let item of draggableItems" cdkDrag>{{ item }}</mat-chip>
+            </mat-chip-list> -->
+            <!-- <app-draggable-chipset></app-draggable-chipset> -->
+      
+       
+       
+            <mat-slide-toggle>Toggle me!</mat-slide-toggle>
+            <mat-tab-group dynamicHeight preserveContent> 
+                <mat-tab label="Generate BarCode"> 
+                    <mat-chip-set
+                        class="example-chip"
+                        cdkDropList 
+                        cdkDropListOrientation="horizontal"
+                        (cdkDropListDropped)="drop($event)">
+                        <mat-chip
+                            class="example-box"
+                            cdkDrag
+                            *ngFor="let vegetable of vegetables">
+                            {{vegetable.name}}
+                        </mat-chip>
+                        </mat-chip-set>
+
+                </mat-tab>
+            </mat-tab-group>
+        </div>
+        <div class="col-5">
+            <mat-tab-group dynamicHeight preserveContent> 
+                <mat-tab label="First"> 
+                    <mat-chip-set
+                        class="example-chip"
+                        cdkDropList 
+                        cdkDropListOrientation="horizontal"
+                        (cdkDropListDropped)="drop($event)">
+                        <mat-chip
+                            class="example-box"
+                            cdkDrag
+                            *ngFor="let vegetable of vegetables">
+                            {{vegetable.name}}
+                        </mat-chip>
+                        </mat-chip-set>
+
+                </mat-tab>
+                <mat-tab label="Second"> 
+                    <div class="example-button-container">
+                        <button mat-raised-button (click)="formControl.disable()">Disable form control</button>
+                        <button mat-raised-button (click)="formControl.enable()">Enable form control</button>
+                      </div>
+                      <p>
+                        <em>Enter Barcode keywords</em>
+                      </p>
+                      <mat-form-field class="example-form-field">
+                        <mat-label>Barcode keywords</mat-label>
+                        <mat-chip-grid 
+                        
+                        #chipGrid 
+                        aria-label="Enter keywords" 
+                        [formControl]="formControl" >
+                          <mat-chip-row *ngFor="let keyword of keywords" (removed)="removeKeyword(keyword)">
+                            {{keyword.name}}-{{keyword.value}}
+                            <button matChipRemove aria-label="'remove ' + keyword">
+                              <mat-icon>cancel</mat-icon>
+                            </button>
+                          </mat-chip-row>
+                        </mat-chip-grid>
+                        <input placeholder="New keyword..."
+                                [matChipInputFor]="chipGrid"
+                                (matChipInputTokenEnd)="add($event)"/>
+                      </mat-form-field>
+                      
+                      <p>
+                        <strong>The following keywords are entered:</strong> {{formControl.value}}
+                      </p>    
+                </mat-tab>
+                    
+                <mat-tab label="Third"> 
+                    <p>Drag1 here start</p>
+                    <mat-chip-list cdkDropList 
+                        class="droppable-chipset" todoList1
+                        #todoList1="cdkDropList"
+                        [cdkDropListData]="droppedItems"
+                        [cdkDropListConnectedTo]="[doneList1]"
+                        
+                        (cdkDropListDropped)="drop2($event)">
+                            <mat-chip *ngFor="let item of droppedItems" cdkDrag>{{ item }}</mat-chip>
+                    </mat-chip-list>
+                    <p>Drag1 here end</p>
+                    <p>Drag 2 here start</p>
+                    <mat-chip-list cdkDropList 
+                        class="droppable-chipset" 
+                        todoList2
+                        #todoList2="cdkDropList"
+                        [cdkDropListData]="droppedItems2"
+                        [cdkDropListConnectedTo]="[doneList1]"
+                        
+                        (cdkDropListDropped)="drop2($event)">
+                            <mat-chip *ngFor="let item of droppedItems2" cdkDrag>{{ item }}</mat-chip>
+                    </mat-chip-list>
+                    <p>Drag2 here end</p>
+                </mat-tab>
+                
+                <mat-tab label="Fourth"> Content 4 </mat-tab>
+                <mat-tab label="Fifth"> Content 5 </mat-tab>
+              </mat-tab-group>
         </div>
     </div>
 </div>
