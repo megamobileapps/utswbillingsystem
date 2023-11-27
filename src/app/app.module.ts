@@ -28,8 +28,7 @@ import { GenerateBarcodeComponent } from './components/generate-barcode/generate
 import { UtswGenericfilterPipe } from './pipes/utswgenericfilter';
 import { NgxBarcode6Module } from 'ngx-barcode6';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { DraggableChipsetComponent } from './components/draggable-chipset/draggable-chipset.component';
-import { DroppableChipsetComponent } from './components/droppable-chipset/droppable-chipset.component';
+
 
 
 
@@ -52,8 +51,7 @@ import { DroppableChipsetComponent } from './components/droppable-chipset/droppa
     LoginComponent,
     LogoutComponent,
     GenerateBarcodeComponent,
-    DraggableChipsetComponent,
-    DroppableChipsetComponent
+
   ],
   imports: [
     BrowserModule,

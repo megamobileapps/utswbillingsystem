@@ -8,6 +8,9 @@ import {NgFor} from '@angular/common';
 import {MatIconModule} from '@angular/material/icon';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatButtonModule} from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
+import {MatListModule} from '@angular/material/list';
+import {MatGridListModule} from '@angular/material/grid-list';
 
 @NgModule({
   declarations: [],
@@ -16,14 +19,16 @@ import {MatButtonModule} from '@angular/material/button';
     MatSlideToggleModule ,
     MatTabsModule,   
     MatChipsModule, CdkDropList, NgFor, CdkDrag,
-    MatIconModule,MatFormFieldModule,MatButtonModule,
+    MatIconModule,MatFormFieldModule,MatButtonModule,MatInputModule,MatListModule,
+    MatGridListModule,
     
   ],
   exports: [
     MatSlideToggleModule,
     MatTabsModule,MatFormFieldModule,    
     MatChipsModule, CdkDropList, NgFor, CdkDrag,
-    MatIconModule,MatButtonModule,
+    MatIconModule,MatButtonModule,MatInputModule,MatListModule,
+    MatGridListModule,
   ]
 })
 export class AppMaterialModule { }
