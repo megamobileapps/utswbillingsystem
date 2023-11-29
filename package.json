@@ -15,6 +15,7 @@
     "@angular/common": "latest",
     "@angular/compiler": "^16.2.11",
     "@angular/core": "latest",
+    "@angular/fire": "^16.0.0",
     "@angular/forms": "latest",
     "@angular/material": "^15.2.9",
     "@angular/platform-browser": "latest",

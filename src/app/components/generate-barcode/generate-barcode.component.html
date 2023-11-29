@@ -382,14 +382,15 @@
                 (cdkDropListDropped)="main_drop($event,3)">
                 <div class="example-box" *ngFor="let item of relationshipholder[3]" cdkDrag>{{item}}</div>
             </div>
-            <span>Level 5</span>
-            <div
+            <span> Level 5</span>
+            <div 
                 cdkDropList
                 #relationshipList5="cdkDropList"
                 [cdkDropListData]="relationshipholder[4]"
                 [cdkDropListConnectedTo]="[todoList5]"
                 class="example-list"
                 (cdkDropListDropped)="main_drop($event,4)">
+               
                 <div class="example-box" *ngFor="let item of relationshipholder[4]" cdkDrag>{{item}}</div>
             </div>
         </div>
@@ -397,9 +398,11 @@
             <p class="text text-center text-bg-secondary ">Existing Relationship</p>
             <div *ngFor="let level of [0,1,2,3,4]">
                 <p>Level {{level+1}}</p>
-                <mat-selection-list  [multiple]="false" #selectedExistingLabel (selectionChange)="existingRelationshipSelectionChange($event, level)">
-                    <mat-list-option *ngFor="let existingLabel of get_relationships_for_level(level)" [value]="existingLabel"><span class="text text-bg-secondary">{{existingLabel[0]}}</span> -> {{existingLabel[1]}} </mat-list-option>
-                </mat-selection-list>
+                <span *ngIf="levelReationList.length>=level+1">
+                    <mat-selection-list  [multiple]="false" #selectedExistingLabel (selectionChange)="existingRelationshipSelectionChange($event, level)">
+                        <mat-list-option *ngFor="let existingLabel of get_relationships_for_level(level)" [value]="existingLabel"><span class="text text-bg-secondary">{{existingLabel[0]}}</span> -> {{existingLabel[1]}} </mat-list-option>
+                    </mat-selection-list>
+                </span>
             </div>
             <p>
                 <!-- Relation selected: {{selectedExistingLabel.selectedOptions.hasValue() ? selectedExistingLabel.selectedOptions.selected[0].value : 'None'}} -->
