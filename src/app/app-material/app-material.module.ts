@@ -11,6 +11,7 @@ import {MatButtonModule} from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import {MatListModule} from '@angular/material/list';
 import {MatGridListModule} from '@angular/material/grid-list';
+import {MatSelectModule} from '@angular/material/select';
 
 @NgModule({
   declarations: [],
@@ -20,7 +21,7 @@ import {MatGridListModule} from '@angular/material/grid-list';
     MatTabsModule,   
     MatChipsModule, CdkDropList, NgFor, CdkDrag,
     MatIconModule,MatFormFieldModule,MatButtonModule,MatInputModule,MatListModule,
-    MatGridListModule,
+    MatGridListModule,MatSelectModule,
     
   ],
   exports: [
@@ -28,7 +29,7 @@ import {MatGridListModule} from '@angular/material/grid-list';
     MatTabsModule,MatFormFieldModule,    
     MatChipsModule, CdkDropList, NgFor, CdkDrag,
     MatIconModule,MatButtonModule,MatInputModule,MatListModule,
-    MatGridListModule,
+    MatGridListModule,MatSelectModule,
   ]
 })
 export class AppMaterialModule { }

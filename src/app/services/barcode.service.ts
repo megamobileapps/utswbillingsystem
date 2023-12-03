@@ -92,7 +92,7 @@ export class BarcodeService {
     if(typeof data.id === 'undefined'  || data.id === '' || data.id == null )
       data.id = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 12);
     //this.outwardSales.push(data);
-    console.log("addBarcode():",JSON.stringify(data));
+    console.log("addBarcodecomponentAtLevel():",JSON.stringify(data));
     data.key = data.id;
     
     return this.commonService.add(this.basefolder+"/barcodecomponents/", data);

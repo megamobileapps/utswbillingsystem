@@ -20,6 +20,8 @@ import { MatSelectionListChange } from '@angular/material/list';
 import { SaleservicesService } from 'src/app/services/saleservices.service';
 import { BarcodeService } from 'src/app/services/barcode.service';
 
+import * as XLSX from "xlsx";
+import { MatSelectChange } from '@angular/material/select';
 
 
 export interface CodeKeyWords {
@@ -35,7 +37,7 @@ export interface CodeKeyWords {
 
 export class GenerateBarcodeComponent {
 
-  maxLevelOfSelection:number=3;
+  maxLevelOfSelection:number=5;
   selectedValue : Array<any>=[];
   minLengthTerm:number=2;
   dataLoading:boolean=false;
@@ -59,6 +61,7 @@ export class GenerateBarcodeComponent {
   // This is the list used in barcode level in UI for the current barcode values
   done:Array<string[]> = [[],[],[],[],[]];
   relationshipholder:Array<string[]> = [[],[],[],[],[]];
+  levelList = [0,1,2,3,4];
 
   // These the barcode parts and can be added by add function in UI
   barcodeparts: Array<string[]> = [['Item 14-L14','Item 15-L15', 'Item 16-L16', 'Item 17-L17', 'Item 18-L18'],
@@ -354,6 +357,9 @@ export class GenerateBarcodeComponent {
           finalLevelComponentsArray.push(this.relationshipholder[i-1][j]?this.relationshipholder[i-1][j]:"")
         }
         isDone = true;
+      }else{
+        console.log('You can have only one entry in the relationship child');
+        alert('Multiple entries in child node found.. Not saving');
       }
     }
     if(isDone == true && child != '' && finalLevelComponentsArray.length > 0) {
@@ -505,5 +511,67 @@ export class GenerateBarcodeComponent {
     });
   }
 
+  levelSelectedToUploadFile=0
+  onxlsxFileChange(evt: any) {
+    const target: DataTransfer = <DataTransfer>(evt.target);
+    if (target.files.length > 1) {
+      alert('Multiple files are not allowed');
+      return;
+    }
+    else {
+      const reader: FileReader = new FileReader();
+      reader.onload = (e: any) => {
+        const bstr: string = e.target.result;
+        const wb: XLSX.WorkBook = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws: XLSX.WorkSheet = wb.Sheets[wsname];
+        let data:Array<Array<string>> = (XLSX.utils.sheet_to_json(ws, { header: 1 }));
+        // Print the Excel Data
+        console.log(data);
+
+        // first line of data is the header part
+        let data_to_push = new Map<string, string>();
+        for(let csvIndex=1;csvIndex<data.length; csvIndex++){
+          if(typeof data[csvIndex][0] === 'undefined' ||  data[csvIndex][0] == '' || typeof data[csvIndex][1] === 'undefined' || data[csvIndex][1] == '') {
+            continue;
+          }
+          let value = `${data[csvIndex][0]}-${data[csvIndex][1]}`;
+          console.log(`onxlsxFileChange() level ${this.levelSelectedToUploadFile} value ${value}`);
+          if (this.levelSelectedToUploadFile > this.maxLevelOfSelection || this.levelSelectedToUploadFile <0 || typeof value === 'undefined' || value =='' ){
+            continue;
+          }else {
+            if(data[csvIndex][0] != '' && data[csvIndex][1] != '' && data_to_push.has( data[csvIndex][0]) == false  ) {
+              data_to_push.set(data[csvIndex][0], data[csvIndex][1]);
+            }
+          }
+        }
+        console.log('data to push to db for level is '+data_to_push.values())
+        data_to_push.forEach((m_value, m_key)=>{
+          if(typeof this.barcodeparts[this.levelSelectedToUploadFile] === 'undefined' ) {
+              for(let leveli = 0; leveli < this.levelSelectedToUploadFile+1; leveli++){
+                if(typeof this.barcodeparts[leveli] === 'undefined' ) {
+                  this.barcodeparts[ leveli ]=[];
+              }
+            }
+          }
+          let value = `${m_key}-${m_value}`;
+          this.barcodeparts[this.levelSelectedToUploadFile].push(value);
+          this.barcodeService.addBarcodecomponentAtLevel({level:this.levelSelectedToUploadFile, component:value}).then((res) => {
+            console.log('onxlsxFileChange: ',res);        
+          })
+          .catch((err) => {
+            console.log('onxlsxFileChange error: ' + err);
+            alert('Error while onxlsxFileChange');        
+          });
+        });
+
+      }
+      reader.readAsBinaryString(target.files[0]);
+    }
+  }
+  leveldatachanged(event:MatSelectChange){
+   console.log('leveldatachange() event value='+event.value);
+   this.levelSelectedToUploadFile = event.value;
+  }
 
 }

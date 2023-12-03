@@ -2,6 +2,36 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-2">
+            <div style="text-align:center">
+                <ngx-barcode6
+                    [bc-format]="'CODE128'"
+                    [bc-value]="getSelectedLabel()"
+                    [bc-display-value]="true"
+                >
+                </ngx-barcode6>
+                </div>
+        </div>
+    </div>
+</div>
+<div class="container-fluid d-print-none">
+    <div class="row">
+       <div class="col-12"><p class="text text-center text-bg-secondary ">Upload Levelwise Code and Name</p></div>
+        
+        <div class="col-2">
+            <mat-form-field>
+                <mat-label >Select Level</mat-label>
+                <mat-select [multiple]="false" name="selectedLevelInputData" #selectedLevelInputData (selectionChange)="leveldatachanged($event)">
+                    <mat-option *ngFor="let level of levelList" [value]="level">Level{{level+1}} </mat-option>
+                </mat-select>
+            </mat-form-field>            
+        </div>
+        <div class="col-2"> 
+            <input type="file" id="leveldata" name="leveldata" (input)="onxlsxFileChange($event)" multiple="false">
+        </div>
+        
+    </div>
+    <div class="row">
+        <div class="col-2">
             <p class="text text-center text-bg-secondary ">Existing Labels</p>
             <mat-selection-list [multiple]="false" #selectedExistingLabel (selectionChange)="existingLabelSelectionChange($event)">
                 <mat-list-option *ngFor="let existingLabel of existingLabelList" [value]="existingLabel">{{existingLabel}} </mat-list-option>

@@ -28,6 +28,7 @@
     "ngx-barcode6": "^1.0.23",
     "rxjs": "latest",
     "tslib": "latest",
+    "xlsx": "^0.18.5",
     "zone.js": "latest"
   },
   "devDependencies": {
