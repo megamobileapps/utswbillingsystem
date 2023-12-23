@@ -36,7 +36,7 @@ export class BarcodeService {
   
   addBarcodeRelationship(data: any) {
     if((typeof data.level === 'undefined'  || data.level === '' || data.level == null ) ||
-    (typeof data.child_value === 'undefined'  || data.child_value === '' || data.child_value == null ) ||
+    (typeof data.children_value === 'undefined'  || data.children_value === '' || data.children_value == null ) ||
     (typeof data.parent_value === 'undefined'  || data.parent_value === '' || data.parent_value == null )
     ){
       return Promise.reject('Undefined values for mandatory fields');

@@ -108,7 +108,7 @@
                     <div style="text-align:center">
                         <ngx-barcode6
                             [bc-format]="'CODE128'"
-                            [bc-value]="label"
+                            [bc-value]="getSelectedLabel()"
                             [bc-display-value]="true"
                         >
                         </ngx-barcode6>
@@ -168,7 +168,7 @@
                                 <mat-form-field >
                                     <span matPrefix> </span>
                                   <mat-label>Add new</mat-label>
-                                  <input matInput placeholder="name-code" name= "newlyaddeditem" [(ngModel)]= "newlyaddeditem"  value="">
+                                  <input matInput placeholder="name###code" name= "newlyaddeditem" [(ngModel)]= "newlyaddeditem"  value="">
                                   <button matSuffix mat-button (click)="addnow(0)"><mat-icon >add_box</mat-icon></button>
                                 </mat-form-field>
                               
@@ -215,7 +215,7 @@
                                 <mat-form-field >
                                     <span matPrefix> </span>
                                   <mat-label>Add new</mat-label>
-                                  <input matInput placeholder="name-code" name= "newlyaddeditem" [(ngModel)]= "newlyaddeditem"  value="">
+                                  <input matInput placeholder="name###code" name= "newlyaddeditem" [(ngModel)]= "newlyaddeditem"  value="">
                                   <button matSuffix mat-button (click)="addnow(1)"><mat-icon >add_box</mat-icon></button>
                                 </mat-form-field>
                               
@@ -262,7 +262,7 @@
                                 <mat-form-field >
                                     <span matPrefix> </span>
                                   <mat-label>Add new</mat-label>
-                                  <input matInput placeholder="name-code" name= "newlyaddeditem" [(ngModel)]= "newlyaddeditem"  value="">
+                                  <input matInput placeholder="name###code" name= "newlyaddeditem" [(ngModel)]= "newlyaddeditem"  value="">
                                   <button matSuffix mat-button (click)="addnow(2)"><mat-icon >add_box</mat-icon></button>
                                 </mat-form-field>
                               
@@ -309,7 +309,7 @@
                                 <mat-form-field >
                                     <span matPrefix> </span>
                                   <mat-label>Add new</mat-label>
-                                  <input matInput placeholder="name-code" name= "newlyaddeditem" [(ngModel)]= "newlyaddeditem"  value="">
+                                  <input matInput placeholder="name###code" name= "newlyaddeditem" [(ngModel)]= "newlyaddeditem"  value="">
                                   <button matSuffix mat-button (click)="addnow(3)"><mat-icon >add_box</mat-icon></button>
                                 </mat-form-field>
                               
@@ -356,7 +356,7 @@
                                 <mat-form-field >
                                     <span matPrefix> </span>
                                   <mat-label>Add new</mat-label>
-                                  <input matInput placeholder="name-code" name= "newlyaddeditem" [(ngModel)]= "newlyaddeditem"  value="">
+                                  <input matInput placeholder="name###code" name= "newlyaddeditem" [(ngModel)]= "newlyaddeditem"  value="">
                                   <button matSuffix mat-button (click)="addnow(4)"><mat-icon >add_box</mat-icon></button>
                                 </mat-form-field>
                               </form>

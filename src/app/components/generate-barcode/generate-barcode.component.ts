@@ -62,6 +62,7 @@ export class GenerateBarcodeComponent {
   done:Array<string[]> = [[],[],[],[],[]];
   relationshipholder:Array<string[]> = [[],[],[],[],[]];
   levelList = [0,1,2,3,4];
+  kay_value_separator ='###'
 
   // These the barcode parts and can be added by add function in UI
   barcodeparts: Array<string[]> = [['Item 14-L14','Item 15-L15', 'Item 16-L16', 'Item 17-L17', 'Item 18-L18'],
@@ -129,16 +130,25 @@ export class GenerateBarcodeComponent {
       }
       
     }else {
-      if(this.levelReationList.length > (currentIndex + 1)) {
-        for(let levelIndex=0;levelIndex<this.levelReationList[ currentIndex + 1].length;levelIndex++){
-          let splitted_data = this.levelReationList[ currentIndex + 1][levelIndex][1].split(',');
-          let element_to_push_in_fltr = this.levelReationList[ currentIndex + 1][levelIndex][0];
-          if ( splitted_data.includes(currentLabel) == true){
-            if(this.filteredItems1.length > (currentIndex+1) ){
-              this.filteredItems1[currentIndex+1].push(element_to_push_in_fltr);
-            }
-           
+      if(this.levelReationList.length >= (currentIndex + 1)) {
+        for(let levelIndex=0;levelIndex<this.levelReationList[ currentIndex ].length;levelIndex++){
+          let parent = '';
+          let children_value = '';
+          let splitted_data = this.levelReationList[ currentIndex ][levelIndex][1].split(','); // children
+          let element_to_push_in_fltr = this.levelReationList[ currentIndex ][levelIndex][0]; // parent
+
+          if (element_to_push_in_fltr == currentLabel) {
+            splitted_data.forEach((child_val, child_index)=> {
+              this.filteredItems1[currentIndex+1].push(child_val);
+            });
+            
           }
+          // if ( splitted_data.includes(currentLabel) == true){
+          //   if(this.filteredItems1.length > (currentIndex+1) ){
+          //     this.filteredItems1[currentIndex+1].push(element_to_push_in_fltr);
+          //   }
+           
+          // }
         }
       }
     }
@@ -162,7 +172,7 @@ export class GenerateBarcodeComponent {
       alert('Wrong relationship data, chose another one');
       return;
     }
-    if(level-1<0) {
+    if(level<0 || level+1>this.maxLevelOfSelection) {
       alert('Wrong relatiohship, index out of bound');
       return;
     }
@@ -176,7 +186,7 @@ export class GenerateBarcodeComponent {
       // this.relationshipholder[level-1]=[];
       for ( let vi=0; vi<rightside.length;vi++){
         let upleveldata = rightside[vi];
-        this.relationshipholder[level-1].push(upleveldata);
+        this.relationshipholder[level+1].push(upleveldata);
       }
    
   }
@@ -222,7 +232,7 @@ export class GenerateBarcodeComponent {
 
     // Add our keyword
     if (value) {
-      const vals = value.split('-');
+      const vals = value.split(this.kay_value_separator);
       if (vals.length != 2){
         alert('Syntax is name-code of two letters');
         
@@ -255,15 +265,16 @@ export class GenerateBarcodeComponent {
   getSelectedLabel(){
     this.label="";
     for(let i =0;i<this.done.length;i++){
-      let labelArray = this.done[i].map(val=>val.split('-')[1]);      
+      let labelArray = this.done[i].map(val=>val.split(this.kay_value_separator)[1]);      
       for(let i=0;i<labelArray.length;i++){
-        this.label += labelArray[i]?labelArray[i]+"-":""
+        // this.label += labelArray[i]?labelArray[i]+"-":""
+        this.label += labelArray[i]?labelArray[i]:""
       } 
       
     }
-    if(this.label.length>0){
-      this.label = this.label.slice(0,-1)
-    }
+    // if(this.label.length>0){
+    //   this.label = this.label.slice(0,-1)
+    // }
     // window.JsBarcode("#code128", label);
     return this.label;
   }
@@ -331,7 +342,7 @@ export class GenerateBarcodeComponent {
             }
           }
         }
-        let levelVal:string[] = [ data[i][key].child_value||'', data[i][key].parent_value||'' ];
+        let levelVal:string[] = [ data[i][key].parent_value||'' , data[i][key].children_value||''];
         console.log('value prepared for level '+data[i][key].level+' is ', levelVal)
         self.levelReationList[data[i][key].level].push( levelVal )
         })
@@ -345,29 +356,31 @@ export class GenerateBarcodeComponent {
     console.log('saverelatiohship clicked');
     let finalLevelComponentsArray=[];
     let child='';
+    let parent='';
     let childlevel=-1;
+    let parentlevel = -1;
     let isDone=false;
     for(let i = this.relationshipholder.length-1;i >= 0 && isDone==false ;i--){
      
-      if(this.relationshipholder[i].length==1) {
-        // found child
-        child = this.relationshipholder[i][0];
+      if(this.relationshipholder[i].length>=1) {
+        // found children
+        parentlevel=i-1;
+        parent = this.relationshipholder[i-1][0]; //parent will be one level up
         childlevel=i;
-        for(let j=0;j<this.relationshipholder[i-1].length;j++){
-          finalLevelComponentsArray.push(this.relationshipholder[i-1][j]?this.relationshipholder[i-1][j]:"")
+        
+        for(let j=0;j<this.relationshipholder[i].length;j++){
+          //get all children list
+          finalLevelComponentsArray.push(this.relationshipholder[i][j]?this.relationshipholder[i][j]:"")
         }
         isDone = true;
-      }else{
-        console.log('You can have only one entry in the relationship child');
-        alert('Multiple entries in child node found.. Not saving');
       }
     }
-    if(isDone == true && child != '' && finalLevelComponentsArray.length > 0) {
-      let parent_joined = finalLevelComponentsArray.join(',');
-      this.levelReationList[childlevel].push([child,parent_joined]);
+    if(isDone == true && parent != '' && finalLevelComponentsArray.length > 0) {
+      let children_joined = finalLevelComponentsArray.join(',');
+      this.levelReationList[parentlevel].push([parent,children_joined]);
 
       // Push data in db as well
-      this.barcodeService.addBarcodeRelationship({level:childlevel,child_value:child, parent_value:parent_joined}).then((res) => {
+      this.barcodeService.addBarcodeRelationship({level:parentlevel,children_value:children_joined, parent_value:parent}).then((res) => {
         console.log('saverelationship: ',res);        
       })
       .catch((err) => {
@@ -554,7 +567,7 @@ export class GenerateBarcodeComponent {
               }
             }
           }
-          let value = `${m_key}-${m_value}`;
+          let value = `${m_key}${this.kay_value_separator}${m_value}`;
           this.barcodeparts[this.levelSelectedToUploadFile].push(value);
           this.barcodeService.addBarcodecomponentAtLevel({level:this.levelSelectedToUploadFile, component:value}).then((res) => {
             console.log('onxlsxFileChange: ',res);        
