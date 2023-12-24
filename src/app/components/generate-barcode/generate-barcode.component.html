@@ -33,6 +33,19 @@
     <div class="row">
         <div class="col-2">
             <p class="text text-center text-bg-secondary ">Existing Labels</p>
+            <form class="firstSearchForm">
+                <mat-form-field >
+                    <span matPrefix> </span>
+                  <mat-label>Search For Labels</mat-label>
+                  <input matInput placeholder="labelvalue" name= "searchlabel" [(ngModel)]= "searchlabel"  value="">
+                  <button matSuffix mat-button (click)="searchexistinglabel()"><mat-icon >search</mat-icon></button>
+                </mat-form-field>
+              </form>
+              <p>Filtered Labels</p>
+              <mat-selection-list [multiple]="false" #selectedExistingLabel (selectionChange)="existingLabelSelectionChange($event)">
+                <mat-list-option *ngFor="let existingLabel of filteredLabels" [value]="existingLabel">{{existingLabel}} </mat-list-option>
+            </mat-selection-list>
+            <p>All Labels</p>
             <mat-selection-list [multiple]="false" #selectedExistingLabel (selectionChange)="existingLabelSelectionChange($event)">
                 <mat-list-option *ngFor="let existingLabel of existingLabelList" [value]="existingLabel">{{existingLabel}} </mat-list-option>
             </mat-selection-list>

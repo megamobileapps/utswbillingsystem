@@ -53,11 +53,12 @@ export class GenerateBarcodeComponent {
   addOnBlur = true;
   readonly separatorKeysCodes =  [ENTER, COMMA] as const;
   search : string ="";
+  searchlabel:string='';
   newlyaddeditem:string="";
 
   //Filtered Items from search function or when a level item is pushed in the current Barcode generator
   filteredItems1:Array<string[]>=[[],[],[],[],[]];
-
+  filteredLabels:Array<string[]>=[]
   // This is the list used in barcode level in UI for the current barcode values
   done:Array<string[]> = [[],[],[],[],[]];
   relationshipholder:Array<string[]> = [[],[],[],[],[]];
@@ -193,11 +194,31 @@ export class GenerateBarcodeComponent {
   searchnow(index=0){
      console.log('Search now clicked');
      for ( let ind=0;ind<this.barcodeparts.length;ind++){
-      this.filteredItems1[ind] = this.barcodeparts[ind].filter((value)=>value.includes(this.search));
+      this.filteredItems1[ind] = this.barcodeparts[ind].filter((value)=>value.toLowerCase().includes(this.search.toLowerCase()));
       console.log('Filtered list is '+JSON.stringify(this.filteredItems1[ind]));
      }
   }
 
+  prepareLabelFromArray(name_value_array:string[]){
+    var retVal ='';
+    name_value_array.forEach(val=>{ 
+      retVal = retVal + (val.split(this.kay_value_separator)[1]);
+    });
+    return retVal;
+  }
+  searchexistinglabel(searchfor=''){
+    if (searchfor =='') {
+      searchfor = this.searchlabel;
+    }
+    console.log('Searchexistinglabel now clicked');
+    this.filteredLabels = this.existingLabelList.filter((value)=> {
+                          let label = this.prepareLabelFromArray(value)
+                          return label.toLowerCase().includes(searchfor.toLowerCase())
+                      });
+     console.log('Filtered Label list is '+JSON.stringify(this.filteredLabels));
+     return this.filteredLabels;
+   
+ }
   // get all levels static data from db
   //
   getAllBarcodeComponents(){
@@ -234,7 +255,7 @@ export class GenerateBarcodeComponent {
     if (value) {
       const vals = value.split(this.kay_value_separator);
       if (vals.length != 2){
-        alert('Syntax is name-code of two letters');
+        alert('Syntax is name###code of two letters');
         
       }else {
         let ins_val = {'name':vals[0], 'value':vals[1]}
@@ -247,14 +268,20 @@ export class GenerateBarcodeComponent {
             tempindex += 1;
           }
         }
-        this.barcodeparts[index].push(value);
-        this.barcodeService.addBarcodecomponentAtLevel({level:index, component:value}).then((res) => {
-          console.log('addnow: ',res);        
-        })
-        .catch((err) => {
-          console.log('addnow error: ' + err);
-          alert('Error while addnow');        
-        });
+        // check if name_value pair already exists or not
+        let old_value = this.barcodeparts[index].find(x => x.toLowerCase() == value.toLowerCase());
+        if (typeof old_value == 'undefined') {
+          this.barcodeparts[index].push(value);
+          this.barcodeService.addBarcodecomponentAtLevel({level:index, component:value}).then((res) => {
+            console.log('addnow: ',res);        
+          })
+          .catch((err) => {
+            console.log('addnow error: ' + err);
+            alert('Error while addnow');        
+          });
+        }else {
+          alert('This value already exists in Level.  Input non-existing name_value pair')
+        }
       }
     }
 
@@ -303,21 +330,29 @@ export class GenerateBarcodeComponent {
         return;
       }
       for(let j=0;j<this.done[i].length;j++){
-        finalLevelComponentsArray.push(this.done[i][j]?this.done[i][j]+"-":"");
+        finalLevelComponentsArray.push(this.done[i][j]?this.done[i][j].split(this.kay_value_separator)[1]:"");
         dataForDBStore.push(this.done[i][j]?this.done[i][j]:'');
       } 
       
-    }    
-    this.existingLabelList.push(finalLevelComponentsArray);
+    } 
     
-    // Push data in db as well
-    this.barcodeService.addBarcode({bar_code:dataForDBStore}).then((res) => {
-      console.log('savebarcode: ',res);        
-    })
-    .catch((err) => {
-      console.log('savebarcode error: ' + err);
-      alert('Error while savebarcode');        
-    });
+    // check if this barcode already exists
+    // if exists then alert with error else save
+    let searchedResult = this.searchexistinglabel(finalLevelComponentsArray.join(''));
+    if (searchedResult.length > 0) {
+      alert('This label already exists.. check filtered list');
+    }else {
+      this.existingLabelList.push(dataForDBStore);
+      
+      // Push data in db as well
+      this.barcodeService.addBarcode({bar_code:dataForDBStore}).then((res) => {
+        console.log('savebarcode: ',res);        
+      })
+      .catch((err) => {
+        console.log('savebarcode error: ' + err);
+        alert('Error while savebarcode');        
+      });
+    }
   }
   resetbarcode(){
     console.log('resetbarcode clicked');
