@@ -38,9 +38,30 @@ export class ListInventoryComponent implements OnInit{
     
   }
 
-  displayedColumns: string[] = ['position', 'name', 'weight', 'symbol'];
-  dataSource = ELEMENT_DATA;
+        
+
+  displayedColumns: string[] = [
+    'barcode',
+    'labeleddate',
+    'hsn',
+  'quantity',
+  'unit',
+  'cp',
   
+  'netcp',
+  'percentgst',
+  'mrp',
+  'calculatedmrp',
+ 
+  'fixedprofit',
+  'percentprofit',
+  
+  'vendor',
+  'brand',
+  'shippingcost',
+  ];
+  // dataSource = ELEMENT_DATA;
+
   ngOnInit(): void {
     this.getAllInventory();
   }
@@ -52,7 +73,8 @@ export class ListInventoryComponent implements OnInit{
        self.inventoryList=[];
        for(let i=0;i<data.length;i++){
          console.log('getAllInventory(): step 2', JSON.stringify(data[i]));
-         self.inventoryList.push( data[i].itemdetails );        
+         let datekeys = Object.keys(data[i])
+         self.inventoryList.push( data[i][datekeys[0]].itemdetails );        
          }
          console.log('getAllInventory(): Data after filling ', JSON.stringify(self.inventoryList));
        

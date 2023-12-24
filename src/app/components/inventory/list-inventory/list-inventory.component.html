@@ -1,31 +1,91 @@
-<!-- <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+<table mat-table [dataSource]="inventoryList" class="mat-elevation-z8">
 
    
-    <ng-container matColumnDef="position">
-      <th mat-header-cell *matHeaderCellDef> No. </th>
-      <td mat-cell *matCellDef="let element"> {{element.position}} </td>
+    <ng-container matColumnDef="barcode">
+      <th mat-header-cell *matHeaderCellDef> Barcode </th>
+      <td mat-cell *matCellDef="let element"> {{element.barcode}} </td>
     </ng-container>
   
 
-    <ng-container matColumnDef="name">
-      <th mat-header-cell *matHeaderCellDef> Name </th>
-      <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+    <ng-container matColumnDef="brand">
+      <th mat-header-cell *matHeaderCellDef> Brand </th>
+      <td mat-cell *matCellDef="let element"> {{element.brand}} </td>
     </ng-container>
   
  
-    <ng-container matColumnDef="weight">
-      <th mat-header-cell *matHeaderCellDef> Weight </th>
-      <td mat-cell *matCellDef="let element"> {{element.weight}} </td>
+    <ng-container matColumnDef="calculatedmrp">
+      <th mat-header-cell *matHeaderCellDef> Calculate MRP </th>
+      <td mat-cell *matCellDef="let element"> {{element.calculatedmrp}} </td>
     </ng-container>
   
   
-    <ng-container matColumnDef="symbol">
-      <th mat-header-cell *matHeaderCellDef> Symbol </th>
-      <td mat-cell *matCellDef="let element"> {{element.symbol}} </td>
+    <ng-container matColumnDef="cp">
+      <th mat-header-cell *matHeaderCellDef> CP </th>
+      <td mat-cell *matCellDef="let element"> {{element.cp}} </td>
     </ng-container>
+    <ng-container matColumnDef="fixedprofit">
+        <th mat-header-cell *matHeaderCellDef>Fixed Profit </th>
+        <td mat-cell *matCellDef="let element"> {{element.fixedprofit}} </td>
+      </ng-container>
+    
+  
+      <ng-container matColumnDef="hsn">
+        <th mat-header-cell *matHeaderCellDef> HSN </th>
+        <td mat-cell *matCellDef="let element"> {{element.hsn}} </td>
+      </ng-container>
+    
+   
+      <ng-container matColumnDef="labeleddate">
+        <th mat-header-cell *matHeaderCellDef> Labeled date </th>
+        <td mat-cell *matCellDef="let element"> {{element.labeleddate}} </td>
+      </ng-container>
+    
+    
+      <ng-container matColumnDef="mrp">
+        <th mat-header-cell *matHeaderCellDef> MRP </th>
+        <td mat-cell *matCellDef="let element"> {{element.mrp}} </td>
+      </ng-container>
+      <ng-container matColumnDef="netcp">
+        <th mat-header-cell *matHeaderCellDef> Net CP </th>
+        <td mat-cell *matCellDef="let element"> {{element.netcp}} </td>
+      </ng-container>
+    
+  
+      <ng-container matColumnDef="percentgst">
+        <th mat-header-cell *matHeaderCellDef> % GST </th>
+        <td mat-cell *matCellDef="let element"> {{element.percentgst}} </td>
+      </ng-container>
+    
+   
+      <ng-container matColumnDef="percentprofit">
+        <th mat-header-cell *matHeaderCellDef> % profit </th>
+        <td mat-cell *matCellDef="let element"> {{element.percentprofit}} </td>
+      </ng-container>
+    
+    
+      <ng-container matColumnDef="quantity">
+        <th mat-header-cell *matHeaderCellDef> Quantity </th>
+        <td mat-cell *matCellDef="let element"> {{element.quantity}} </td>
+      </ng-container>
+      <ng-container matColumnDef="shippingcost">
+        <th mat-header-cell *matHeaderCellDef> Ship cost </th>
+        <td mat-cell *matCellDef="let element"> {{element.shippingcost}} </td>
+      </ng-container>
+    
+   
+      <ng-container matColumnDef="unit">
+        <th mat-header-cell *matHeaderCellDef> Unit </th>
+        <td mat-cell *matCellDef="let element"> {{element.unit}} </td>
+      </ng-container>
+    
+    
+      <ng-container matColumnDef="vendor">
+        <th mat-header-cell *matHeaderCellDef> Vendor </th>
+        <td mat-cell *matCellDef="let element"> {{element.vendor}} </td>
+      </ng-container>
   
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
   </table>
   
-   -->
+  
