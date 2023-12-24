@@ -1,165 +1,80 @@
-<div class="container">
-    <div class="row pt-4">
-<h3>Add new Inventory</h3>
-   
-<form [formGroup]="deliveryForm" (ngSubmit)="onSubmit()" class="bg-light" 
-name="deliveryForm" id="deliveryForm" action="">
 
-<div class="row">
-    <label for="subId" class="control-label">Subject Id:*</label>
-   
-
-    <div class="form-group ">
-        <input id="subId" name="subId" class="input form-control" 
-        type="text" placeholder="subId" 
-        formControlName="subId"  
-        [ngClass]="{ 'is-invalid': submitted && f['subId'].errors }" 
-        required="">
-    <div *ngIf="submitted && f['subId'].errors" class="invalid-feedback">
-        <div *ngIf="f['subId'].errors['required']">subId is required</div>
-    </div>
-    <label for="barcode" class="control-label">Barcode:*</label>
+<div class="example-container">
+    <form [formGroup]="options">
+      <div class="example-form-fields">
+        <mat-form-field >
+            <mat-label>HSN</mat-label> 
+            <input matInput placeholder="HSN" formControlName="hsn" required>
+        </mat-form-field>  
+        <mat-form-field >
+            <mat-label>Quantity</mat-label> 
+            <input matInput placeholder="Quantity" formControlName="quantity" required>
+        </mat-form-field>  
+        <mat-form-field >
+            <mat-label>Unit</mat-label>
+            <input matInput placeholder="Unit" formControlName="unit">
+        </mat-form-field>
+        <mat-form-field >
+            <mat-label>CP </mat-label> 
+            <input matInput placeholder="CP" formControlName="cp" required>
+        </mat-form-field>  
+        <mat-form-field >
+            <mat-label>%GST</mat-label>
+            <input matInput placeholder="%GST" formControlName="percentgst">
+        </mat-form-field>
+       
+            <mat-form-field >
+                <mat-label>CP after GST & Shipping</mat-label> 
+                <input matInput placeholder="CP after GST & Shipping" formControlName="netcp" required>
+            </mat-form-field>  
+            <mat-form-field >
+                <mat-label>calculated MRP</mat-label>
+                <input matInput placeholder="calculated MRP" formControlName="calculatedmrp">
+            </mat-form-field>
+            <mat-form-field >
+                <mat-label>Final MRP </mat-label> 
+                <input matInput placeholder="Final MRP " formControlName="mrp" required>
+            </mat-form-field>  
+            <mat-form-field >
+                <mat-label>Profit Rs</mat-label>
+                <input matInput placeholder="Profit Rs" formControlName="fixedprofit">
+            </mat-form-field>
+       
+                <mat-form-field >
+                    <mat-label>%profit </mat-label> 
+                    <input matInput placeholder="%profit " formControlName="percentprofit" required>
+                </mat-form-field>  
+                <mat-form-field >
+                    <mat-label>Labelled Date</mat-label>
+                    <input matInput placeholder="Labelled Date" formControlName="labeleddate">
+                </mat-form-field>
+                <mat-form-field >
+                    <mat-label>Vendor </mat-label> 
+                    <input matInput placeholder="Vendor " formControlName="vendor" required>
+                </mat-form-field>  
+                <mat-form-field >
+                    <mat-label>Brand</mat-label>
+                    <input matInput placeholder="Brand" formControlName="brand">
+                </mat-form-field>
+               
+                    <mat-form-field >
+                        <mat-label>Shipping amt</mat-label> 
+                        <input matInput placeholder="shipping amt" formControlName="shippingcost" required>
+                    </mat-form-field>
+                    <!-- <mat-form-field >
+                        <button mat-button color="primary"  
+                            (click)="onSubmit()"    
+                            value="Submit">Submit                    
+                        </button> 
+                    </mat-form-field> -->
+      </div>
+    </form>
     
-    <input id="barcode" name="barcode" class="input form-control" 
-    type="text" placeholder="barcode" 
-    formControlName="barcode"  
-    [ngClass]="{ 'is-invalid': submitted && f['barcode'].errors }" 
-    required="">
-    <div *ngIf="submitted && f['barcode'].errors" class="invalid-feedback">
-        <div *ngIf="f['barcode'].errors['required']">barcode is required</div>
-    </div>
-    <label for="subject" class="control-label">Subject detailed name:*</label>
-    
-    <input id="subject" name="subject" class="input form-control" 
-        type="text" placeholder="subject" 
-        formControlName="subject"  
-        [ngClass]="{ 'is-invalid': submitted && f['subject'].errors }" 
-        required="">
-    <div *ngIf="submitted && f['subject'].errors" class="invalid-feedback">
-        <div *ngIf="f['subject'].errors['required']">subject is required</div>
-    </div>
-    <label for="pcost" class="control-label">MRP:*</label>  
-    <input id="pcost" name="pcost" class="input form-control" 
-    type="text" placeholder="MRP pcost" 
-    formControlName="pcost"  
-    [ngClass]="{ 'is-invalid': submitted && f['pcost'].errors }" 
-    required="">
-    <div *ngIf="submitted && f['pcost'].errors" class="invalid-feedback">
-        <div *ngIf="f['pcost'].errors['required']">pcost MRP is required</div>
-    </div>
-    <!---->
-    <label for="grade" class="control-label">grade:*</label>  
-        <input id="grade" name="grade" class="input form-control" 
-            type="text" placeholder="grade" 
-            formControlName="grade"  
-            [ngClass]="{ 'is-invalid': submitted && f['grade'].errors }" 
-            required="">
-        <div *ngIf="submitted && f['grade'].errors" class="invalid-feedback">
-            <div *ngIf="f['grade'].errors['required']">grade is required</div>
-        </div>
-        <label for="gradelevel2" class="control-label">grade 2nd level:*</label>  
-        <input id="gradelevel2" name="gradelevel2" class="input form-control" 
-        type="text" placeholder="gradelevel2" 
-        formControlName="gradelevel2"  
-        [ngClass]="{ 'is-invalid': submitted && f['gradelevel2'].errors }" 
-        required="">
-        <div *ngIf="submitted && f['gradelevel2'].errors" class="invalid-feedback">
-            <div *ngIf="f['gradelevel2'].errors['required']">gradelevel2 is required</div>
-        </div>
-        <label for="discount" class="control-label">discount:*</label>  
-        <input id="discount" name="discount" class="input form-control" 
-            type="text" placeholder="discount" 
-            formControlName="discount"  
-            [ngClass]="{ 'is-invalid': submitted && f['discount'].errors }" 
-            required="">
-        <div *ngIf="submitted && f['discount'].errors" class="invalid-feedback">
-            <div *ngIf="f['discount'].errors['required']">discount is required</div>
-        </div>
-        <label for="inventory" class="control-label">inventory:*</label>  
-        <input id="inventory" name="inventory" class="input form-control" 
-        type="text" placeholder="inventory" 
-        formControlName="inventory"  
-        [ngClass]="{ 'is-invalid': submitted && f['inventory'].errors }" 
-        required="">
-        <div *ngIf="submitted && f['inventory'].errors" class="invalid-feedback">
-            <div *ngIf="f['inventory'].errors['required']">inventory is required</div>
-
-        </div>
-        
-        <label for="subposition" class="control-label">subject position in list:*</label>  
-        <input id="subposition" name="subposition" class="input form-control" 
-        type="text" placeholder="subposition" 
-        formControlName="subposition"  
-        [ngClass]="{ 'is-invalid': submitted && f['subposition'].errors }" 
-        required="">
-    <div *ngIf="submitted && f['subposition'].errors" class="invalid-feedback">
-        <div *ngIf="f['subposition'].errors['required']">subposition is required</div>
-    </div>
-    <label for="netvalue" class="control-label">netvalue:*</label>  
-    <input id="netvalue" name="netvalue" class="input form-control" 
-    type="text" placeholder="netvalue" 
-    formControlName="netvalue"  
-    [ngClass]="{ 'is-invalid': submitted && f['netvalue'].errors }" 
-    required="">
-    <div *ngIf="submitted && f['netvalue'].errors" class="invalid-feedback">
-        <div *ngIf="f['netvalue'].errors['required']">netvalue is required</div>
-    </div>
-
-    <label for="gst" class="control-label">gst %age:*</label>  
-    <input id="gst" name="gst" class="input form-control" 
-        type="text" placeholder="gst" 
-        formControlName="gst"  
-        [ngClass]="{ 'is-invalid': submitted && f['gst'].errors }" 
-        required="">
-    <div *ngIf="submitted && f['gst'].errors" class="invalid-feedback">
-        <div *ngIf="f['gst'].errors['required']">gst is required</div>
-    </div>
-   
-    <label for="quantity" class="control-label">quantity:*</label>  
-    <input id="quantity" name="quantity" class="input form-control" 
-    type="text" placeholder="quantity" 
-    formControlName="quantity"  
-    [ngClass]="{ 'is-invalid': submitted && f['quantity'].errors }" 
-    required="">
-    <div *ngIf="submitted && f['quantity'].errors" class="invalid-feedback">
-        <div *ngIf="f['quantity'].errors['required']">quantity is required</div>
-    </div>
-
-    <label for="total" class="control-label">total:*</label>  
-    <input id="total" name="total" class="input form-control" 
-        type="text" placeholder="total" 
-        formControlName="total"  
-        [ngClass]="{ 'is-invalid': submitted && f['total'].errors }" 
-        required="">
-    <div *ngIf="submitted && f['total'].errors" class="invalid-feedback">
-        <div *ngIf="f['total'].errors['required']">total is required</div>
-    </div>
-   
-    <label for="hsn" class="control-label">hsn:*</label>  
-    <input id="hsn" name="hsn" class="input form-control" 
-    type="text" placeholder="hsn" 
-    formControlName="hsn"  
-    [ngClass]="{ 'is-invalid': submitted && f['hsn'].errors }" 
-    required="">
-    <div *ngIf="submitted && f['hsn'].errors" class="invalid-feedback">
-        <div *ngIf="f['hsn'].errors['required']">hsn is required</div>
-    </div>
-      
-   </div>
-    
-</div>
-
-
-</form>
-
-<div class="row m-4">
-
+  </div>
+  <div class="row m-4">
+    <p>Barcode {{barcode}}</p>
     <button class="btn  btn-warning offset-md-4 col-md-2 " 
-        (click)="onSubmit()"    
-        value="Click to Submit">Click to Submit
-      
+        (click)="onSubmitFire()"    
+        value="Click to Submit">Click to Submit      
     </button> 
-
-</div> <!-- for row -->
-</div>
-</div>
+</div> 

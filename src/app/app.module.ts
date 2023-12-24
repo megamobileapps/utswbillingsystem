@@ -34,6 +34,8 @@ import { getDatabase, provideDatabase } from '@angular/fire/database';
 import { environment } from '../environments/environment';
 import { CommonService } from './services/common.service';
 import { BarcodeService } from './services/barcode.service';
+import { InventoryService } from './services/inventory.service';
+import { ListInventoryComponent } from './components/inventory/list-inventory/list-inventory.component';
 
 
 @NgModule({
@@ -55,6 +57,7 @@ import { BarcodeService } from './services/barcode.service';
     LoginComponent,
     LogoutComponent,
     GenerateBarcodeComponent,
+    ListInventoryComponent,
 
   ],
   imports: [
@@ -79,7 +82,8 @@ import { BarcodeService } from './services/barcode.service';
     SearchStrfilterPipe,
     UtswGenericfilterPipe,
     CommonService,
-    BarcodeService
+    BarcodeService,
+    InventoryService
   ],
   bootstrap: [AppComponent]
 })

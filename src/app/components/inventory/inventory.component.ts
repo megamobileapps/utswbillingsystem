@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { first } from 'rxjs';
@@ -6,6 +6,7 @@ import { CartDetails } from 'src/app/providers/cart.details';
 import { CartService } from 'src/app/providers/cart.provider';
 import { DataService } from 'src/app/services/data.service';
 import { ReceiptDetailsComponent } from '../receipt.details/receipt.details.component';
+import { InventoryService } from 'src/app/services/inventory.service';
 
 @Component({
   selector: 'app-inventory',
@@ -13,14 +14,17 @@ import { ReceiptDetailsComponent } from '../receipt.details/receipt.details.comp
   styleUrls: ['./inventory.component.css']
 })
 export class InventoryComponent implements OnInit {
-
+  @Input() barcode:string|null=null
   deliveryForm: FormGroup;
+  options: FormGroup;
   loading = false;
-    submitted = false;
-    error = '';
-    isMobileScreen:boolean=false;
+  submitted = false;
+  error = '';
+  isMobileScreen:boolean=false;
+
   constructor(private formBuilder: FormBuilder,
     private _dataService:DataService,
+    private _inventoryService:InventoryService,
     private _cartService:CartService,private router: Router, private route: ActivatedRoute) {
       this.deliveryForm = this.formBuilder.group({
         grade: ['ZM4', Validators.required],       
@@ -38,8 +42,28 @@ export class InventoryComponent implements OnInit {
         total: ['99999'],
         hsn: ['49011010']
       });
+
+      this.options = this.formBuilder.group({
+        hsn: ['49011010'],
+        quantity: ['1'],
+        unit: ['Nos'],
+        cp: ['0'],
+        percentgst: ['0'],
+        netcp: ['0'],
+        calculatedmrp: ['0'],
+        mrp: ['0'],
+        fixedprofit: ['0'],
+        percentprofit: ['0'],
+        labeleddate: ['2023-01-01'],
+        vendor: ['abc'],
+        brand: ['abc'],
+        shippingcost: ['0'],
+      });
      }
+    
+
   get f() { return this.deliveryForm.controls; }
+  get f2() { return this.options.controls; }
 
   /*
    id: '',
@@ -76,6 +100,25 @@ export class InventoryComponent implements OnInit {
         hsn: this.f['hsn'].value
     };
   }
+  get getInventoryFormData():any{
+    return {
+        hsn: this.f2['hsn'].value,       
+        quantity: this.f2['quantity'].value,
+        unit: this.f2['unit'].value,
+        cp: this.f2['cp'].value,
+        percentgst: this.f2['percentgst'].value,
+        netcp: this.f2['netcp'].value,
+        calculatedmrp: this.f2['calculatedmrp'].value,
+        mrp: this.f2['mrp'].value,
+        fixedprofit: this.f2['fixedprofit'].value,
+        percentprofit: this.f2['percentprofit'].value,
+        labeleddate: this.f2['labeleddate'].value,
+        vendor: this.f2['vendor'].value,
+        brand: this.f2['brand'].value,
+        shippingcost: this.f2['shippingcost'].value,
+        barcode:this.barcode
+    };
+  }
   ngOnInit(): void {
   }
 
@@ -110,6 +153,35 @@ export class InventoryComponent implements OnInit {
 
     console.log('coming before routing to Home');
     this.router.navigate(['/']);
+  }
+
+  onSubmitFire(){
+    console.log('onSubmitFire called');
+    console.log("Submitting payment form in cart component");
+    this.submitted = true;
+    // stop here if form is invalid
+    if (this.options.invalid) {
+      console.log("inventory options form is invalid");
+        return;
+    }
+
+    this.loading = true;
+    var formData = this.getInventoryFormData;
+    //
+    // key will be barcode/labeleddate to have multiple entries under same barcode
+    //
+    var data = {"itemdetails":formData, id:formData["barcode"]+'/'+formData["labeleddate"]};
+                //_inventoryService
+    this._inventoryService.addInventory(data).then((res) => {
+      console.log('Inventory onSubmitFire(): ',res);   
+      alert('inventory is added successfully')     
+    })
+    .catch((err) => {
+      console.log('Inventory onSubmitFire() error: ' + err);
+      alert('Error while Inventory onSubmitFire()');        
+    });    
+    console.log('coming before routing to Home');
+    // this.router.navigate(['/']);
   }
 
   get currentCart():CartDetails|undefined|null{

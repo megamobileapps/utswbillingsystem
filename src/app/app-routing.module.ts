@@ -10,6 +10,7 @@ import { LoginComponent } from './components/auth/login/login.component';
 import { LogoutComponent } from './components/auth/login/logout.component';
 import { AuthGuard } from './components/auth/auth.guard';
 import { GenerateBarcodeComponent } from './components/generate-barcode/generate-barcode.component';
+import { ListInventoryComponent } from './components/inventory/list-inventory/list-inventory.component';
 
 
 const routes : Routes = [
@@ -17,6 +18,7 @@ const routes : Routes = [
   {path:'receipt', component:ReceiptDetailsComponent,canActivate: [AuthGuard]},
   {path:'checkout', component:CheckoutComponent,canActivate: [AuthGuard]},
   {path:'addinventory', component:InventoryComponent,canActivate: [AuthGuard]},
+  {path:'showinventory', component:ListInventoryComponent,canActivate: [AuthGuard]},
   {path:'cart', component:CartComponent,canActivate: [AuthGuard]},
   {path:'newcode',component:GenerateBarcodeComponent,canActivate:[AuthGuard]},
   {path:'login', component:LoginComponent},

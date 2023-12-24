@@ -270,6 +270,12 @@ export class GenerateBarcodeComponent {
         }
         // check if name_value pair already exists or not
         let old_value = this.barcodeparts[index].find(x => x.toLowerCase() == value.toLowerCase());
+        // check if this is the new code otherwise alert
+        let old_value_code = this.barcodeparts[index].find(x => x.split(this.kay_value_separator)[1].toLowerCase() == value.split(this.kay_value_separator)[1].toLowerCase());
+        if(typeof old_value_code != 'undefined'){
+          alert('Code is already in use.  Create new code. Code='+value.split(this.kay_value_separator)[1]);
+          return;
+        }
         if (typeof old_value == 'undefined') {
           this.barcodeparts[index].push(value);
           this.barcodeService.addBarcodecomponentAtLevel({level:index, component:value}).then((res) => {
