@@ -1,7 +1,11 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, AfterViewInit, ViewChild} from '@angular/core';
 import { FormBuilder } from '@angular/forms';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatTableDataSource } from '@angular/material/table';
 import { DataService } from 'src/app/services/data.service';
 import { InventoryService } from 'src/app/services/inventory.service';
+import {MatSort, Sort, MatSortModule} from '@angular/material/sort';
+import {LiveAnnouncer} from '@angular/cdk/a11y';
 export interface PeriodicElement {
   name: string;
   position: number;
@@ -26,41 +30,47 @@ const ELEMENT_DATA: PeriodicElement[] = [
   templateUrl: './list-inventory.component.html',
   styleUrls: ['./list-inventory.component.css']
 })
-export class ListInventoryComponent implements OnInit{
+export class ListInventoryComponent implements OnInit,AfterViewInit {
 
-  @Input() barcode:string|null=null
   
+  @Input() barcode:string|null=null
+  @ViewChild(MatPaginator) private paginator: MatPaginator;
+  @ViewChild(MatSort) sort: MatSort;
+
   inventoryList:any=[]
+  dataSource = new MatTableDataSource<string>(this.inventoryList);
   constructor(private formBuilder: FormBuilder,
     private _dataService:DataService,
     private _inventoryService:InventoryService,
+    private _liveAnnouncer: LiveAnnouncer
   ){
     
   }
 
-        
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+    this.dataSource.sort = this.sort;
+  }    
 
   displayedColumns: string[] = [
+    'productname',
     'barcode',
     'labeleddate',
     'hsn',
   'quantity',
   'unit',
-  'cp',
-  
+  'cp',  
   'netcp',
   'percentgst',
   'mrp',
-  'calculatedmrp',
- 
+  'calculatedmrp', 
   'fixedprofit',
-  'percentprofit',
-  
+  'percentprofit',  
   'vendor',
   'brand',
   'shippingcost',
   ];
-  // dataSource = ELEMENT_DATA;
+  
 
   ngOnInit(): void {
     this.getAllInventory();
@@ -70,14 +80,28 @@ export class ListInventoryComponent implements OnInit{
     let self = this;
      this._inventoryService.getAllInventory().subscribe(data => { 
        console.log('getAllInventory(): step 1', JSON.stringify(data));
-       self.inventoryList=[];
+      //  self.inventoryList=[];
+      var rcvddata=[];
        for(let i=0;i<data.length;i++){
          console.log('getAllInventory(): step 2', JSON.stringify(data[i]));
          let datekeys = Object.keys(data[i])
-         self.inventoryList.push( data[i][datekeys[0]].itemdetails );        
+         rcvddata.push( data[i][datekeys[0]].itemdetails );        
          }
-         console.log('getAllInventory(): Data after filling ', JSON.stringify(self.inventoryList));
+         this.dataSource.data = rcvddata;
+         console.log('getAllInventory(): Data after filling ', JSON.stringify(rcvddata));
        
      });
    }
+   /** Announce the change in sort state for assistive technology. */
+  announceSortChange(sortState: Sort) {
+    // This example uses English messages. If your application supports
+    // multiple language, you would internationalize these strings.
+    // Furthermore, you can customize the message to add additional
+    // details about the values being sorted.
+    if (sortState.direction) {
+      this._liveAnnouncer.announce(`Sorted ${sortState.direction}ending`);
+    } else {
+      this._liveAnnouncer.announce('Sorting cleared');
+    }
+  }
 }

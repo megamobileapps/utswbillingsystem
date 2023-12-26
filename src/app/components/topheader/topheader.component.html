@@ -32,8 +32,8 @@
               </div>
         </li>
 </ul>
-<div class="d-print-none">
-    <span class="text "><strong>Old Bills:</strong></span><button *ngFor="let cart of oldTxList" (click)="populateCartFrom(cart)">{{cart.invoicenumber}}</button>
+<div class="d-print-none bg-warning">
+    <span class="text"><strong>Old Bills:</strong></span><button *ngFor="let cart of oldTxList" (click)="populateCartFrom(cart)">{{cart.invoicenumber}}</button>
 </div>
 
 <!-- <div class="row">

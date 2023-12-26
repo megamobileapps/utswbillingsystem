@@ -44,6 +44,7 @@ export class InventoryComponent implements OnInit {
       });
 
       this.options = this.formBuilder.group({
+        productname:['abc'],
         hsn: ['49011010'],
         quantity: ['1'],
         unit: ['Nos'],
@@ -102,6 +103,7 @@ export class InventoryComponent implements OnInit {
   }
   get getInventoryFormData():any{
     return {
+        productname: this.f2['productname'].value,   
         hsn: this.f2['hsn'].value,       
         quantity: this.f2['quantity'].value,
         unit: this.f2['unit'].value,

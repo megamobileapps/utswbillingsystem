@@ -13,6 +13,9 @@ import {MatListModule} from '@angular/material/list';
 import {MatGridListModule} from '@angular/material/grid-list';
 import {MatSelectModule} from '@angular/material/select';
 import {MatTableModule} from '@angular/material/table';
+import {MatPaginator, MatPaginatorModule} from '@angular/material/paginator';
+import {MatTableDataSource} from '@angular/material/table';
+import { MatSortModule } from '@angular/material/sort';
 
 @NgModule({
   declarations: [],
@@ -22,7 +25,7 @@ import {MatTableModule} from '@angular/material/table';
     MatTabsModule,   
     MatChipsModule, CdkDropList, NgFor, CdkDrag,
     MatIconModule,MatFormFieldModule,MatButtonModule,MatInputModule,MatListModule,
-    MatGridListModule,MatSelectModule,MatTableModule
+    MatGridListModule,MatSelectModule,MatTableModule, MatPaginatorModule,MatSortModule
     
   ],
   exports: [
@@ -30,7 +33,7 @@ import {MatTableModule} from '@angular/material/table';
     MatTabsModule,MatFormFieldModule,    
     MatChipsModule, CdkDropList, NgFor, CdkDrag,
     MatIconModule,MatButtonModule,MatInputModule,MatListModule,
-    MatGridListModule,MatSelectModule,MatTableModule
+    MatGridListModule,MatSelectModule,MatTableModule, MatPaginatorModule,MatSortModule
   ]
 })
 export class AppMaterialModule { }
