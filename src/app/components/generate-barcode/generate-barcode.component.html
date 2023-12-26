@@ -11,6 +11,10 @@
                 </ngx-barcode6>
                 </div>
         </div>
+        <div class="col-10  d-print-none">
+            <p>Existing Inventory of Product</p>
+            <app-list-inventory [filterwithbarcode]="getSelectedLabel()"></app-list-inventory>
+        </div>
     </div>
 </div>
 <div class="container-fluid d-print-none">
