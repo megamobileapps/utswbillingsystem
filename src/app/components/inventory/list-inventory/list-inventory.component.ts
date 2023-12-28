@@ -73,9 +73,12 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
          console.log('getAllInventory(): filter value is '+this.filterwithbarcode);
          if (this.filterwithbarcode != null || filterwith != ''){
           if(data[i][datekeys[0]].itemdetails['barcode'] == this.filterwithbarcode??filterwith)
-            rcvddata.push( data[i][datekeys[0]].itemdetails ); 
+            for (let datekeyindex=0;datekeyindex<datekeys.length; datekeyindex++)
+              rcvddata.push( data[i][datekeys[datekeyindex]].itemdetails ); 
          }else{
-          rcvddata.push( data[i][datekeys[0]].itemdetails );        
+          for (let datekeyindex=0;datekeyindex<datekeys.length; datekeyindex++)
+              rcvddata.push( data[i][datekeys[datekeyindex]].itemdetails ); 
+              // rcvddata.push( data[i][datekeys[0]].itemdetails );        
          }
          }
          this.dataSource.data = rcvddata;
