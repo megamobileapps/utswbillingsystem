@@ -19,14 +19,21 @@ import {COMMA, ENTER} from '@angular/cdk/keycodes';
 import { MatSelectionListChange } from '@angular/material/list';
 import { SaleservicesService } from 'src/app/services/saleservices.service';
 import { BarcodeService } from 'src/app/services/barcode.service';
-
+import { MatDialog } from '@angular/material/dialog';
 import * as XLSX from "xlsx";
 import { MatSelectChange } from '@angular/material/select';
+import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 
 
 export interface CodeKeyWords {
   name:string;
   value:string;
+};
+
+interface barCodeStore {
+  id:string;
+  key:string;
+  data:string[];
 };
 
 @Component({
@@ -58,7 +65,7 @@ export class GenerateBarcodeComponent {
 
   //Filtered Items from search function or when a level item is pushed in the current Barcode generator
   filteredItems1:Array<string[]>=[[],[],[],[],[]];
-  filteredLabels:Array<string[]>=[]
+  filteredLabels:Array<barCodeStore>=[]
   // This is the list used in barcode level in UI for the current barcode values
   done:Array<string[]> = [[],[],[],[],[]];
   relationshipholder:Array<string[]> = [[],[],[],[],[]];
@@ -73,8 +80,10 @@ export class GenerateBarcodeComponent {
 []
 ];
   
+
   // In past these were the label created get from db
-  existingLabelList:Array<string[]>=[['11-11','21-21','31-31','41-41','51-51'],['12-12','22-22','32-32','42-42','52-52']];
+  existingLabelList:Array<barCodeStore>=[{"id":"1","key":"1", "data":['11-11','21-21','31-31','41-41','51-51']},
+  {"id":"2","key":"2", "data":['12-12','22-22','32-32','42-42','52-52']}];
   
   // reation is from child to parent so that it is easy to search in db later
   //levellabel->uplevel which are comma separated
@@ -108,10 +117,43 @@ export class GenerateBarcodeComponent {
     private screenSizeService:ScreenSizeService,    
     private searchstrfltr:UtswGenericfilterPipe, 
     private saleService: SaleservicesService,
-    private barcodeService:BarcodeService) {
+    
+    private barcodeService:BarcodeService, private dialog: MatDialog) {
       for(let i=0;i<this.maxLevelOfSelection;i++){
         this.searchDataInput.push(new Subject<string>())
       }
+  }
+
+  openDialogForDeleteConfirmation(event:any, item:barCodeStore) {
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent,{
+      data:{
+        message: 'Are you sure want to delete?',
+        buttonText: {
+          ok: 'Delete',
+          cancel: 'Cancel'
+        }
+      }
+    });
+    
+
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {  
+        // Clicked on delete
+        console.log('Clicked on confirmed');      
+        this.barcodeService.deleteBarcode(item).then((res) => {
+          console.log('openDialogForDeleteConfirmation: ',res);    
+          alert('Successfully deleted');
+        })
+        .catch((err) => {
+          console.log('openDialogForDeleteConfirmation error: ' + err);
+          alert('Error while openDialogForDeleteConfirmation');        
+        });
+        
+      }else {
+        // Cancelled
+        console.log('Cancelled click')
+      }
+    });
   }
 
   get_relationships_for_level(level=1){
@@ -156,12 +198,13 @@ export class GenerateBarcodeComponent {
   }
   existingLabelSelectionChange(event:MatSelectionListChange){
     let selected = event.options.filter(o => o.selected).map(o => o.value);
-    console.log('selected label is '+selected ) ;
+    console.log('selected label is '+JSON.stringify(selected )) ;
     for(let i=0;i<selected.length;i++){
-      console.log('existingLabelSelectionChange()'+i+' val:'+selected[i]);
+      console.log('existingLabelSelectionChange() at index='+i+' val:'+JSON.stringify(selected[i]));
       let v = selected[i]
-      for ( let vi=0; vi<v.length;vi++){
-        this.done[vi][0] = v[vi];
+      for ( let vi=0; vi<v.data.length;vi++){
+        console.log("existingLabelSelectionChange() "+v.data[vi])
+        this.done[vi][0] = v.data[vi];
       }
     }
   }
@@ -212,7 +255,7 @@ export class GenerateBarcodeComponent {
     }
     console.log('Searchexistinglabel now clicked');
     this.filteredLabels = this.existingLabelList.filter((value)=> {
-                          let label = this.prepareLabelFromArray(value)
+                          let label = this.prepareLabelFromArray(value.data)
                           return label.toLowerCase().includes(searchfor.toLowerCase())
                       });
      console.log('Filtered Label list is '+JSON.stringify(this.filteredLabels));
@@ -318,11 +361,17 @@ export class GenerateBarcodeComponent {
        self.existingLabelList=[];
        for(let i=0;i<data.length;i++){
          console.log('getAllBarcodes(): step 2', JSON.stringify(data[i]));
-         self.existingLabelList.push( data[i].bar_code );        
+         self.existingLabelList.push( {"id":data[i].id,"key":data[i].key,  "data":data[i].bar_code} );        
          }
          console.log('getAllBarcodes(): Data after filling ', JSON.stringify(self.existingLabelList));
        
      });
+   }
+
+   // Delete selected barcode
+   onBarCodeDeleteAction(event:any, item:barCodeStore) {
+    console.log('onBarCodeDeleteAction() called'+JSON.stringify(item))
+    event.stopPropagation();
    }
 
   savebarcode(){
@@ -348,7 +397,7 @@ export class GenerateBarcodeComponent {
     if (searchedResult.length > 0) {
       alert('This label already exists.. check filtered list');
     }else {
-      this.existingLabelList.push(dataForDBStore);
+      // this.existingLabelList.push(dataForDBStore);
       
       // Push data in db as well
       this.barcodeService.addBarcode({bar_code:dataForDBStore}).then((res) => {

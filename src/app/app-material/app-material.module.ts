@@ -16,6 +16,8 @@ import {MatTableModule} from '@angular/material/table';
 import {MatPaginator, MatPaginatorModule} from '@angular/material/paginator';
 import {MatTableDataSource} from '@angular/material/table';
 import { MatSortModule } from '@angular/material/sort';
+import {MatDialogModule} from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 @NgModule({
   declarations: [],
@@ -25,15 +27,20 @@ import { MatSortModule } from '@angular/material/sort';
     MatTabsModule,   
     MatChipsModule, CdkDropList, NgFor, CdkDrag,
     MatIconModule,MatFormFieldModule,MatButtonModule,MatInputModule,MatListModule,
-    MatGridListModule,MatSelectModule,MatTableModule, MatPaginatorModule,MatSortModule
-    
+    MatGridListModule,MatSelectModule,MatTableModule, MatPaginatorModule,MatSortModule,
+    MatDialogModule,
   ],
   exports: [
     MatSlideToggleModule,
     MatTabsModule,MatFormFieldModule,    
     MatChipsModule, CdkDropList, NgFor, CdkDrag,
     MatIconModule,MatButtonModule,MatInputModule,MatListModule,
-    MatGridListModule,MatSelectModule,MatTableModule, MatPaginatorModule,MatSortModule
+    MatGridListModule,MatSelectModule,MatTableModule, MatPaginatorModule,MatSortModule,
+    MatDialogModule,
+  ],
+  providers: [
+    { provide: MAT_DIALOG_DATA, useValue: {} },
+    { provide: MatDialogRef, useValue: {} }
   ]
 })
 export class AppMaterialModule { }

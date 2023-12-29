@@ -36,6 +36,7 @@ import { CommonService } from './services/common.service';
 import { BarcodeService } from './services/barcode.service';
 import { InventoryService } from './services/inventory.service';
 import { ListInventoryComponent } from './components/inventory/list-inventory/list-inventory.component';
+import { ConfirmationDialogComponent } from './components/confirmation-dialog/confirmation-dialog.component';
 
 
 @NgModule({
@@ -58,6 +59,7 @@ import { ListInventoryComponent } from './components/inventory/list-inventory/li
     LogoutComponent,
     GenerateBarcodeComponent,
     ListInventoryComponent,
+    ConfirmationDialogComponent,
 
   ],
   imports: [

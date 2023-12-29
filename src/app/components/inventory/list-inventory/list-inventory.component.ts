@@ -44,16 +44,16 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
     'hsn',
   'quantity',
   'unit',
-  'cp',  
-  'netcp',
+  'cp', 
+  'shippingcost',   
   'percentgst',
-  'mrp',
+  'netcp',  
   'calculatedmrp', 
+  'mrp',
   'fixedprofit',
   'percentprofit',  
   'vendor',
-  'brand',
-  'shippingcost',
+  'brand',  
   ];
   
 
@@ -72,12 +72,15 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
          let datekeys = Object.keys(data[i])
          console.log('getAllInventory(): filter value is '+this.filterwithbarcode);
          if (this.filterwithbarcode != null || filterwith != ''){
-          if(data[i][datekeys[0]].itemdetails['barcode'] == this.filterwithbarcode??filterwith)
-            for (let datekeyindex=0;datekeyindex<datekeys.length; datekeyindex++)
-              rcvddata.push( data[i][datekeys[datekeyindex]].itemdetails ); 
+          if (typeof data[i][datekeys[0]].itemdetails != 'undefined')
+            if(data[i][datekeys[0]].itemdetails['barcode'] == this.filterwithbarcode??filterwith)
+              for (let datekeyindex=0;datekeyindex<datekeys.length; datekeyindex++)
+                rcvddata.push( data[i][datekeys[datekeyindex]].itemdetails ); 
          }else{
-          for (let datekeyindex=0;datekeyindex<datekeys.length; datekeyindex++)
-              rcvddata.push( data[i][datekeys[datekeyindex]].itemdetails ); 
+          for (let datekeyindex=0;datekeyindex<datekeys.length; datekeyindex++){
+              if (typeof data[i][datekeys[datekeyindex]].itemdetails != 'undefined')
+                rcvddata.push( data[i][datekeys[datekeyindex]].itemdetails ); 
+          }
               // rcvddata.push( data[i][datekeys[0]].itemdetails );        
          }
          }

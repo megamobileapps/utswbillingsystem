@@ -55,7 +55,7 @@ export class InventoryComponent implements OnInit {
         mrp: ['0'],
         fixedprofit: ['0'],
         percentprofit: ['0'],
-        labeleddate: ['2023-01-01'],
+        labeleddate: ['2023-01-29'],
         vendor: ['abc'],
         brand: ['abc'],
         shippingcost: ['0'],
@@ -120,6 +120,28 @@ export class InventoryComponent implements OnInit {
         shippingcost: this.f2['shippingcost'].value,
         barcode:this.barcode
     };
+  }
+
+  calculateCPMRPProfit(){
+    let fd = this.getInventoryFormData;
+    var netcp = Number(fd["cp"]) *( (100+ Number(fd["percentgst"]))/100) + Number(fd["shippingcost"]);
+    // double of netcp - shipping cost
+    var calMRP = netcp*2 - Number(fd["shippingcost"]);
+    var MRP = calMRP;
+
+    //profit will be mrp - %GST
+    // mrp = mrp_wo_gst(1+GST)
+    var MRP_wo_GST = MRP/(1+Number(fd["percentgst"])/100);
+    var fixedProfit = MRP_wo_GST - netcp;
+    var percentProfit = fixedProfit*100/MRP_wo_GST;
+
+    this.options.patchValue({
+      netcp: netcp, 
+      calculatedmrp:calMRP,
+      mrp:MRP,
+      fixedprofit:fixedProfit,
+      percentprofit :percentProfit
+    });
   }
   ngOnInit(): void {
   }

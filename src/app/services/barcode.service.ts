@@ -53,7 +53,7 @@ export class BarcodeService {
   }
 
   
-  deleteBarcodeRelationship(obj: OutwardsaletypeJson) {
+  deleteBarcodeRelationship(obj: any) {
     //this.outwardSales.splice(idx, 1);
     return this.commonService.delete(this.basefolder+"/relationship/", obj);
   }
@@ -76,7 +76,7 @@ export class BarcodeService {
   }
 
   
-  deleteBarcode(obj: OutwardsaletypeJson) {
+  deleteBarcode(obj: any) {
     //this.outwardSales.splice(idx, 1);
     return this.commonService.delete(this.basefolder+"/barcodelist/", obj);
   }
@@ -99,7 +99,7 @@ export class BarcodeService {
   }
 
   
-  deleteBarcodecomponentAtLevel(obj: OutwardsaletypeJson) {
+  deleteBarcodecomponentAtLevel(obj: any) {
     //this.outwardSales.splice(idx, 1);
     return this.commonService.delete(this.basefolder+"/barcodecomponents/", obj);
   }
