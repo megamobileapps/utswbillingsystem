@@ -79,7 +79,7 @@
                 <mat-grid-tile><button mat-raised-button (click)="resetbarcode()">Reset</button></mat-grid-tile>
             </mat-grid-list>
            
-            <p>Level 1</p>
+            <p>Category</p>
             <div
                 cdkDropList
                 #doneList1="cdkDropList"
@@ -89,7 +89,7 @@
                 (cdkDropListDropped)="main_drop($event,0)">
                 <div class="example-box" *ngFor="let item of done[0]" cdkDrag>{{item}}</div>
             </div>
-            <span>Level 2</span>
+            <span>Spec</span>
             <div
                 cdkDropList
                 #doneList2="cdkDropList"
@@ -99,7 +99,7 @@
                 (cdkDropListDropped)="main_drop($event,1)">
                 <div class="example-box" *ngFor="let item of done[1]" cdkDrag>{{item}}</div>
             </div>
-            <span>Level 3</span>
+            <span>Size</span>
             <div
                 cdkDropList
                 #doneList3="cdkDropList"
@@ -109,7 +109,7 @@
                 (cdkDropListDropped)="main_drop($event,2)">
                 <div class="example-box" *ngFor="let item of done[2]" cdkDrag>{{item}}</div>
             </div>
-            <span>Level 4</span>
+            <span>Color</span>
             <div
                 cdkDropList
                 #doneList4="cdkDropList"
@@ -119,7 +119,7 @@
                 (cdkDropListDropped)="main_drop($event,3)">
                 <div class="example-box" *ngFor="let item of done[3]" cdkDrag>{{item}}</div>
             </div>
-            <span>Level 5</span>
+            <span>Quantity</span>
             <div
                 cdkDropList
                 #doneList5="cdkDropList"
@@ -167,7 +167,7 @@
                   </form>
             </div>
             <mat-tab-group dynamicHeight preserveContent> 
-                <mat-tab label="Level 1"> 
+                <mat-tab label="Category"> 
                     
                     <div class="row" >
                         <div class="col-12">
@@ -194,7 +194,9 @@
                                 [cdkDropListConnectedTo]="[doneList1,relationshipList1]"
                                 
                                 (cdkDropListDropped)="drop2($event,0)">
-                                    <mat-chip *ngFor="let item of barcodeparts[0]" cdkDrag>{{ item }}</mat-chip>
+                                    <mat-chip *ngFor="let item of barcodeparts[0]" cdkDrag (removed)="openDialogForDeletePartConfirmation($event, item)" removable="true">{{ item }}<button matChipRemove >
+                                        <mat-icon>delete</mat-icon>
+                                      </button></mat-chip>
                             </mat-chip-list>
                             <p>Drag1 here end</p>
                             <form class="addnewitem">
@@ -214,7 +216,7 @@
                       
 
                 </mat-tab>
-                <mat-tab label="Level 2"> 
+                <mat-tab label="Spec"> 
                     
                     <div class="row" >
                         <div class="col-12">
@@ -261,7 +263,7 @@
                       
 
                 </mat-tab>
-                <mat-tab label="Level 3"> 
+                <mat-tab label="Size"> 
                     
                     <div class="row" >
                         <div class="col-12">
@@ -308,7 +310,7 @@
                       
 
                 </mat-tab>
-                <mat-tab label="Level 4"> 
+                <mat-tab label="Color"> 
                     
                     <div class="row" >
                         <div class="col-12">
@@ -355,7 +357,7 @@
                       
 
                 </mat-tab>
-                <mat-tab label="Level 5"> 
+                <mat-tab label="Quantity"> 
                     
                     <div class="row" >
                         <div class="col-12">
@@ -405,7 +407,7 @@
                 <mat-grid-tile><button mat-raised-button (click)="resetrelationship()">Reset</button></mat-grid-tile>
             </mat-grid-list>
            
-            <p>Level 1</p>
+            <p>Category</p>
             <div
                 cdkDropList
                 #relationshipList1="cdkDropList"
@@ -415,7 +417,7 @@
                 (cdkDropListDropped)="main_drop($event,0)">
                 <div class="example-box" *ngFor="let item of relationshipholder[0]" cdkDrag>{{item}}</div>
             </div>
-            <span>Level 2</span>
+            <span>Spec</span>
             <div
                 cdkDropList
                 #relationshipList2="cdkDropList"
@@ -425,7 +427,7 @@
                 (cdkDropListDropped)="main_drop($event,1)">
                 <div class="example-box" *ngFor="let item of relationshipholder[1]" cdkDrag>{{item}}</div>
             </div>
-            <span>Level 3</span>
+            <span>Size</span>
             <div
                 cdkDropList
                 #relationshipList3="cdkDropList"
@@ -435,7 +437,7 @@
                 (cdkDropListDropped)="main_drop($event,2)">
                 <div class="example-box" *ngFor="let item of relationshipholder[2]" cdkDrag>{{item}}</div>
             </div>
-            <span>Level 4</span>
+            <span>Color</span>
             <div
                 cdkDropList
                 #relationshipList4="cdkDropList"
@@ -445,7 +447,7 @@
                 (cdkDropListDropped)="main_drop($event,3)">
                 <div class="example-box" *ngFor="let item of relationshipholder[3]" cdkDrag>{{item}}</div>
             </div>
-            <span> Level 5</span>
+            <span> Quantity</span>
             <div 
                 cdkDropList
                 #relationshipList5="cdkDropList"
@@ -460,7 +462,7 @@
         <div class="col-2">
             <p class="text text-center text-bg-secondary ">Existing Relationship</p>
             <div *ngFor="let level of [0,1,2,3,4]">
-                <p>Level {{level+1}}</p>
+                <p>{{levelnames[level]}}</p>
                 <span *ngIf="levelReationList.length>=level+1">
                     <mat-selection-list  [multiple]="false" #selectedExistingLabel (selectionChange)="existingRelationshipSelectionChange($event, level)">
                         <mat-list-option *ngFor="let existingLabel of get_relationships_for_level(level)" [value]="existingLabel"><span class="text text-bg-secondary">{{existingLabel[0]}}</span> -> {{existingLabel[1]}} </mat-list-option>

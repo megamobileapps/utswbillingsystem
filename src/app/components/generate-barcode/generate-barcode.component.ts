@@ -36,6 +36,13 @@ interface barCodeStore {
   data:string[];
 };
 
+interface barcodePartStore{
+  id:string;
+  key:string;
+  component:string;
+  level:number;
+};
+
 @Component({
   selector: 'app-generate-barcode',
   templateUrl: './generate-barcode.component.html',
@@ -71,6 +78,7 @@ export class GenerateBarcodeComponent {
   relationshipholder:Array<string[]> = [[],[],[],[],[]];
   levelList = [0,1,2,3,4];
   kay_value_separator ='###'
+  levelnames = ['Category', 'Spec','Size','Color','Quality']
 
   // These the barcode parts and can be added by add function in UI
   barcodeparts: Array<string[]> = [['Item 14-L14','Item 15-L15', 'Item 16-L16', 'Item 17-L17', 'Item 18-L18'],
@@ -156,6 +164,42 @@ export class GenerateBarcodeComponent {
     });
   }
 
+  openDialogForDeletePartConfirmation(event:any, item:string) {
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent,{
+      data:{
+        message: 'Are you sure want to delete ?',
+        buttonText: {
+          ok: 'Delete',
+          cancel: 'Cancel'
+        }
+      }
+    });
+    
+
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {  
+        // Clicked on delete
+        console.log('Clicked on confirmed');      
+        // this.barcodeService.deleteBarcode(item).then((res) => {
+        //   console.log('openDialogForDeleteConfirmation: ',res);    
+        //   alert('Successfully deleted');
+        // })
+        // .catch((err) => {
+        //   console.log('openDialogForDeleteConfirmation error: ' + err);
+        //   alert('Error while openDialogForDeleteConfirmation');        
+        // });
+        
+      }else {
+        // Cancelled
+        console.log('Cancelled click')
+      }
+    });
+  }
+
+  revmoveChip(event:any, item:any){
+    console.log('removeChip called in generate barcode component '+JSON.stringify(item));
+    // event.stopPropagation();
+  }
   get_relationships_for_level(level=1){
     if(level <0 || level > this.levelReationList.length-1){
       console.log(`Query for Level ${level+1} Existing levels ${this.levelReationList.length} You are asking for out of range Level relationship`)

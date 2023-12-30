@@ -124,6 +124,7 @@ export class InventoryComponent implements OnInit {
 
   calculateCPMRPProfit(){
     let fd = this.getInventoryFormData;
+    var cp_plus_shipping = Number(fd["cp"]) + Number(fd["shippingcost"]);
     var netcp = Number(fd["cp"]) *( (100+ Number(fd["percentgst"]))/100) + Number(fd["shippingcost"]);
     // double of netcp - shipping cost
     var calMRP = netcp*2 - Number(fd["shippingcost"]);
@@ -132,8 +133,8 @@ export class InventoryComponent implements OnInit {
     //profit will be mrp - %GST
     // mrp = mrp_wo_gst(1+GST)
     var MRP_wo_GST = MRP/(1+Number(fd["percentgst"])/100);
-    var fixedProfit = MRP_wo_GST - netcp;
-    var percentProfit = fixedProfit*100/MRP_wo_GST;
+    var fixedProfit = MRP_wo_GST - (cp_plus_shipping);
+    var percentProfit = fixedProfit*100/cp_plus_shipping;
 
     this.options.patchValue({
       netcp: netcp, 
