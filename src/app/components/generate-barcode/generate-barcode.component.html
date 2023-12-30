@@ -61,7 +61,7 @@
                     color="warn" title="Delete barcode">
                         <mat-icon>delete</mat-icon>
                       </button>
-                    {{prepareLabelFromDataArray(existingLabel.data)}} 
+                    {{prepareLabelFromDataArray(existingLabel.data??[])}} 
                 </mat-list-option>
             </mat-selection-list>
             <p  class="text-bg-secondary">

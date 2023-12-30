@@ -132,8 +132,17 @@ export class GenerateBarcodeComponent {
       }
   }
 
-  prepareLabelFromDataArray(data:string[]){
-    return data.map(val=>val.split(this.kay_value_separator)[1]).join('')
+  prepareLabelFromDataArray(data:any[]){
+    
+    let map1 =  data.map((val)=>{
+      if (typeof val != 'string'){
+        
+        console.log('prepareLabelFromDataArray value is not string.. very strange '+JSON.stringify(val));
+        return val.component.split(this.kay_value_separator)[1];
+      }
+      return val.split(this.kay_value_separator)[1];
+    });
+    return map1.join('');
   }
   openDialogForDeleteConfirmation(event:any, item:barCodeStore) {
     const dialogRef = this.dialog.open(ConfirmationDialogComponent,{
@@ -214,8 +223,11 @@ export class GenerateBarcodeComponent {
   // provide barcodepartstore.component value and return back the barcodepartstore from 
   // db values retrieved at the time of start
 
-  filterBarcodecomponent(component_value:string, level:number=0):barcodePartStore[]{
-    return this.barcodeparts[level].filter(value=>value.component==component_value);
+  filterBarcodecomponent(component_value:any, level:number=0):barcodePartStore[]{
+    if (typeof component_value == 'string')
+      return this.barcodeparts[level].filter(value=>value.component==component_value);
+    else 
+      return this.barcodeparts[level].filter(value=>value.component==component_value.component);
   }
 
   filter_from_relationaldata(currentLabel:string|null=null,currentIndex=0){
@@ -310,20 +322,20 @@ export class GenerateBarcodeComponent {
      }
   }
 
-  prepareLabelFromArray(name_value_array:string[]){
-    var retVal ='';
-    name_value_array.forEach(val=>{ 
-      retVal = retVal + (val.split(this.kay_value_separator)[1]);
-    });
-    return retVal;
-  }
+  // prepareLabelFromArray(name_value_array:string[]){
+  //   var retVal ='';
+  //   name_value_array.forEach(val=>{ 
+  //     retVal = retVal + (val.split(this.kay_value_separator)[1]);
+  //   });
+  //   return retVal;
+  // }
   searchexistinglabel(searchfor=''){
     if (searchfor =='') {
       searchfor = this.searchlabel;
     }
     console.log('Searchexistinglabel now clicked');
     this.filteredLabels = this.existingLabelList.filter((value)=> {
-                          let label = this.prepareLabelFromArray(value.data)
+                          let label = this.prepareLabelFromDataArray(value.data)
                           return label.toLowerCase().includes(searchfor.toLowerCase())
                       });
      console.log('Filtered Label list is '+JSON.stringify(this.filteredLabels));
