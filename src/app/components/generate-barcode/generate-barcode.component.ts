@@ -71,18 +71,18 @@ export class GenerateBarcodeComponent {
   newlyaddeditem:string="";
 
   //Filtered Items from search function or when a level item is pushed in the current Barcode generator
-  filteredItems1:Array<string[]>=[[],[],[],[],[]];
+  filteredItems1:Array<barcodePartStore[]>=[[],[],[],[],[]];
   filteredLabels:Array<barCodeStore>=[]
   // This is the list used in barcode level in UI for the current barcode values
-  done:Array<string[]> = [[],[],[],[],[]];
-  relationshipholder:Array<string[]> = [[],[],[],[],[]];
+  done:Array<barcodePartStore[]> = [[],[],[],[],[]];
+  relationshipholder:Array<barcodePartStore[]> = [[],[],[],[],[]];
   levelList = [0,1,2,3,4];
   kay_value_separator ='###'
   levelnames = ['Category', 'Spec','Size','Color','Quality']
 
   // These the barcode parts and can be added by add function in UI
-  barcodeparts: Array<string[]> = [['Item 14-L14','Item 15-L15', 'Item 16-L16', 'Item 17-L17', 'Item 18-L18'],
-['21-21','22-22'],
+  barcodeparts: Array<barcodePartStore[]> = [[{"id":"1", "key":"1", "level":1, "component":'Item 14-L14'}],
+[{"id":"2", "key":"2", "level":2, "component":'21-21'}],
 [],
 [],
 []
@@ -164,7 +164,7 @@ export class GenerateBarcodeComponent {
     });
   }
 
-  openDialogForDeletePartConfirmation(event:any, item:string) {
+  openDialogForDeletePartConfirmation(event:any, item:barcodePartStore) {
     const dialogRef = this.dialog.open(ConfirmationDialogComponent,{
       data:{
         message: 'Are you sure want to delete ?',
@@ -207,9 +207,18 @@ export class GenerateBarcodeComponent {
     }
     return this.levelReationList[level]
   }
-  filter_from_relationaldata(currentLabel='',currentIndex=0){
+
+  // provide barcodepartstore.component value and return back the barcodepartstore from 
+  // db values retrieved at the time of start
+
+  filterBarcodecomponent(component_value:string, level:number=0):barcodePartStore[]{
+    return this.barcodeparts[level].filter(value=>value.component==component_value);
+  }
+
+  filter_from_relationaldata(currentLabel:string|null=null,currentIndex=0){
     console.log('entered filter_from_relationaldata');
-    if('' == currentLabel){
+    let real_this = this;
+    if(null == currentLabel){
       // Get all data
       if(this.filteredItems1.length > (currentIndex+1) && 
           this.barcodeparts.length > (currentIndex+1) ) {
@@ -218,6 +227,7 @@ export class GenerateBarcodeComponent {
       
     }else {
       if(this.levelReationList.length >= (currentIndex + 1)) {
+        
         for(let levelIndex=0;levelIndex<this.levelReationList[ currentIndex ].length;levelIndex++){
           let parent = '';
           let children_value = '';
@@ -226,9 +236,10 @@ export class GenerateBarcodeComponent {
 
           if (element_to_push_in_fltr == currentLabel) {
             splitted_data.forEach((child_val, child_index)=> {
-              this.filteredItems1[currentIndex+1].push(child_val);
-            });
-            
+              real_this.filterBarcodecomponent(child_val, child_index).forEach(val => 
+                this.filteredItems1[currentIndex+1].push(val)
+                )              
+            });            
           }
           // if ( splitted_data.includes(currentLabel) == true){
           //   if(this.filteredItems1.length > (currentIndex+1) ){
@@ -240,6 +251,8 @@ export class GenerateBarcodeComponent {
       }
     }
   }
+
+  
   existingLabelSelectionChange(event:MatSelectionListChange){
     let selected = event.options.filter(o => o.selected).map(o => o.value);
     console.log('selected label is '+JSON.stringify(selected )) ;
@@ -248,7 +261,11 @@ export class GenerateBarcodeComponent {
       let v = selected[i]
       for ( let vi=0; vi<v.data.length;vi++){
         console.log("existingLabelSelectionChange() "+v.data[vi])
-        this.done[vi][0] = v.data[vi];
+
+        // search in level data for this component match
+        this.filterBarcodecomponent(v.data[vi], vi)
+            .forEach(val=>this.done[vi][0]=val)
+        // this.done[vi][0] = v.data[vi];
       }
     }
   }
@@ -269,19 +286,23 @@ export class GenerateBarcodeComponent {
       this.relationshipholder[i]=[];
     }
       let v:string = selected[0][0];
-      this.relationshipholder[level]=[v];
+      // search in barcode parts for this component from relationship
+      //
+      this.filterBarcodecomponent(v, level).forEach(val=>this.relationshipholder[level].push(val))
+      // this.relationshipholder[level]=[v];
       let rightside = selected[0][1].split(',');
       // this.relationshipholder[level-1]=[];
       for ( let vi=0; vi<rightside.length;vi++){
         let upleveldata = rightside[vi];
-        this.relationshipholder[level+1].push(upleveldata);
+        this.filterBarcodecomponent(upleveldata, level+1).forEach(val=>this.relationshipholder[level+1].push(val))
+        // this.relationshipholder[level+1].push(upleveldata);
       }
    
   }
   searchnow(index=0){
      console.log('Search now clicked');
      for ( let ind=0;ind<this.barcodeparts.length;ind++){
-      this.filteredItems1[ind] = this.barcodeparts[ind].filter((value)=>value.toLowerCase().includes(this.search.toLowerCase()));
+      this.filteredItems1[ind] = this.barcodeparts[ind].filter((value)=>value.component.toLowerCase().includes(this.search.toLowerCase()));
       console.log('Filtered list is '+JSON.stringify(this.filteredItems1[ind]));
      }
   }
@@ -326,7 +347,7 @@ export class GenerateBarcodeComponent {
          }
          let levelVal:string = data[i].component||'';
          console.log('value prepared for level '+data[i].level+' is ', levelVal)
-         self.barcodeparts[data[i].level].push( levelVal )
+         self.barcodeparts[data[i].level].push( data[i] )
          
         //  console.log('getAllBarcodeComponents() all keys:', JSON.stringify(keys));
          }
@@ -356,15 +377,15 @@ export class GenerateBarcodeComponent {
           }
         }
         // check if name_value pair already exists or not
-        let old_value = this.barcodeparts[index].find(x => x.toLowerCase() == value.toLowerCase());
+        let old_value = this.barcodeparts[index].find(x => x.component.toLowerCase() == value.toLowerCase());
         // check if this is the new code otherwise alert
-        let old_value_code = this.barcodeparts[index].find(x => x.split(this.kay_value_separator)[1].toLowerCase() == value.split(this.kay_value_separator)[1].toLowerCase());
+        let old_value_code = this.barcodeparts[index].find(x => x.component.split(this.kay_value_separator)[1].toLowerCase() == value.split(this.kay_value_separator)[1].toLowerCase());
         if(typeof old_value_code != 'undefined'){
           alert('Code is already in use.  Create new code. Code='+value.split(this.kay_value_separator)[1]);
           return;
         }
         if (typeof old_value == 'undefined') {
-          this.barcodeparts[index].push(value);
+          // this.barcodeparts[index].push(value);
           this.barcodeService.addBarcodecomponentAtLevel({level:index, component:value}).then((res) => {
             console.log('addnow: ',res);        
           })
@@ -385,7 +406,7 @@ export class GenerateBarcodeComponent {
   getSelectedLabel(){
     this.label="";
     for(let i =0;i<this.done.length;i++){
-      let labelArray = this.done[i].map(val=>val.split(this.kay_value_separator)[1]);      
+      let labelArray = this.done[i].map(val=>val.component.split(this.kay_value_separator)[1]);      
       for(let i=0;i<labelArray.length;i++){
         // this.label += labelArray[i]?labelArray[i]+"-":""
         this.label += labelArray[i]?labelArray[i]:""
@@ -429,7 +450,7 @@ export class GenerateBarcodeComponent {
         return;
       }
       for(let j=0;j<this.done[i].length;j++){
-        finalLevelComponentsArray.push(this.done[i][j]?this.done[i][j].split(this.kay_value_separator)[1]:"");
+        finalLevelComponentsArray.push(this.done[i][j]?this.done[i][j].component.split(this.kay_value_separator)[1]:"");
         dataForDBStore.push(this.done[i][j]?this.done[i][j]:'');
       } 
       
@@ -499,7 +520,7 @@ export class GenerateBarcodeComponent {
       if(this.relationshipholder[i].length>=1) {
         // found children
         parentlevel=i-1;
-        parent = this.relationshipholder[i-1][0]; //parent will be one level up
+        parent = this.relationshipholder[i-1][0].component; //parent will be one level up
         childlevel=i;
         
         for(let j=0;j<this.relationshipholder[i].length;j++){
@@ -536,7 +557,7 @@ export class GenerateBarcodeComponent {
   }
   
  
-  main_drop(event: CdkDragDrop<string[]>, index=0) {
+  main_drop(event: CdkDragDrop<any[]>, index=0) {
     if (event.previousContainer === event.container) {
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
     } else {
@@ -547,11 +568,14 @@ export class GenerateBarcodeComponent {
         event.previousIndex,
         event.currentIndex,
       );
-      this.filter_from_relationaldata(datavalue,index)
+      if (typeof datavalue == 'string')
+        this.filter_from_relationaldata(datavalue,index);
+      else
+        this.filter_from_relationaldata(datavalue.component,index);
     }
   }
 
-  drop2(event: CdkDragDrop<string[]>, index=0) {
+  drop2(event: CdkDragDrop<barcodePartStore[]>, index=0) {
     if (event.previousContainer === event.container) {
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
     } else {
@@ -702,7 +726,7 @@ export class GenerateBarcodeComponent {
             }
           }
           let value = `${m_key}${this.kay_value_separator}${m_value}`;
-          this.barcodeparts[this.levelSelectedToUploadFile].push(value);
+          // this.barcodeparts[this.levelSelectedToUploadFile].push(value);
           this.barcodeService.addBarcodecomponentAtLevel({level:this.levelSelectedToUploadFile, component:value}).then((res) => {
             console.log('onxlsxFileChange: ',res);        
           })

@@ -87,7 +87,7 @@
                 [cdkDropListConnectedTo]="[todoList1]"
                 class="example-list"
                 (cdkDropListDropped)="main_drop($event,0)">
-                <div class="example-box" *ngFor="let item of done[0]" cdkDrag>{{item}}</div>
+                <div class="example-box" *ngFor="let item of done[0]" cdkDrag>{{item.component}}</div>
             </div>
             <span>Spec</span>
             <div
@@ -97,7 +97,7 @@
                 [cdkDropListConnectedTo]="[todoList2]"
                 class="example-list"
                 (cdkDropListDropped)="main_drop($event,1)">
-                <div class="example-box" *ngFor="let item of done[1]" cdkDrag>{{item}}</div>
+                <div class="example-box" *ngFor="let item of done[1]" cdkDrag>{{item.component}}</div>
             </div>
             <span>Size</span>
             <div
@@ -107,7 +107,7 @@
                 [cdkDropListConnectedTo]="[todoList3]"
                 class="example-list"
                 (cdkDropListDropped)="main_drop($event,2)">
-                <div class="example-box" *ngFor="let item of done[2]" cdkDrag>{{item}}</div>
+                <div class="example-box" *ngFor="let item of done[2]" cdkDrag>{{item.component}}</div>
             </div>
             <span>Color</span>
             <div
@@ -117,7 +117,7 @@
                 [cdkDropListConnectedTo]="[todoList4]"
                 class="example-list"
                 (cdkDropListDropped)="main_drop($event,3)">
-                <div class="example-box" *ngFor="let item of done[3]" cdkDrag>{{item}}</div>
+                <div class="example-box" *ngFor="let item of done[3]" cdkDrag>{{item.component}}</div>
             </div>
             <span>Quantity</span>
             <div
@@ -127,7 +127,7 @@
                 [cdkDropListConnectedTo]="[todoList5]"
                 class="example-list"
                 (cdkDropListDropped)="main_drop($event,4)">
-                <div class="example-box" *ngFor="let item of done[4]" cdkDrag>{{item}}</div>
+                <div class="example-box" *ngFor="let item of done[4]" cdkDrag>{{item.component}}</div>
             </div>
             
  
@@ -180,7 +180,7 @@
                                 [cdkDropListConnectedTo]="[doneList1,relationshipList1]"
                                 
                                 (cdkDropListDropped)="drop2($event,0)">
-                                    <mat-chip *ngFor="let item of filteredItems1[0]" cdkDrag>{{ item }}</mat-chip>
+                                    <mat-chip *ngFor="let item of filteredItems1[0]" cdkDrag>{{ item.component }}</mat-chip>
                             </mat-chip-list>
                         </div>
                     
@@ -194,7 +194,7 @@
                                 [cdkDropListConnectedTo]="[doneList1,relationshipList1]"
                                 
                                 (cdkDropListDropped)="drop2($event,0)">
-                                    <mat-chip *ngFor="let item of barcodeparts[0]" cdkDrag (removed)="openDialogForDeletePartConfirmation($event, item)" removable="true">{{ item }}<button matChipRemove >
+                                    <mat-chip *ngFor="let item of barcodeparts[0]" cdkDrag (removed)="openDialogForDeletePartConfirmation($event, item)" removable="true">{{ item.component }}<button matChipRemove >
                                         <mat-icon>delete</mat-icon>
                                       </button></mat-chip>
                             </mat-chip-list>
@@ -229,7 +229,7 @@
                                 [cdkDropListConnectedTo]="[doneList2,relationshipList2]"
                                 
                                 (cdkDropListDropped)="drop2($event,1)">
-                                    <mat-chip *ngFor="let item of filteredItems1[1]" cdkDrag>{{ item }}</mat-chip>
+                                    <mat-chip *ngFor="let item of filteredItems1[1]" cdkDrag>{{ item.component }}</mat-chip>
                             </mat-chip-list>
                         </div>
                     
@@ -243,7 +243,7 @@
                                 [cdkDropListConnectedTo]="[doneList2,relationshipList2]"
                                 
                                 (cdkDropListDropped)="drop2($event,1)">
-                                    <mat-chip *ngFor="let item of barcodeparts[1]" cdkDrag>{{ item }}</mat-chip>
+                                    <mat-chip *ngFor="let item of barcodeparts[1]" cdkDrag>{{ item.component }}</mat-chip>
                             </mat-chip-list>
                             <p>Drag1 here end</p>
                             <form class="addnewitem">
@@ -276,7 +276,7 @@
                                 [cdkDropListConnectedTo]="[doneList3,relationshipList3]"
                                 
                                 (cdkDropListDropped)="drop2($event,2)">
-                                    <mat-chip *ngFor="let item of filteredItems1[2]" cdkDrag>{{ item }}</mat-chip>
+                                    <mat-chip *ngFor="let item of filteredItems1[2]" cdkDrag>{{ item.component }}</mat-chip>
                             </mat-chip-list>
                         </div>
                     
@@ -290,7 +290,7 @@
                                 [cdkDropListConnectedTo]="[doneList3,relationshipList3]"
                                 
                                 (cdkDropListDropped)="drop2($event,2)">
-                                    <mat-chip *ngFor="let item of barcodeparts[2]" cdkDrag>{{ item }}</mat-chip>
+                                    <mat-chip *ngFor="let item of barcodeparts[2]" cdkDrag>{{ item.component }}</mat-chip>
                             </mat-chip-list>
                             <p>Drag1 here end</p>
                             <form class="addnewitem">
@@ -323,7 +323,7 @@
                                 [cdkDropListConnectedTo]="[doneList4,relationshipList4]"
                                 
                                 (cdkDropListDropped)="drop2($event,3)">
-                                    <mat-chip *ngFor="let item of filteredItems1[3]" cdkDrag>{{ item }}</mat-chip>
+                                    <mat-chip *ngFor="let item of filteredItems1[3]" cdkDrag>{{ item.component }}</mat-chip>
                             </mat-chip-list>
                         </div>
                     
@@ -337,7 +337,7 @@
                                 [cdkDropListConnectedTo]="[doneList4,relationshipList4]"
                                 
                                 (cdkDropListDropped)="drop2($event,3)">
-                                    <mat-chip *ngFor="let item of barcodeparts[3]" cdkDrag>{{ item }}</mat-chip>
+                                    <mat-chip *ngFor="let item of barcodeparts[3]" cdkDrag>{{ item.component }}</mat-chip>
                             </mat-chip-list>
                             <p>Drag1 here end</p>
                             <form class="addnewitem">
@@ -370,7 +370,7 @@
                                 [cdkDropListConnectedTo]="[doneList5,relationshipList5]"
                                 
                                 (cdkDropListDropped)="drop2($event,4)">
-                                    <mat-chip *ngFor="let item of filteredItems1[4]" cdkDrag>{{ item }}</mat-chip>
+                                    <mat-chip *ngFor="let item of filteredItems1[4]" cdkDrag>{{ item.component }}</mat-chip>
                             </mat-chip-list>
                         </div>
                     
@@ -384,7 +384,7 @@
                                 [cdkDropListConnectedTo]="[doneList5,relationshipList5]"
                                 
                                 (cdkDropListDropped)="drop2($event,4)">
-                                    <mat-chip *ngFor="let item of barcodeparts[4]" cdkDrag>{{ item }}</mat-chip>
+                                    <mat-chip *ngFor="let item of barcodeparts[4]" cdkDrag>{{ item.component }}</mat-chip>
                             </mat-chip-list>
                             <p>Drag1 here end</p>
                             <form class="addnewitem">
@@ -415,7 +415,7 @@
                 [cdkDropListConnectedTo]="[todoList1]"
                 class="example-list"
                 (cdkDropListDropped)="main_drop($event,0)">
-                <div class="example-box" *ngFor="let item of relationshipholder[0]" cdkDrag>{{item}}</div>
+                <div class="example-box" *ngFor="let item of relationshipholder[0]" cdkDrag>{{item.component}}</div>
             </div>
             <span>Spec</span>
             <div
@@ -425,7 +425,7 @@
                 [cdkDropListConnectedTo]="[todoList2]"
                 class="example-list"
                 (cdkDropListDropped)="main_drop($event,1)">
-                <div class="example-box" *ngFor="let item of relationshipholder[1]" cdkDrag>{{item}}</div>
+                <div class="example-box" *ngFor="let item of relationshipholder[1]" cdkDrag>{{item.component}}</div>
             </div>
             <span>Size</span>
             <div
@@ -435,7 +435,7 @@
                 [cdkDropListConnectedTo]="[todoList3]"
                 class="example-list"
                 (cdkDropListDropped)="main_drop($event,2)">
-                <div class="example-box" *ngFor="let item of relationshipholder[2]" cdkDrag>{{item}}</div>
+                <div class="example-box" *ngFor="let item of relationshipholder[2]" cdkDrag>{{item.component}}</div>
             </div>
             <span>Color</span>
             <div
@@ -445,7 +445,7 @@
                 [cdkDropListConnectedTo]="[todoList4]"
                 class="example-list"
                 (cdkDropListDropped)="main_drop($event,3)">
-                <div class="example-box" *ngFor="let item of relationshipholder[3]" cdkDrag>{{item}}</div>
+                <div class="example-box" *ngFor="let item of relationshipholder[3]" cdkDrag>{{item.component}}</div>
             </div>
             <span> Quantity</span>
             <div 
@@ -456,7 +456,7 @@
                 class="example-list"
                 (cdkDropListDropped)="main_drop($event,4)">
                
-                <div class="example-box" *ngFor="let item of relationshipholder[4]" cdkDrag>{{item}}</div>
+                <div class="example-box" *ngFor="let item of relationshipholder[4]" cdkDrag>{{item.component}}</div>
             </div>
         </div>
         <div class="col-2">
