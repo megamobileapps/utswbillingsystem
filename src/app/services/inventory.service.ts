@@ -48,9 +48,21 @@ export class InventoryService {
   }
 
   
-  deleteInventory(obj: OutwardsaletypeJson) {
+  deleteInventory(obj: any) {
     //this.outwardSales.splice(idx, 1);
-    return this.commonService.delete(this.basefolder+"/", obj);
+    console.log('deleteInventory() in service'+JSON.stringify(obj))
+    return new Promise<any>((resolve, reject) => {
+      if (obj.labeleddate == '' || obj.barcode == '' ) {
+
+        return reject('Inventory to be deleted hasnull value or key is not defined');
+      }
+      obj.key = obj.labeleddate;
+      let path1 = this.basefolder+obj.barcode+"/";
+      console.log('deleteInventory service path='+path1)
+      return this.commonService.delete(path1, obj);
+      
+    });
+    
   }
 
   

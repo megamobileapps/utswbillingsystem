@@ -56,8 +56,9 @@
             </mat-selection-list>
             <p  class="text-bg-secondary">All Labels</p>
             <mat-selection-list [multiple]="false" #selectedExistingLabel (selectionChange)="existingLabelSelectionChange($event)">
-                <mat-list-option *ngFor="let existingLabel of existingLabelList" [value]="existingLabel">
-                    <button mat-icon-button (click)="openDialogForDeleteConfirmation($event, existingLabel)">
+                <mat-list-option *ngFor="let existingLabel of existingLabelList" [value]="existingLabel" title="Select barcode">
+                    <button mat-icon-button (click)="openDialogForDeleteConfirmation($event, existingLabel)" 
+                    color="warn" title="Delete barcode">
                         <mat-icon>delete</mat-icon>
                       </button>
                     {{existingLabel.data}} 

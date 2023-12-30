@@ -90,6 +90,14 @@
         <td mat-cell *matCellDef="let element"> {{element.vendor}} </td>
       </ng-container>
   
+      <ng-container matColumnDef="delete">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Delete</th>
+        <mat-cell *matCellDef="let element"> <button mat-icon-button matTooltip="Click to Delete" class="iconbutton"
+            (click)="openDialogForDeleteConfirmation($event, element)" color="warn">
+            <mat-icon>delete</mat-icon>
+          </button> </mat-cell>
+      </ng-container>
+
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
   </table>

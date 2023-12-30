@@ -85,7 +85,8 @@ export class CommonService {
       }
       const ref = this.afDb.object(basepath + dataObj.key) ;//firebase.database().ref(basepath + dataObj.key);
       
-      return ref.update({});
+      // return ref.update({});
+      return ref.remove();
       
     }
     )};

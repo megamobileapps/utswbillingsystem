@@ -6,6 +6,8 @@ import { DataService } from 'src/app/services/data.service';
 import { InventoryService } from 'src/app/services/inventory.service';
 import {MatSort, Sort, MatSortModule} from '@angular/material/sort';
 import {LiveAnnouncer} from '@angular/cdk/a11y';
+import { ConfirmationDialogComponent } from '../../confirmation-dialog/confirmation-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 
 @Component({
@@ -27,7 +29,7 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
   constructor(private formBuilder: FormBuilder,
     private _dataService:DataService,
     private _inventoryService:InventoryService,
-    private _liveAnnouncer: LiveAnnouncer
+    private _liveAnnouncer: LiveAnnouncer, private dialog: MatDialog
   ){
     
   }
@@ -54,6 +56,7 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
   'percentprofit',  
   'vendor',
   'brand',  
+  'delete',
   ];
   
 
@@ -89,6 +92,40 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
        
      });
    }
+
+   openDialogForDeleteConfirmation(event:any, item:any) {
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent,{
+      data:{
+        message: 'Are you sure want to delete this Inventory Data?',
+        buttonText: {
+          ok: 'Delete',
+          cancel: 'Cancel'
+        }
+      }
+    });
+    
+
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {  
+        // Clicked on delete
+        console.log('Clicked on confirmed');      
+        this._inventoryService.deleteInventory(item).then((res) => {
+          console.log('openDialogForDeleteConfirmation: ',res);    
+          alert('Successfully deleted');
+        })
+        .catch((err) => {
+          console.log('openDialogForDeleteConfirmation error: ' + err);
+          alert('Error while openDialogForDeleteConfirmation');        
+        });
+        
+      }else {
+        // Cancelled
+        console.log('Cancelled click')
+      }
+    });
+  }
+  
+   
    ngOnChanges(changes: SimpleChanges) {
     // changes.prop contains the old and the new value...
     console.log('ListInventoryComponent:ngOnChanges()'+JSON.stringify(changes));
