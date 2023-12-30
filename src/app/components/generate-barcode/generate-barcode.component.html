@@ -51,7 +51,7 @@
                     <button mat-icon-button (click)="openDialogForDeleteConfirmation($event, existingLabel)">
                         <mat-icon>delete</mat-icon>
                       </button>
-                      {{existingLabel.data}} 
+                      {{prepareLabelFromDataArray(existingLabel.data)}} 
                 </mat-list-option>
             </mat-selection-list>
             <p  class="text-bg-secondary">All Labels</p>
@@ -61,7 +61,7 @@
                     color="warn" title="Delete barcode">
                         <mat-icon>delete</mat-icon>
                       </button>
-                    {{existingLabel.data}} 
+                    {{prepareLabelFromDataArray(existingLabel.data)}} 
                 </mat-list-option>
             </mat-selection-list>
             <p  class="text-bg-secondary">

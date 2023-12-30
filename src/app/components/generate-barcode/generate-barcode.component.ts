@@ -132,6 +132,9 @@ export class GenerateBarcodeComponent {
       }
   }
 
+  prepareLabelFromDataArray(data:string[]){
+    return data.map(val=>val.split(this.kay_value_separator)[1]).join('')
+  }
   openDialogForDeleteConfirmation(event:any, item:barCodeStore) {
     const dialogRef = this.dialog.open(ConfirmationDialogComponent,{
       data:{
@@ -427,7 +430,8 @@ export class GenerateBarcodeComponent {
        for(let i=0;i<data.length;i++){
          console.log('getAllBarcodes(): step 2', JSON.stringify(data[i]));
          self.existingLabelList.push( {"id":data[i].id,"key":data[i].key,  "data":data[i].bar_code} );        
-         }
+        }
+        self.existingLabelList.sort((a,b)=>self.prepareLabelFromDataArray(a.data).localeCompare(self.prepareLabelFromDataArray(b.data)))
          console.log('getAllBarcodes(): Data after filling ', JSON.stringify(self.existingLabelList));
        
      });
