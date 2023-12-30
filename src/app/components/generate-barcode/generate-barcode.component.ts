@@ -180,14 +180,14 @@ export class GenerateBarcodeComponent {
       if (confirmed) {  
         // Clicked on delete
         console.log('Clicked on confirmed');      
-        // this.barcodeService.deleteBarcode(item).then((res) => {
-        //   console.log('openDialogForDeleteConfirmation: ',res);    
-        //   alert('Successfully deleted');
-        // })
-        // .catch((err) => {
-        //   console.log('openDialogForDeleteConfirmation error: ' + err);
-        //   alert('Error while openDialogForDeleteConfirmation');        
-        // });
+        this.barcodeService.deleteBarcodecomponentAtLevel(item).then((res) => {
+          console.log('openDialogForDeleteConfirmation: ',res);    
+          alert('Successfully deleted');
+        })
+        .catch((err) => {
+          console.log('openDialogForDeleteConfirmation error: ' + err);
+          alert('Error while openDialogForDeleteConfirmation');        
+        });
         
       }else {
         // Cancelled

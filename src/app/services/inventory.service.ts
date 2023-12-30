@@ -57,7 +57,7 @@ export class InventoryService {
         return reject('Inventory to be deleted hasnull value or key is not defined');
       }
       obj.key = obj.labeleddate;
-      let path1 = this.basefolder+obj.barcode+"/";
+      let path1 = this.basefolder+"/"+obj.barcode+"/";
       console.log('deleteInventory service path='+path1)
       return this.commonService.delete(path1, obj);
       

@@ -180,7 +180,11 @@
                                 [cdkDropListConnectedTo]="[doneList1,relationshipList1]"
                                 
                                 (cdkDropListDropped)="drop2($event,0)">
-                                    <mat-chip *ngFor="let item of filteredItems1[0]" cdkDrag>{{ item.component }}</mat-chip>
+                                    <mat-chip *ngFor="let item of filteredItems1[0]" cdkDrag (removed)="openDialogForDeletePartConfirmation($event, item)" removable="true">{{ item.component }}
+                                        <button matChipRemove >
+                                            <mat-icon>delete</mat-icon>
+                                        </button>
+                                    </mat-chip>
                             </mat-chip-list>
                         </div>
                     
@@ -194,9 +198,11 @@
                                 [cdkDropListConnectedTo]="[doneList1,relationshipList1]"
                                 
                                 (cdkDropListDropped)="drop2($event,0)">
-                                    <mat-chip *ngFor="let item of barcodeparts[0]" cdkDrag (removed)="openDialogForDeletePartConfirmation($event, item)" removable="true">{{ item.component }}<button matChipRemove >
-                                        <mat-icon>delete</mat-icon>
-                                      </button></mat-chip>
+                                    <mat-chip *ngFor="let item of barcodeparts[0]" cdkDrag (removed)="openDialogForDeletePartConfirmation($event, item)" removable="true">{{ item.component }}
+                                        <button matChipRemove >
+                                            <mat-icon>delete</mat-icon>
+                                        </button>
+                                    </mat-chip>
                             </mat-chip-list>
                             <p>Drag1 here end</p>
                             <form class="addnewitem">
@@ -229,7 +235,11 @@
                                 [cdkDropListConnectedTo]="[doneList2,relationshipList2]"
                                 
                                 (cdkDropListDropped)="drop2($event,1)">
-                                    <mat-chip *ngFor="let item of filteredItems1[1]" cdkDrag>{{ item.component }}</mat-chip>
+                                    <mat-chip *ngFor="let item of filteredItems1[1]" cdkDrag (removed)="openDialogForDeletePartConfirmation($event, item)" removable="true">{{ item.component }}
+                                        <button matChipRemove >
+                                            <mat-icon>delete</mat-icon>
+                                        </button>
+                                    </mat-chip>
                             </mat-chip-list>
                         </div>
                     
@@ -243,7 +253,11 @@
                                 [cdkDropListConnectedTo]="[doneList2,relationshipList2]"
                                 
                                 (cdkDropListDropped)="drop2($event,1)">
-                                    <mat-chip *ngFor="let item of barcodeparts[1]" cdkDrag>{{ item.component }}</mat-chip>
+                                    <mat-chip *ngFor="let item of barcodeparts[1]" cdkDrag (removed)="openDialogForDeletePartConfirmation($event, item)" removable="true">{{ item.component }}
+                                        <button matChipRemove >
+                                            <mat-icon>delete</mat-icon>
+                                        </button>
+                                    </mat-chip>
                             </mat-chip-list>
                             <p>Drag1 here end</p>
                             <form class="addnewitem">
@@ -276,7 +290,11 @@
                                 [cdkDropListConnectedTo]="[doneList3,relationshipList3]"
                                 
                                 (cdkDropListDropped)="drop2($event,2)">
-                                    <mat-chip *ngFor="let item of filteredItems1[2]" cdkDrag>{{ item.component }}</mat-chip>
+                                    <mat-chip *ngFor="let item of filteredItems1[2]" cdkDrag (removed)="openDialogForDeletePartConfirmation($event, item)" removable="true">{{ item.component }}
+                                        <button matChipRemove >
+                                            <mat-icon>delete</mat-icon>
+                                        </button>
+                                    </mat-chip>
                             </mat-chip-list>
                         </div>
                     
@@ -290,7 +308,11 @@
                                 [cdkDropListConnectedTo]="[doneList3,relationshipList3]"
                                 
                                 (cdkDropListDropped)="drop2($event,2)">
-                                    <mat-chip *ngFor="let item of barcodeparts[2]" cdkDrag>{{ item.component }}</mat-chip>
+                                    <mat-chip *ngFor="let item of barcodeparts[2]" cdkDrag (removed)="openDialogForDeletePartConfirmation($event, item)" removable="true">{{ item.component }}
+                                        <button matChipRemove >
+                                            <mat-icon>delete</mat-icon>
+                                        </button>
+                                    </mat-chip>
                             </mat-chip-list>
                             <p>Drag1 here end</p>
                             <form class="addnewitem">
@@ -323,7 +345,11 @@
                                 [cdkDropListConnectedTo]="[doneList4,relationshipList4]"
                                 
                                 (cdkDropListDropped)="drop2($event,3)">
-                                    <mat-chip *ngFor="let item of filteredItems1[3]" cdkDrag>{{ item.component }}</mat-chip>
+                                    <mat-chip *ngFor="let item of filteredItems1[3]" cdkDrag (removed)="openDialogForDeletePartConfirmation($event, item)" removable="true">{{ item.component }}
+                                        <button matChipRemove >
+                                            <mat-icon>delete</mat-icon>
+                                        </button>
+                                    </mat-chip>
                             </mat-chip-list>
                         </div>
                     
@@ -337,7 +363,11 @@
                                 [cdkDropListConnectedTo]="[doneList4,relationshipList4]"
                                 
                                 (cdkDropListDropped)="drop2($event,3)">
-                                    <mat-chip *ngFor="let item of barcodeparts[3]" cdkDrag>{{ item.component }}</mat-chip>
+                                    <mat-chip *ngFor="let item of barcodeparts[3]" cdkDrag (removed)="openDialogForDeletePartConfirmation($event, item)" removable="true">{{ item.component }}
+                                        <button matChipRemove >
+                                            <mat-icon>delete</mat-icon>
+                                        </button>
+                                    </mat-chip>
                             </mat-chip-list>
                             <p>Drag1 here end</p>
                             <form class="addnewitem">
@@ -370,7 +400,11 @@
                                 [cdkDropListConnectedTo]="[doneList5,relationshipList5]"
                                 
                                 (cdkDropListDropped)="drop2($event,4)">
-                                    <mat-chip *ngFor="let item of filteredItems1[4]" cdkDrag>{{ item.component }}</mat-chip>
+                                    <mat-chip *ngFor="let item of filteredItems1[4]" cdkDrag (removed)="openDialogForDeletePartConfirmation($event, item)" removable="true">{{ item.component }}
+                                        <button matChipRemove >
+                                            <mat-icon>delete</mat-icon>
+                                        </button>
+                                    </mat-chip>
                             </mat-chip-list>
                         </div>
                     
@@ -384,7 +418,11 @@
                                 [cdkDropListConnectedTo]="[doneList5,relationshipList5]"
                                 
                                 (cdkDropListDropped)="drop2($event,4)">
-                                    <mat-chip *ngFor="let item of barcodeparts[4]" cdkDrag>{{ item.component }}</mat-chip>
+                                    <mat-chip *ngFor="let item of barcodeparts[4]" cdkDrag (removed)="openDialogForDeletePartConfirmation($event, item)" removable="true">{{ item.component }}
+                                        <button matChipRemove >
+                                            <mat-icon>delete</mat-icon>
+                                        </button>
+                                    </mat-chip>
                             </mat-chip-list>
                             <p>Drag1 here end</p>
                             <form class="addnewitem">
