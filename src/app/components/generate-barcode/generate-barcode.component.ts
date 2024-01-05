@@ -33,6 +33,7 @@ export interface CodeKeyWords {
 interface barCodeStore {
   id:string;
   key:string;
+  labeltype:string;
   data:string[];
 };
 
@@ -68,11 +69,15 @@ export class GenerateBarcodeComponent {
   readonly separatorKeysCodes =  [ENTER, COMMA] as const;
   search : string ="";
   searchlabel:string='';
+  searchProductlabel:string='';
   newlyaddeditem:string="";
+  newlyaddedProdId:string="";
 
   //Filtered Items from search function or when a level item is pushed in the current Barcode generator
   filteredItems1:Array<barcodePartStore[]>=[[],[],[],[],[]];
-  filteredLabels:Array<barCodeStore>=[]
+  filteredLabels:Array<barCodeStore>=[];
+  filteredProductLabels:Array<barCodeStore>=[];
+  selectedProductCode:string='';
   // This is the list used in barcode level in UI for the current barcode values
   done:Array<barcodePartStore[]> = [[],[],[],[],[]];
   relationshipholder:Array<barcodePartStore[]> = [[],[],[],[],[]];
@@ -90,9 +95,9 @@ export class GenerateBarcodeComponent {
   
 
   // In past these were the label created get from db
-  existingLabelList:Array<barCodeStore>=[{"id":"1","key":"1", "data":['11-11','21-21','31-31','41-41','51-51']},
-  {"id":"2","key":"2", "data":['12-12','22-22','32-32','42-42','52-52']}];
-  
+  existingLabelList:Array<barCodeStore>=[{"id":"1","key":"1", "labeltype":"utsw","data":['11-11','21-21','31-31','41-41','51-51']},
+  {"id":"2","key":"2", "labeltype":"utsw","data":['12-12','22-22','32-32','42-42','52-52']}];
+  existingProductLabelList:Array<barCodeStore>=[];
   // reation is from child to parent so that it is easy to search in db later
   //levellabel->uplevel which are comma separated
 
@@ -132,19 +137,23 @@ export class GenerateBarcodeComponent {
       }
   }
 
-  prepareLabelFromDataArray(data:any[]){
+  prepareLabelFromDataArray(data:any[], labeltype:string="utsw"){
     
     let map1 =  data.map((val)=>{
-      if (typeof val != 'string'){
-        
-        console.log('prepareLabelFromDataArray value is not string.. very strange '+JSON.stringify(val));
-        return val.component.split(this.kay_value_separator)[1];
+      if (labeltype == 'product') {
+        return val;
+      }else{
+        if (typeof val != 'string'){
+          
+          console.log('prepareLabelFromDataArray value is not string.. very strange '+JSON.stringify(val));
+          return val.component.split(this.kay_value_separator)[1];
+        }
+        return val.split(this.kay_value_separator)[1];
       }
-      return val.split(this.kay_value_separator)[1];
     });
     return map1.join('');
   }
-  openDialogForDeleteConfirmation(event:any, item:barCodeStore) {
+  openDialogForDeleteConfirmation(event:any, item:barCodeStore, labeltype="utsw") {
     const dialogRef = this.dialog.open(ConfirmationDialogComponent,{
       data:{
         message: 'Are you sure want to delete?',
@@ -159,15 +168,26 @@ export class GenerateBarcodeComponent {
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {  
         // Clicked on delete
-        console.log('Clicked on confirmed');      
-        this.barcodeService.deleteBarcode(item).then((res) => {
-          console.log('openDialogForDeleteConfirmation: ',res);    
-          alert('Successfully deleted');
-        })
-        .catch((err) => {
-          console.log('openDialogForDeleteConfirmation error: ' + err);
-          alert('Error while openDialogForDeleteConfirmation');        
-        });
+        console.log('Clicked on confirmed');   
+        if(labeltype == "product"){
+          this.barcodeService.deleteBarcode(item).then((res) => {
+            console.log('openDialogForDeleteConfirmation: ',res);    
+            alert('Successfully deleted');
+          })
+          .catch((err) => {
+            console.log('openDialogForDeleteConfirmation error: ' + err);
+            alert('Error while openDialogForDeleteConfirmation');        
+          });
+        }else if (labeltype =="utsw") {
+          this.barcodeService.deleteBarcode(item).then((res) => {
+            console.log('openDialogForDeleteConfirmation: ',res);    
+            alert('Successfully deleted');
+          })
+          .catch((err) => {
+            console.log('openDialogForDeleteConfirmation error: ' + err);
+            alert('Error while openDialogForDeleteConfirmation');        
+          });
+      }
         
       }else {
         // Cancelled
@@ -280,8 +300,24 @@ export class GenerateBarcodeComponent {
         // search in level data for this component match
         this.filterBarcodecomponent(v.data[vi], vi)
             .forEach(val=>this.done[vi][0]=val)
+        this.selectedProductCode='';
         // this.done[vi][0] = v.data[vi];
       }
+    }
+  }
+
+  existingProductLabelSelectionChange(event:MatSelectionListChange){
+    let selected = event.options.filter(o => o.selected).map(o => o.value);
+    console.log('selected Product label is '+JSON.stringify(selected )) ;
+    for(let i=0;i<selected.length;i++){
+      console.log('existingLabelSelectionChange() at index='+i+' val:'+JSON.stringify(selected[i]));
+      let v = selected[i]
+      for ( let vi=0; vi<v.data.length;vi++){
+        console.log("existingLabelSelectionChange() "+v.data[vi])
+        this.selectedProductCode = v.data[vi];
+        
+      }
+      this.resetbarcode()
     }
   }
   //existingRelationshipSelectionChange
@@ -342,6 +378,24 @@ export class GenerateBarcodeComponent {
      return this.filteredLabels;
    
  }
+ //existingProductLabelList
+ searchexistingProductlabel(searchfor=''){
+  if (searchfor =='') {
+    searchfor = this.searchProductlabel;
+  }
+  console.log('Searchexistinglabel now clicked');
+  this.filteredProductLabels = this.existingProductLabelList.filter((value)=> {
+                        if(value.labeltype == 'product') {                        
+                          let label = this.prepareLabelFromDataArray(value.data, value.labeltype)
+                          return label.toLowerCase().includes(searchfor.toLowerCase())
+                        }
+                        return false;
+                    });
+   console.log('Filtered Product Label list is '+JSON.stringify(this.filteredProductLabels));
+   return this.filteredProductLabels;
+ 
+}
+
   // get all levels static data from db
   //
   getAllBarcodeComponents(){
@@ -417,34 +471,71 @@ export class GenerateBarcodeComponent {
     this.newlyaddeditem='';
   }
 
+  //addnewProductId
+  // uses searchexistingProductlabel
+
+  addnewProductId(index=0): void {
+    const value = (this.newlyaddedProdId || '').trim();
+
+    if (value) {
+        let old_value_code = this.existingProductLabelList.find(x => x.data[0].toLowerCase() == value.toLowerCase());
+        if(typeof old_value_code != 'undefined'){
+          alert('Code is already in use.  Create new ProductId code. Code='+value);
+          return;
+        }
+        if (typeof old_value_code == 'undefined') {
+          // this.barcodeparts[index].push(value);
+          this.barcodeService.addBarcode({labeltype:'product',bar_code:[value]}).then((res) => {
+            console.log('addnewProductId: ',res);        
+          })
+          .catch((err) => {
+            console.log('addnewProductId error: ' + err);
+            alert('Error while addnewProductId');        
+          });
+        }
+    }
+
+    this.newlyaddedProdId='';
+  }
+
   // show label
   getSelectedLabel(){
     this.label="";
-    for(let i =0;i<this.done.length;i++){
-      let labelArray = this.done[i].map(val=>val.component.split(this.kay_value_separator)[1]);      
-      for(let i=0;i<labelArray.length;i++){
-        // this.label += labelArray[i]?labelArray[i]+"-":""
-        this.label += labelArray[i]?labelArray[i]:""
-      } 
-      
-    }
-    // if(this.label.length>0){
-    //   this.label = this.label.slice(0,-1)
-    // }
-    // window.JsBarcode("#code128", label);
-    return this.label;
+    if (this.selectedProductCode != null && this.selectedProductCode != '' ) {
+      return this.selectedProductCode;
+    }else {
+      for(let i =0;i<this.done.length;i++){
+        let labelArray = this.done[i].map(val=>val.component.split(this.kay_value_separator)[1]);      
+        for(let i=0;i<labelArray.length;i++){
+          // this.label += labelArray[i]?labelArray[i]+"-":""
+          this.label += labelArray[i]?labelArray[i]:""
+        } 
+        
+      }
+     
+      return this.label;
   }
+  }
+
+  //labeltype can be [utsw|product]
   getAllBarcodes(){
     let self = this;
      this.barcodeService.getAllBarcode().subscribe(data => { 
        console.log('getAllBarcodes(): step 1', JSON.stringify(data));
        self.existingLabelList=[];
+       self.existingProductLabelList=[];
        for(let i=0;i<data.length;i++){
          console.log('getAllBarcodes(): step 2', JSON.stringify(data[i]));
-         self.existingLabelList.push( {"id":data[i].id,"key":data[i].key,  "data":data[i].bar_code} );        
+         if(typeof data[i].labeltype !== 'undefined' && data[i].labeltype == 'product') {
+          self.existingProductLabelList.push( {"id":data[i].id,"key":data[i].key,  "labeltype":data[i].labeltype,"data":data[i].bar_code} );        
+         }else {         
+          self.existingLabelList.push( {"id":data[i].id,"key":data[i].key,  "labeltype":data[i].labeltype??"utsw","data":data[i].bar_code} );        
+         }
         }
         self.existingLabelList.sort((a,b)=>self.prepareLabelFromDataArray(a.data).localeCompare(self.prepareLabelFromDataArray(b.data)))
-         console.log('getAllBarcodes(): Data after filling ', JSON.stringify(self.existingLabelList));
+        self.existingProductLabelList.sort((a,b)=>self.prepareLabelFromDataArray(a.data,"product").localeCompare(self.prepareLabelFromDataArray(b.data,"product")))
+        console.log('getAllBarcodes(): UTSW label Data after filling ', JSON.stringify(self.existingLabelList));
+        console.log('getAllBarcodes(): Product label Data after filling ', JSON.stringify(self.existingProductLabelList));
        
      });
    }
@@ -455,19 +546,21 @@ export class GenerateBarcodeComponent {
     event.stopPropagation();
    }
 
-  savebarcode(){
+   //labeltype can be [utsw|product]
+   //
+  savebarcode(labeltype:string="utsw"){
     console.log('savebarcode clicked');
     let finalLevelComponentsArray=[];
     let dataForDBStore=[];
     for(let i =0;i<this.done.length;i++){
      
       if(this.done[i].length>1 || this.done[i].length==0) {
-        alert('You can have only one Barcode component per Level');
+        alert('You can have only one Barcode component per Level.  Remove extras from level '+(i+1));
         return;
       }
       for(let j=0;j<this.done[i].length;j++){
         finalLevelComponentsArray.push(this.done[i][j]?this.done[i][j].component.split(this.kay_value_separator)[1]:"");
-        dataForDBStore.push(this.done[i][j]?this.done[i][j]:'');
+        dataForDBStore.push(this.done[i][j] && this.done[i][j].component?this.done[i][j].component:'');
       } 
       
     } 
@@ -481,7 +574,7 @@ export class GenerateBarcodeComponent {
       // this.existingLabelList.push(dataForDBStore);
       
       // Push data in db as well
-      this.barcodeService.addBarcode({bar_code:dataForDBStore}).then((res) => {
+      this.barcodeService.addBarcode({bar_code:dataForDBStore, labeltype:labeltype}).then((res) => {
         console.log('savebarcode: ',res);        
       })
       .catch((err) => {

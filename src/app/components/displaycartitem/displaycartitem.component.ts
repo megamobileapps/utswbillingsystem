@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { UTSWCartItem } from 'src/app/models/cart-item';
-import { InOfficePrice } from 'src/app/models/inoffice';
+import { InOfficePrice, InventoryItem } from 'src/app/models/inoffice';
 import { CartDetails } from 'src/app/providers/cart.details';
 import { CartService } from 'src/app/providers/cart.provider';
 
@@ -58,7 +58,7 @@ export class DisplaycartitemComponent implements OnInit {
     // this.cart.push(ofItem!);
   }
 
-  removeFromCart(ofItem:InOfficePrice|null){
+  removeFromCart(ofItem:InventoryItem|null){
     var existingItem = this.checkIfExistInCart(ofItem!);    
     if(existingItem.length == 0) {
       // txId = Math.floor(Math.random() * 1000000);
@@ -74,19 +74,21 @@ export class DisplaycartitemComponent implements OnInit {
     }
   }
 
-  prepareCartItem(txId:number, ofItem:InOfficePrice):UTSWCartItem{
+  
+
+  prepareCartItem(txId:number, ofItem:InventoryItem):UTSWCartItem{
     var retVal:UTSWCartItem  = {
       txId:txId,
-      id:ofItem.id,    
+      id:ofItem.barcode.toString(),    
       quantityProvider:new BehaviorSubject<number>(1),
       quantity:1,
-      productCategory:ofItem.grade,    
-      productId:ofItem.subId,
-      productName:ofItem.subject,
-      initialPrice:ofItem.pcost,
+      productCategory:ofItem.brand,    
+      productId:ofItem.barcode,
+      productName:ofItem.productname,
+      initialPrice:ofItem.mrp,
       productPrice:ofItem.netvalue, // initialprice - discount
       discount:ofItem.discount,        
-      gst:ofItem.gst,      
+      gst:ofItem.percentgst,      
       hsn:ofItem.hsn,
       unitTag:'Nos',
       image:''
@@ -94,14 +96,15 @@ export class DisplaycartitemComponent implements OnInit {
     };
     return retVal;
   }
+
   // return -1 if it does not exist
-  checkIfExistInCart(ofItem:InOfficePrice|null):Array<UTSWCartItem>{
+  checkIfExistInCart(ofItem:InventoryItem|null):Array<UTSWCartItem>{
     if(null == ofItem) return [];
     return this.cart!.invoicedatalist.filter((value, index)=> 
-    value.productCategory == ofItem.grade &&
-    value.productId == ofItem.subId &&
-    value.id == ofItem.id &&
-    value.productName == ofItem.subject
+    value.productCategory == ofItem.brand &&
+    value.productId == ofItem.barcode &&
+    value.id == ofItem.barcode.toString() &&
+    value.productName == ofItem.productname
     );
     
   }
@@ -117,7 +120,7 @@ export class DisplaycartitemComponent implements OnInit {
     
   }
 
-  addToCart(ofItem:InOfficePrice|null){
+  addToCart(ofItem:InventoryItem|null){
     var existingItem = this.checkIfExistInCart(ofItem!);
     var txId = this.cart!.invoicedatalist.length == 0?
               Math.floor(Math.random() * 1000000)

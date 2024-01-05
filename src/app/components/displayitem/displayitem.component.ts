@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { UTSWCartItem } from 'src/app/models/cart-item';
-import { InOfficePrice } from 'src/app/models/inoffice';
+import { InOfficePrice, InventoryItem } from 'src/app/models/inoffice';
 import { CartDetails } from 'src/app/providers/cart.details';
 import { CartService } from 'src/app/providers/cart.provider';
 import { ScreenSizeService } from 'src/app/services/screen-size.service';
@@ -13,8 +13,9 @@ import { ScreenSizeService } from 'src/app/services/screen-size.service';
 })
 export class DisplayitemComponent implements OnInit {
 
-  @Input() ofItem:InOfficePrice|null=null
+  @Input() ofItem:InventoryItem|null=null
   @Input() enableBuy:boolean=true
+
 
   isMobileScreen:boolean = false;
 
@@ -40,31 +41,42 @@ export class DisplayitemComponent implements OnInit {
     
   }
   
+  instanceOfInOfficePrice(data: any): boolean  { 
+    return 'name' in data; 
+  }
+  
+  instanceOfInventoryItem(data: any): boolean  { 
+    return 'name' in data; 
+} 
+
   // return -1 if it does not exist
-  checkIfExistInCart(ofItem:InOfficePrice|null):Array<UTSWCartItem>|undefined{
-    if(null == ofItem) return [];
-    return this.cart?.invoicedatalist.filter((value, index)=> 
-    value.productCategory == ofItem.grade &&
-    value.productId == ofItem.subId &&
-    value.id == ofItem.id &&
-    value.productName == ofItem.subject
-    );
+  checkIfExistInCart(ofItem:InventoryItem|null):Array<UTSWCartItem>|undefined{
+    if(null == ofItem) 
+      return [];
+               
+      return this.cart?.invoicedatalist.filter((value, index)=> 
+        value.productCategory == ofItem.brand &&
+        value.productId == ofItem.barcode &&
+        value.id == ofItem.barcode.toString() &&
+        value.productName == ofItem.productname
+      );
+    
     
   }
 
-  prepareCartItem(txId:number, ofItem:InOfficePrice):UTSWCartItem{
+  prepareCartItem(txId:number, ofItem:InventoryItem):UTSWCartItem{
     var retVal:UTSWCartItem  = {
       txId:txId,
-      id:ofItem.id,    
+      id:ofItem.barcode.toString(),    
       quantityProvider:new BehaviorSubject<number>(1),
       quantity:1,
-      productCategory:ofItem.grade,    
-      productId:ofItem.subId,
-      productName:ofItem.subject,
-      initialPrice:ofItem.pcost,
+      productCategory:ofItem.brand,    
+      productId:ofItem.barcode,
+      productName:ofItem.productname,
+      initialPrice:ofItem.mrp,
       productPrice:ofItem.netvalue, // initialprice - discount
       discount:ofItem.discount,        
-      gst:ofItem.gst,      
+      gst:ofItem.percentgst,      
       hsn:ofItem.hsn,
       unitTag:'Nos',
       image:''
@@ -72,7 +84,7 @@ export class DisplayitemComponent implements OnInit {
     };
     return retVal;
   }
-  addToCart(ofItem:InOfficePrice|null){
+  addToCart(ofItem:InventoryItem|null){
     var existingItem = this.checkIfExistInCart(ofItem!);
     var txId = this.cart!.invoicedatalist.length == 0?
               Math.floor(Math.random() * 1000000)

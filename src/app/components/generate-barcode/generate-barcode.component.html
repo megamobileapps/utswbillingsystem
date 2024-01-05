@@ -7,6 +7,10 @@
                     [bc-format]="'CODE128'"
                     [bc-value]="getSelectedLabel()"
                     [bc-display-value]="true"
+                    [bc-height]="30"
+                    [bc-font-size]="20"
+                    [bc-width]="1"
+                    
                 >
                 </ngx-barcode6>
                 </div>
@@ -35,20 +39,20 @@
         
     </div>
     <div class="row">
-        <div class="col-2">
+        <div class="col-2 bg-info">
             <p class="text text-center text-bg-secondary ">Existing Labels</p>
             <form class="firstSearchForm">
                 <mat-form-field >
                     <span matPrefix> </span>
                   <mat-label>Search For Labels</mat-label>
                   <input matInput placeholder="labelvalue" name= "searchlabel" [(ngModel)]= "searchlabel"  value="">
-                  <button matSuffix mat-button (click)="searchexistinglabel()"><mat-icon >search</mat-icon></button>
+                  <button matSuffix mat-button (click)="searchexistinglabel()"  style="margin-left: -40px;"><mat-icon >search</mat-icon></button>
                 </mat-form-field>
               </form>
               <p class="text-bg-secondary">Filtered Labels</p>
               <mat-selection-list [multiple]="false" #selectedExistingLabel (selectionChange)="existingLabelSelectionChange($event)">
                 <mat-list-option *ngFor="let existingLabel of filteredLabels" [value]="existingLabel">
-                    <button mat-icon-button (click)="openDialogForDeleteConfirmation($event, existingLabel)">
+                    <button mat-icon-button (click)="openDialogForDeleteConfirmation($event, existingLabel,'utsw')">
                         <mat-icon>delete</mat-icon>
                       </button>
                       {{prepareLabelFromDataArray(existingLabel.data)}} 
@@ -57,11 +61,11 @@
             <p  class="text-bg-secondary">All Labels</p>
             <mat-selection-list [multiple]="false" #selectedExistingLabel (selectionChange)="existingLabelSelectionChange($event)">
                 <mat-list-option *ngFor="let existingLabel of existingLabelList" [value]="existingLabel" title="Select barcode">
-                    <button mat-icon-button (click)="openDialogForDeleteConfirmation($event, existingLabel)" 
+                    <button mat-icon-button (click)="openDialogForDeleteConfirmation($event, existingLabel,'utsw')" 
                     color="warn" title="Delete barcode">
                         <mat-icon>delete</mat-icon>
                       </button>
-                    {{prepareLabelFromDataArray(existingLabel.data??[])}} 
+                    {{prepareLabelFromDataArray(existingLabel.data)}} 
                 </mat-list-option>
             </mat-selection-list>
             <p  class="text-bg-secondary">
@@ -142,6 +146,9 @@
                             [bc-format]="'CODE128'"
                             [bc-value]="getSelectedLabel()"
                             [bc-display-value]="true"
+                            [bc-height]="30"
+                            [bc-font-size]="20"
+                            [bc-width]="1"
                         >
                         </ngx-barcode6>
                         </div>
@@ -509,6 +516,48 @@
             </div>
             <p>
                 <!-- Relation selected: {{selectedExistingLabel.selectedOptions.hasValue() ? selectedExistingLabel.selectedOptions.selected[0].value : 'None'}} -->
+            </p>
+        </div>
+        <div class="col-2 bg-warning">
+            <p class="text text-center text-bg-secondary ">Add New Product Id</p>
+            <form class="addnewitem">
+                <mat-form-field >
+                    <span matPrefix> </span>
+                  <mat-label>Add new ProdId</mat-label>
+                  <input matInput placeholder="productidcode" name= "newlyaddedproditem" [(ngModel)]= "newlyaddedProdId"  value="">
+                  <button matSuffix mat-button (click)="addnewProductId(0)"  style="margin-left: -40px;"><mat-icon >add_box</mat-icon></button>
+                </mat-form-field>
+            </form>
+            <p class="text text-center text-bg-secondary ">Search Product Id</p>
+            <form class="firstSearchForm">
+                <mat-form-field >
+                    <span matPrefix> </span>
+                  <mat-label>Search For Prod Label</mat-label>
+                  <input matInput placeholder="labelvalue" name= "searchlabel" [(ngModel)]= "searchProductlabel"  value="">
+                  <button matSuffix mat-button (click)="searchexistingProductlabel()" style="margin-left: -40px;"><mat-icon >search</mat-icon></button>
+                </mat-form-field>
+              </form>
+              <p class="text-bg-secondary">Filtered Prodcuct Id</p>
+              <mat-selection-list [multiple]="false" #selectedExistingLabel (selectionChange)="existingProductLabelSelectionChange($event)">
+                <mat-list-option togglePosition="before" *ngFor="let existingLabel of filteredProductLabels" [value]="existingLabel">
+                    <button  mat-icon-button (click)="openDialogForDeleteConfirmation($event, existingLabel,'product')">
+                        <mat-icon >delete</mat-icon>
+                      </button>
+                      {{prepareLabelFromDataArray(existingLabel.data, "product")}} 
+                </mat-list-option>
+            </mat-selection-list>
+            <p  class="text-bg-secondary">All Product Id</p>
+            <mat-selection-list [multiple]="false" #selectedExistingLabel (selectionChange)="existingProductLabelSelectionChange($event)">
+                <mat-list-option togglePosition="after" *ngFor="let existingLabel of existingProductLabelList" [value]="existingLabel" title="Select barcode">
+                    <button  mat-icon-button (click)="openDialogForDeleteConfirmation($event, existingLabel,'product')" 
+                    color="warn" title="Delete barcode">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                      {{prepareLabelFromDataArray(existingLabel.data, "product")}} 
+                </mat-list-option>
+            </mat-selection-list>
+            <p  class="text-bg-secondary">
+                Label selected: {{selectedProductCode}}
             </p>
         </div>
     </div>

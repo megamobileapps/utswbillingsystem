@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { InOfficePrice } from '../models/inoffice';
+import { InOfficePrice, InventoryItem } from '../models/inoffice';
 
 
 @Pipe({
@@ -7,12 +7,12 @@ import { InOfficePrice } from '../models/inoffice';
     pure: false
 })
 export class CategoryfilterPipe implements PipeTransform {
-    transform(items: InOfficePrice[], filter: String): any {
+    transform(items: InventoryItem[], filter: String): any {
         if (!items || !filter) {
             return items;
         }
         // filter items array, items which match and return true will be
         // kept, false will be filtered out
-        return items.filter(item => item.grade == filter);
+        return items.filter(item => item.brand == filter);
     }
 }

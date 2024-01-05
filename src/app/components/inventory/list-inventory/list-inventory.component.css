@@ -1,3 +1,18 @@
 th.mat-sort-header-sorted {
     color: black;
   }
+  .mat-column-productname{
+    width :150px;
+    max-width:150px;
+    word-wrap:break-word;
+   }
+   .mat-column-fixedprofit{
+    width :100px;
+    max-width:100px;
+    word-wrap:break-word;
+   }
+   .mat-column-quantity{
+    width :50px;
+    max-width:50px;
+    word-wrap:break-word;
+   }

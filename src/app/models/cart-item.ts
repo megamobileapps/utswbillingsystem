@@ -2,7 +2,7 @@ import { BehaviorSubject, Observable } from "rxjs";
 
 export interface UTSWCartItem {
     txId:number;
-    id:number;    
+    id:string;    
     quantityProvider:BehaviorSubject<number>;
     quantity:number;
     productCategory:String;    

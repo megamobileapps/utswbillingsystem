@@ -21,7 +21,7 @@
  
     <ng-container matColumnDef="calculatedmrp">
       <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by Calculate MRP"> Calculate MRP </th>
-      <td mat-cell *matCellDef="let element"> {{element.calculatedmrp}} </td>
+      <td mat-cell *matCellDef="let element"> {{element.calculatedmrp| number : '1.2-2'}} </td>
     </ng-container>
   
   
@@ -31,7 +31,7 @@
     </ng-container>
     <ng-container matColumnDef="fixedprofit">
         <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by Fixed Profit">Fixed Profit </th>
-        <td mat-cell *matCellDef="let element"> {{element.fixedprofit}} </td>
+        <td mat-cell *matCellDef="let element"> {{element.fixedprofit| number : '1.2-2'}} </td>
       </ng-container>
     
   
@@ -49,11 +49,11 @@
     
       <ng-container matColumnDef="mrp">
         <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by MRP"> MRP </th>
-        <td mat-cell *matCellDef="let element"> {{element.mrp}} </td>
+        <td mat-cell *matCellDef="let element"> {{element.mrp| number : '1.2-2'}} </td>
       </ng-container>
       <ng-container matColumnDef="netcp">
         <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by Net CP"> Net CP </th>
-        <td mat-cell *matCellDef="let element"> {{element.netcp}} </td>
+        <td mat-cell *matCellDef="let element"> {{element.netcp| number : '1.2-2'}} </td>
       </ng-container>
     
   
@@ -65,7 +65,7 @@
    
       <ng-container matColumnDef="percentprofit">
         <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by % profit "> % profit </th>
-        <td mat-cell *matCellDef="let element"> {{element.percentprofit}} </td>
+        <td mat-cell *matCellDef="let element"> {{element.percentprofit| number : '1.2-2'}} </td>
       </ng-container>
     
     

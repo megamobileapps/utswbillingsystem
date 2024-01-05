@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { InOfficePrice } from '../models/inoffice';
+import { InOfficePrice, InventoryItem } from '../models/inoffice';
 
 
 @Pipe({
@@ -7,7 +7,7 @@ import { InOfficePrice } from '../models/inoffice';
     pure: false
 })
 export class SearchStrfilterPipe implements PipeTransform {
-    transform(items: InOfficePrice[], filter: String): any {
+    transform(items: InventoryItem[], filter: String): any {
         
         if (!items || !filter) {
             return items;
@@ -18,10 +18,10 @@ export class SearchStrfilterPipe implements PipeTransform {
         // filter items array, items which match and return true will be
         // kept, false will be filtered out
         return items.filter(item => 
-            item.grade.toLowerCase().indexOf(filter.toString()) != -1
-            ||item.subject.toLowerCase().indexOf(filter.toString()) != -1
-            ||item.subId.toLowerCase().indexOf(filter.toString()) != -1
-            || item.pcost.toString().toLowerCase().indexOf(filter.toString()) != -1
+            item.brand.toLowerCase().indexOf(filter.toString()) != -1
+            ||item.vendor.toLowerCase().indexOf(filter.toString()) != -1
+            ||item.productname.toLowerCase().indexOf(filter.toString()) != -1
+            || item.mrp.toString().toLowerCase().indexOf(filter.toString()) != -1
             || item.barcode.toString().toLowerCase().indexOf(filter.toString()) != -1
             );
     }
