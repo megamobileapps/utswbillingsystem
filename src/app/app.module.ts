@@ -37,6 +37,7 @@ import { BarcodeService } from './services/barcode.service';
 import { InventoryService } from './services/inventory.service';
 import { ListInventoryComponent } from './components/inventory/list-inventory/list-inventory.component';
 import { ConfirmationDialogComponent } from './components/confirmation-dialog/confirmation-dialog.component';
+import { DirectinvoiceComponent } from './components/directinvoice/directinvoice.component';
 
 
 @NgModule({
@@ -60,6 +61,7 @@ import { ConfirmationDialogComponent } from './components/confirmation-dialog/co
     GenerateBarcodeComponent,
     ListInventoryComponent,
     ConfirmationDialogComponent,
+    DirectinvoiceComponent,
 
   ],
   imports: [

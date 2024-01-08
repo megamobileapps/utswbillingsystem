@@ -41,13 +41,7 @@ export class DisplayitemComponent implements OnInit {
     
   }
   
-  instanceOfInOfficePrice(data: any): boolean  { 
-    return 'name' in data; 
-  }
   
-  instanceOfInventoryItem(data: any): boolean  { 
-    return 'name' in data; 
-} 
 
   // return -1 if it does not exist
   checkIfExistInCart(ofItem:InventoryItem|null):Array<UTSWCartItem>|undefined{
@@ -79,8 +73,8 @@ export class DisplayitemComponent implements OnInit {
       gst:ofItem.percentgst,      
       hsn:ofItem.hsn,
       unitTag:'Nos',
-      image:''
-
+      image:'',
+      labeldate:ofItem.labeleddate
     };
     return retVal;
   }

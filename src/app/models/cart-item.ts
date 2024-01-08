@@ -14,6 +14,7 @@ export interface UTSWCartItem {
     gst:number;      
     hsn:number;
     unitTag:String;
+    labeldate:String;
     image:String;
 
 }

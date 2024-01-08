@@ -91,7 +91,8 @@ export class DisplaycartitemComponent implements OnInit {
       gst:ofItem.percentgst,      
       hsn:ofItem.hsn,
       unitTag:'Nos',
-      image:''
+      image:'',
+      labeldate:ofItem.labeleddate
 
     };
     return retVal;

@@ -1,0 +1,135 @@
+
+<div class="example-container bg-info">
+    <p class="text-bg-secondary">Add Invoice</p>
+    <form [formGroup]="invoice">
+      <div class="example-form-fields">
+        <div formArrayName="items">
+            <div *ngFor="let item of itemControls.controls;  let i=index">
+                <div [formGroupName]="i" class="recipe-container">
+                  <div class="sub_input-container"></div>
+                
+                    <div class="row">
+                        <div class="col-12">
+                            <mat-form-field >
+                                <mat-label>Barcode</mat-label> 
+                                <input matInput placeholder="Barcode" formControlName="barcode" >
+                            </mat-form-field> 
+                            
+                            <mat-form-field >
+                                <mat-label>Product Name</mat-label> 
+                                <input matInput placeholder="Prod Name" formControlName="productname" required>
+                            </mat-form-field>
+                            <mat-form-field >
+                                <mat-label>Final MRP </mat-label> 
+                                <input matInput placeholder="Final MRP " formControlName="mrp" required>
+                            </mat-form-field>  
+                            <mat-form-field >
+                                <mat-label>Discount </mat-label> 
+                                <input matInput placeholder="Discount " formControlName="discount" required>
+                            </mat-form-field>  
+                            <mat-form-field >
+                                <mat-label>Quantity</mat-label> 
+                                <input matInput placeholder="Quantity" formControlName="quantity" required>
+                            </mat-form-field>  
+                           
+                        </div>
+                        
+                        
+                    </div>
+                    
+                    <div class="row ">
+                        <div class="col-12">
+                            <mat-form-field >
+                                <mat-label>CP </mat-label> 
+                                <input matInput placeholder="CP" formControlName="cp" required>
+                            </mat-form-field>  
+                            <mat-form-field >
+                                <mat-label>Shipping amt</mat-label> 
+                                <input matInput placeholder="shipping amt" formControlName="shippingcost" required>
+                            </mat-form-field>
+                            <mat-form-field >
+                                <mat-label>%GST</mat-label>
+                                <input matInput placeholder="%GST" formControlName="percentgst" required>
+                            </mat-form-field>
+                            <mat-form-field >
+                                <mat-label>CP after GST & Shipping</mat-label> 
+                                <input matInput placeholder="CP after GST & Shipping" formControlName="netcp" required>
+                            </mat-form-field>  
+                            
+                        </div>
+                        
+                    </div>
+                <div class="row">
+                    <div class="col-12">
+                        <mat-form-field >
+                            <mat-label>HSN</mat-label> 
+                            <input matInput placeholder="HSN" formControlName="hsn" required>
+                        </mat-form-field>  
+                        <mat-form-field >
+                            <mat-label>calculated MRP</mat-label>
+                            <input matInput placeholder="calculated MRP" formControlName="calculatedmrp" required>
+                        </mat-form-field>
+                        
+                        <mat-form-field >
+                            <mat-label>Profit Rs</mat-label>
+                            <input matInput placeholder="Profit Rs" formControlName="fixedprofit" required>
+                        </mat-form-field>
+                
+                            <mat-form-field >
+                                <mat-label>%profit </mat-label> 
+                                <input matInput placeholder="%profit " formControlName="percentprofit" required>
+                            </mat-form-field>  
+                            
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <mat-form-field >
+                                <mat-label>Labelled Date yyyy-mm-dd</mat-label>
+                                <input matInput placeholder="Labelled Date yyyy-mm-dd" formControlName="labeleddate" required>
+                            </mat-form-field>
+                            <mat-form-field >
+                                <mat-label>Vendor </mat-label> 
+                                <input matInput placeholder="Vendor " formControlName="vendor" required>
+                            </mat-form-field>  
+                            <mat-form-field >
+                                <mat-label>Brand</mat-label>
+                                <input matInput placeholder="Brand" formControlName="brand" required>
+                            </mat-form-field>
+                            <mat-form-field >
+                                <mat-label>Unit</mat-label>
+                                <input matInput placeholder="Unit" formControlName="unit" required>
+                            </mat-form-field>
+                            
+                                <button  mat-icon-button (click)="removeItem(i)" 
+                                color="warn" title="Delete Row">
+                                    <mat-icon>delete</mat-icon>
+                                  </button>
+                            
+                        
+                             
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+       </div>
+            
+      </div>
+    </form>
+    
+  </div>
+  <div class="row m-4">
+    <button class="btn  btn-info col-md-2 " 
+        (click)="addItem()"    
+        value="Click to Calculate">Add new row      
+    </button> 
+    <button class="btn  btn-info offset-md-2 col-md-2 " 
+        (click)="calculateCPMRPProfit()"    
+        value="Click to Calculate">Click to Calculate      
+    </button> 
+    <button class="btn  btn-warning offset-md-4 col-md-2 " 
+        (click)="onAddToCart()"    
+        value="Click to Submit">Click to Submit      
+    </button> 
+</div> 

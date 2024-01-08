@@ -16,59 +16,90 @@
         </div> -->
         <div class="col-md-7 col-sm-12">
             <div class="row">
-            <div class="card col-md-6 col-sm-12" >
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    
-                    <form class="form-inline" >
-
-                        <div class="input-group">
-                            <input class="form-control border-end-0 border rounded-pill" 
-                            (keydown.enter)="filterResults(filter.value)"
-                                type="text" placeholder="Search" aria-label="Search" #filter>
-                            <span class="input-group-append">
-                                <button class="btn btn-outline-success bg-white border-bottom-0 border rounded-pill" type="button" 
-                                (click)="filterResults(filter.value)"><i class="bi bi-search"></i></button>
-                            </span>
+                <div class="accordion" id="accordionExample">
+                    <div class="accordion-item">
+                      <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                          Scanned Invoice
+                        </button>
+                      </h2>
+                      <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                        <div class="accordion-body">
+                            <div class="row">
+                            <div class="card col-md-6 col-sm-12" >
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    
+                                    <form class="form-inline" >
+                
+                                        <div class="input-group">
+                                            <input class="form-control border-end-0 border rounded-pill" 
+                                            (keydown.enter)="filterResults(filter.value)"
+                                                type="text" placeholder="Search" aria-label="Search" #filter>
+                                            <span class="input-group-append">
+                                                <button class="btn btn-outline-success bg-white border-bottom-0 border rounded-pill" type="button" 
+                                                (click)="filterResults(filter.value)"><i class="bi bi-search"></i></button>
+                                            </span>
+                                        </div>
+                                      </form>
+                                    
+                                </div>
+                                <div class="card-body  overflow-auto" style="height:400px;">
+                                    <p class="text text-center h5 bg-light">Filtered List</p>
+                                    <div class="list-group">
+                                        <div 
+                                        *ngFor="let ofItem of catalogueItems|searchstrfilter:searchStr"
+                                        href="#" class="list-group-item list-group-item-action " aria-current="true">
+                                        <app-displayitem [ofItem]="ofItem" [enableBuy]="true"></app-displayitem>
+                                          </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card col-md-6 col-sm-12">
+                                <div class="h5 card-header text text-center">All Items(Quick Filter)</div>
+                                    <div class="card-body  overflow-auto" style="height:400px;">
+                                        <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+                                            <div class="btn-group mr-2" role="group" aria-label="First group">
+                                            <button *ngFor="let cat of categories, let i=index" 
+                                            (click)="setCatSelection(cat.grade)"
+                                            type="button" class="btn btn-secondary">{{cat.grade}}</button>
+                                            
+                                            </div>
+                                        
+                                        </div>
+                                        <div>
+                                            <div class="list-group">
+                                                <div 
+                                                *ngFor="let ofItem of catalogueItems|categoryfilter:selectedCat"
+                                                 class="list-group-item list-group-item-action " 
+                                                aria-current="true">
+                                                    <app-displayitem [ofItem]="ofItem" [enableBuy]="true"></app-displayitem>
+                                                  </div>
+                                            </div>
+                                            
+                                        </div>
+                                    </div>
+                               </div>
+                               </div>
                         </div>
-                      </form>
-                    
-                </div>
-                <div class="card-body  overflow-auto" style="height:400px;">
-                    <p class="text text-center h5 bg-light">Filtered List</p>
-                    <div class="list-group">
-                        <div 
-                        *ngFor="let ofItem of catalogueItems|searchstrfilter:searchStr"
-                        href="#" class="list-group-item list-group-item-action " aria-current="true">
-                        <app-displayitem [ofItem]="ofItem" [enableBuy]="true"></app-displayitem>
-                          </div>
+                      </div>
                     </div>
-                </div>
+                    <div class="accordion-item">
+                      <h2 class="accordion-header" id="headingTwo">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                          Direct Invoice
+                        </button>
+                      </h2>
+                      <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+                        <div class="accordion-body">
+                          <app-directinvoice></app-directinvoice>
+                        </div>
+                      </div>
+                    </div>
+                    
+                  </div>
             </div>
-            <div class="card col-md-6 col-sm-12">
-                <div class="h5 card-header text text-center">All Items(Quick Filter)</div>
-                    <div class="card-body  overflow-auto" style="height:400px;">
-                        <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
-                            <div class="btn-group mr-2" role="group" aria-label="First group">
-                            <button *ngFor="let cat of categories, let i=index" 
-                            (click)="setCatSelection(cat.grade)"
-                            type="button" class="btn btn-secondary">{{cat.grade}}</button>
-                            
-                            </div>
-                        
-                        </div>
-                        <div>
-                            <div class="list-group">
-                                <div 
-                                *ngFor="let ofItem of catalogueItems|categoryfilter:selectedCat"
-                                 class="list-group-item list-group-item-action " 
-                                aria-current="true">
-                                    <app-displayitem [ofItem]="ofItem" [enableBuy]="true"></app-displayitem>
-                                  </div>
-                            </div>
-                            
-                        </div>
-                    </div>
-               </div>
+            <div class="row">
+            
         </div>
     </div>
     <div class="col-md-5 col-sm-12">

@@ -11,6 +11,7 @@ import { LogoutComponent } from './components/auth/login/logout.component';
 import { AuthGuard } from './components/auth/auth.guard';
 import { GenerateBarcodeComponent } from './components/generate-barcode/generate-barcode.component';
 import { ListInventoryComponent } from './components/inventory/list-inventory/list-inventory.component';
+import { DirectinvoiceComponent } from './components/directinvoice/directinvoice.component';
 
 
 const routes : Routes = [
@@ -23,6 +24,7 @@ const routes : Routes = [
   {path:'newcode',component:GenerateBarcodeComponent,canActivate:[AuthGuard]},
   {path:'login', component:LoginComponent},
   {path:'logout', component:LogoutComponent},
+  {path:'directinvoice', component:DirectinvoiceComponent,canActivate:[AuthGuard]},
   { 
     path: '',
     component:CatalogueComponent,canActivate: [AuthGuard]     
