@@ -20,12 +20,32 @@ export class DirectinvoiceComponent {
   submitted:boolean=false;
   loading:boolean=false;
   isMobileScreen:boolean = false;
+  todaydate:string='';
 
   constructor(private formBuilder: FormBuilder,
     private _dataService:DataService, 
     private    _inventoryService : InventoryService,
     private screenSizeService:ScreenSizeService,
     private _cartService:CartService,private router: Router, private route: ActivatedRoute) {
+      let date1 = new Date();
+      const year = date1.getFullYear(); // e.g., 2023
+      let month = date1.getMonth()+1; // e.g., 7 (for July)
+      const day = date1.getDate(); // e.g., 7 (for July)
+      let formattedmonth:string='';
+      let formattedday:string='';
+      if (month<10){
+        formattedmonth=`0${month}`
+      } else{
+        formattedmonth=`${month}`
+      }
+      if (day<10){
+        formattedday=`0${day}`
+      } else{
+        formattedday=`${day}`
+      }
+      
+      this.todaydate = `${year}-${formattedmonth}-${formattedday}`;
+      // console.log('today = '+this.todaydate);
       
       this.invoice = this.formBuilder.group({
         items:this.formBuilder.array([
@@ -42,7 +62,7 @@ export class DirectinvoiceComponent {
         discount:['0'],
         fixedprofit: ['0'],
         percentprofit: ['0'],
-        labeleddate: ['2023-01-29'],
+        labeleddate: [this.todaydate],
         vendor: ['utsw'],
         brand: ['utsw'],
         shippingcost: ['0'],
@@ -131,7 +151,7 @@ export class DirectinvoiceComponent {
             discount:['0'],
             fixedprofit: ['0'],
             percentprofit: ['0'],
-            labeleddate: ['2023-01-29'],
+            labeleddate: [this.todaydate],
             vendor: ['utsw'],
             brand: ['utsw'],
             shippingcost: ['0'],
