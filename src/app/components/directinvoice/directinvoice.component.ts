@@ -10,6 +10,9 @@ import { DataService } from 'src/app/services/data.service';
 import { InventoryService } from 'src/app/services/inventory.service';
 import { ScreenSizeService } from 'src/app/services/screen-size.service';
 import { BehaviorSubject } from 'rxjs';
+import { environment } from "src/environments/environment";
+import * as $ from "jquery";
+
 @Component({
   selector: 'app-directinvoice',
   templateUrl: './directinvoice.component.html',
@@ -80,31 +83,37 @@ export class DirectinvoiceComponent {
       return this.invoice.get('items') as FormArray;
     }
 
+    prepare_json_from_formgroup(fg:FormGroup):InventoryItem {
+      let allControls = fg.controls;
+      return {
+        productname: allControls['productname'].value,   
+        hsn: allControls['hsn'].value,       
+        quantity: Number(allControls['quantity'].value),
+        unit: allControls['unit'].value,
+        cp: allControls['cp'].value,
+        percentgst: allControls['percentgst'].value,
+        netcp: allControls['netcp'].value,
+        calculatedmrp: allControls['calculatedmrp'].value,
+        mrp: allControls['mrp'].value,
+        discount: Number(allControls['discount'].value),
+        netvalue:Number(allControls['mrp'].value)*(100-Number(allControls['discount'].value))/100,
+        fixedprofit: allControls['fixedprofit'].value,
+        percentprofit: allControls['percentprofit'].value,
+        labeleddate: allControls['labeleddate'].value,
+        vendor: allControls['vendor'].value,
+        brand: allControls['brand'].value,
+        shippingcost: allControls['shippingcost'].value,
+        barcode:allControls['barcode'].value,
+      };
+    }
+
     allInvoiceItems():Array<any>{
       var itemValueArray:Array<any> = [];
       const items = this.invoice.get('items') as FormArray;
       if (!items.invalid) {
         for(let itemIndex=0;itemIndex<items.length;itemIndex++) {
           let allControls = (items.at(itemIndex) as FormGroup).controls;
-          let itemValues = {
-            productname: allControls['productname'].value,   
-            hsn: allControls['hsn'].value,       
-            quantity: allControls['quantity'].value,
-            unit: allControls['unit'].value,
-            cp: allControls['cp'].value,
-            percentgst: allControls['percentgst'].value,
-            netcp: allControls['netcp'].value,
-            calculatedmrp: allControls['calculatedmrp'].value,
-            mrp: allControls['mrp'].value,
-            discount: allControls['discount'].value,
-            fixedprofit: allControls['fixedprofit'].value,
-            percentprofit: allControls['percentprofit'].value,
-            labeleddate: allControls['labeleddate'].value,
-            vendor: allControls['vendor'].value,
-            brand: allControls['brand'].value,
-            shippingcost: allControls['shippingcost'].value,
-            barcode:allControls['barcode'].value,
-          };
+          let itemValues = this.prepare_json_from_formgroup(items.at(itemIndex) as FormGroup);
           itemValueArray.push(itemValues);
 
         }
@@ -163,6 +172,10 @@ export class DirectinvoiceComponent {
 
     removeItem(index: any) {
       const items = this.invoice.get('items') as FormArray;
+      //first remove this item from cart and then from this list
+      this.removeFromCart(this.prepare_json_from_formgroup(items.at(index) as FormGroup));
+
+      //remove from FormArray after it is removed from cart
       items.removeAt(index);
     }
 
@@ -243,13 +256,31 @@ export class DirectinvoiceComponent {
   
       // this.cart.push(ofItem!);
     }
+
+    removeFromCart(ofItem:InventoryItem|null){
+      var existingItem = this.checkIfExistInCart(ofItem!);
+      var txId = this.cart!.invoicedatalist.length == 0?
+                Math.floor(Math.random() * 1000000)
+                :this.cart!.invoicedatalist[0].txId;
+      this._cartService.currentCart!.invoicenumber = txId;
+      if(existingItem!.length == 0) {
+        // txId = Math.floor(Math.random() * 1000000);
+        // this.cart!.invoicedatalist.push(this.prepareCartItem(txId, ofItem!))
+      }else{
+        //item.quantity.next(item.quantity.getValue()+1);
+        existingItem![0].quantityProvider .next(0);
+        existingItem![0].quantity =0;
+      }
+  
+      // this.cart.push(ofItem!);
+    }
     clearCart():void{
       this._cartService.currentCart!.invoicedatalist=[];
     }
 
-    onAddToCart(){
-      console.log('onSubmitFire called');
-      console.log("Submitting payment form in cart component");
+    onPushToCart(){
+      console.log('onPushToCart called');
+      console.log("onPushToCart component");
       this.submitted = true;
       // stop here if form is invalid
       if (this.invoice.invalid) {
@@ -259,9 +290,9 @@ export class DirectinvoiceComponent {
   
       this.loading = true;
       var formData:Array<any> = this.allInvoiceItems();
-      this.clearCart();
+      // this.clearCart();
       for(let indexItem = 0;indexItem<formData.length;indexItem++){
-        console.log("onAddToCart(): adding item number "+indexItem+" "+JSON.stringify(formData[indexItem]));
+        console.log("onPushToCart(): adding item number "+indexItem+" "+JSON.stringify(formData[indexItem]));
         this.addToCart(formData[indexItem]);
       }
       //
@@ -285,4 +316,53 @@ export class DirectinvoiceComponent {
       return this._cartService.currentCart;
     }
 
+
+    checkoutpayu(custinfo:any) {
+      
+      // global data
+      var ran1 = Math.floor((Math.random() * 999999) + 1);
+      var d = new Date();
+      var n = d.getTime();
+      var userId ='pkk';
+      var data = {
+        key: 'fop2UnJB',        
+        txnid:userId+'-'+ran1,
+        amount:100.1  
+      };
+      var form = $('<form></form>');
+      // form.attr("action", environment.apiUrl+"/enrol/payu/submit.php");
+      form.attr("action", environment.apiBackend+"/in/ci/Payusubmit/qr");
+      // form.attr("action", 'https://www.uptoschoolworksheets.com/in'+"/enrol/payu/submit.php");
+      form.attr("method", "POST");
+      form.attr("style", "display:none;");
+      this.addFormFields(form, data);
+      
+      $("body").append(form);
+  
+      // submit form
+  
+      form.submit();
+      form.remove();
+          
+        
+      }
+  
+      // Add form data
+      //
+      addFormFields(form:JQuery<HTMLElement>, data:any){
+        //alert(typeof data);
+        var keys = Object.keys(data);
+        for(var i=0;i<keys.length;i++) {
+            var paramName = keys[i];
+            var paramValue = data[paramName];
+            
+            var field1 = $("<input></input>");
+            $(field1).attr("type","hidden"); 
+            $(field1).attr("name", paramName );
+            $(field1).attr("id", paramName );
+            $(field1).val(paramValue);
+            
+            $(form).append(field1);
+        }
+    };
 }

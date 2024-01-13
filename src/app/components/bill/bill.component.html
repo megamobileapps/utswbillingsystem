@@ -1,1 +1,63 @@
-<p>bill works!</p>
+<div class="mat-elevation-z8">
+    <table mat-table [dataSource]="dataSource" matSort (matSortChange)="announceSortChange($event)" class="mat-elevation-z8">
+
+   
+    <ng-container matColumnDef="id">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by id" mat-sort-header sortActionDescription="Sort by id"> id </th>
+      <td mat-cell *matCellDef="let element"> {{element.id}} </td>
+    </ng-container>
+  
+    <!--username -->
+    <ng-container matColumnDef="username">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by Product Name" mat-sort-header sortActionDescription="Sort by id">Username </th>
+        <td mat-cell *matCellDef="let element"> {{element.username}} </td>
+      </ng-container>
+
+    <ng-container matColumnDef="phonenumber">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by phonenumber"> Phone Number </th>
+      <td mat-cell *matCellDef="let element"> {{element.phonenumber}} </td>
+    </ng-container>
+  
+ 
+    <ng-container matColumnDef="amount">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by Calculate MRP"> Bill Amount </th>
+      <td mat-cell *matCellDef="let element"> {{element.amount| number : '1.2-2'}} </td>
+    </ng-container>
+  
+  
+    <ng-container matColumnDef="emailid">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by emailid"> Emailid </th>
+      <td mat-cell *matCellDef="let element"> {{element.emailid}} </td>
+    </ng-container>
+    <ng-container matColumnDef="invoicenumber">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by Invoice">Invoice No. </th>
+        <td mat-cell *matCellDef="let element"> {{element.invoicenumber| number : '1.2-2'}} </td>
+      </ng-container>
+    
+  
+      <ng-container matColumnDef="invoicedate">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by invoicedate"> Invoice Date </th>
+        <td mat-cell *matCellDef="let element"> {{element.invoicedate}} </td>
+      </ng-container>
+    
+   
+      <ng-container matColumnDef="discount">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by discount"> Discount </th>
+        <td mat-cell *matCellDef="let element"> {{element.discount}} </td>
+      </ng-container>
+    
+    
+      <ng-container matColumnDef="payment_method">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by payment_method"> Payment Method </th>
+        <td mat-cell *matCellDef="let element"> {{element.payment_method}} </td>
+      </ng-container>
+      
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+  <mat-paginator [pageSizeOptions]="[5, 10, 20]"
+  showFirstLastButtons
+  aria-label="Select page">
+</mat-paginator>
+</div>

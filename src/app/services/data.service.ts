@@ -1,9 +1,11 @@
 import { Injectable } from "@angular/core";
 import { Observable, catchError, map, of, tap } from "rxjs";
 import { InOfficeCat, InOfficePrice } from "../models/inoffice";
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { MessageService } from "./message.service";
 import { environment } from "src/environments/environment";
+import { param } from "jquery";
+import { InvoiceDataItem } from "../models/invoice-data-item";
 
 @Injectable({
     providedIn: 'root'
@@ -13,6 +15,7 @@ import { environment } from "src/environments/environment";
     inofficeratesurl= '/in/ci/Inofficerates';
     inofficecatsurl='/in/ci/Inofficerates/grades';
     saveBillUrl='/in/ci/Posinvoice/add'; //TODO v1 url
+    getBillUrl='/in/ci/Posinvoice'; //TODO v1 url
     addItemUrl='/in/ci/Inofficerates/additem';//add item in inofficerate
 
     httpOptions = {
@@ -55,6 +58,27 @@ import { environment } from "src/environments/environment";
       catchError(this.handleError<InOfficeCat[]>('getInofficeCategories', []))
     );
   }
+
+  getInvoiceDataFromServer(invoicedate:string) :Observable<InvoiceDataItem[]> {
+    let params = new HttpParams();
+       params = params.append('posuserid', '9999');
+       params = params.append('posuserpswd', '8888');
+       params = params.append('invoicedate', invoicedate);
+
+    let params_string = params.toString();
+    console.log('Service getInvoiceDataFromServer() ' + params_string);
+
+    let options = {
+        headers: new HttpHeaders().set('Content-Type', 'application/x-www-form-urlencoded'),
+        
+    };
+    return this._http.get<InvoiceDataItem[]>(environment.apiBackend+this.getBillUrl+'?'+params_string, options).pipe(
+      tap(_ => this.log('fetched getInvoiceDataFromServer')),
+      catchError(this.handleError<InvoiceDataItem[]>('getInvoiceDataFromServer', []))
+    );
+
+  }
+
   saveInvoiceDataOnServer(data:any){
     return this._http.post<any>(`${environment.apiBackend}${this.saveBillUrl}`,
                                { data })
