@@ -53,7 +53,7 @@ export class DirectinvoiceComponent {
       this.invoice = this.formBuilder.group({
         items:this.formBuilder.array([
         this.formBuilder.group({
-        productname:['utsw'],
+        productname:[''],
         hsn: ['49011010'],
         quantity: ['1'],
         unit: ['Nos'],
@@ -148,7 +148,7 @@ export class DirectinvoiceComponent {
       if (!items.invalid) {
         items.push(
           this.formBuilder.group({
-            productname:['utsw'],
+            productname:[''],
             hsn: ['49011010'],
             quantity: ['1'],
             unit: ['Nos'],

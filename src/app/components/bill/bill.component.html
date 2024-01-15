@@ -1,4 +1,6 @@
 <div class="mat-elevation-z8">
+    <p>Total Invoice Value {{totalInvoice.amount}}</p>
+    <p>Total Invoices {{totalInvoice.count}}</p>
     <table mat-table [dataSource]="dataSource" matSort (matSortChange)="announceSortChange($event)" class="mat-elevation-z8">
 
    
@@ -31,7 +33,7 @@
     </ng-container>
     <ng-container matColumnDef="invoicenumber">
         <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by Invoice">Invoice No. </th>
-        <td mat-cell *matCellDef="let element"> {{element.invoicenumber| number : '1.2-2'}} </td>
+        <td mat-cell *matCellDef="let element"> {{element.invoicenumber}} </td>
       </ng-container>
     
   
@@ -54,7 +56,10 @@
       
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    <tr mat-row 
+    (click)="row_click_event(row)" 
+    *matRowDef="let row; columns: displayedColumns;"></tr>
+    
   </table>
   <mat-paginator [pageSizeOptions]="[5, 10, 20]"
   showFirstLastButtons

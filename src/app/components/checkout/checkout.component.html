@@ -46,6 +46,37 @@
                 </div>
 
             </div>
+            <!-- <div class="row">
+                <div class="form-group  col-md-12">
+                    <input name="payment_method" formControlName="payment_method" id="payment_method"
+                    [(ngModel)]="currentCart!.payment_method"
+                        [ngClass]="{ 'is-invalid': submitted && f['payment_method'].errors }" class="input form-control"
+                        type="text" placeholder="Payment Method" value="">
+
+                </div>
+
+            </div> -->
+            <div class="row">
+                <div class="form-group  col-md-12">                   
+                    <label>
+                        <input type="radio" value="Gpay" formControlName="payment_method">
+                          <span style="padding-left:8px;margin-right: 16px;">Gpay</span>
+                    </label>
+                    <label>
+                        <input type="radio" value="SBIQR" formControlName="payment_method">
+                          <span style="padding-left:8px;margin-right: 16px;">SBIQR</span>
+                    </label>
+                    <label>
+                        <input type="radio" value="Cash" formControlName="payment_method">
+                          <span style="padding-left:8px;margin-right: 16px;">Cash</span>
+                    </label>
+                    <label>
+                        <input type="radio" value="Phonepe" formControlName="payment_method">
+                          <span style="padding-left:8px;">Phone Pe</span>
+                    </label>
+                </div>
+
+            </div>
 
 
         </form>
