@@ -74,20 +74,22 @@ export class GenerateBarcodeComponent {
   newlyaddedProdId:string="";
 
   //Filtered Items from search function or when a level item is pushed in the current Barcode generator
-  filteredItems1:Array<barcodePartStore[]>=[[],[],[],[],[]];
+  filteredItems1:Array<barcodePartStore[]>=[[],[],[],[],[],[],[]];
   filteredLabels:Array<barCodeStore>=[];
   filteredProductLabels:Array<barCodeStore>=[];
   selectedProductCode:string='';
   // This is the list used in barcode level in UI for the current barcode values
-  done:Array<barcodePartStore[]> = [[],[],[],[],[]];
-  relationshipholder:Array<barcodePartStore[]> = [[],[],[],[],[]];
-  levelList = [0,1,2,3,4];
+  done:Array<barcodePartStore[]> = [[],[],[],[],[],[],[]];
+  relationshipholder:Array<barcodePartStore[]> = [[],[],[],[],[],[],[]];
+  levelList = [0,1,2,3,4,5,6];
   kay_value_separator ='###'
-  levelnames = ['Category', 'Spec','Size','Color','Quality']
+  levelnames = ['Category', 'Spec','Size','Color','Quality','Brand','Special Number']
 
   // These the barcode parts and can be added by add function in UI
   barcodeparts: Array<barcodePartStore[]> = [[{"id":"1", "key":"1", "level":1, "component":'Item 14-L14'}],
 [{"id":"2", "key":"2", "level":2, "component":'21-21'}],
+[],
+[],
 [],
 [],
 []
@@ -120,6 +122,12 @@ export class GenerateBarcodeComponent {
     [['51-51','41-41,42-42,43-43'],
     ['52-52','42-42'],
     ['53-53','43-43']],
+    [['61-61','51-51,52-52,53-53'],
+    ['62-62','52-52'],
+    ['63-63','63-63']],
+    [['71-71','61-61,62-62,63-63'],
+    ['72-72','72-72'],
+    ['73-73','63-63']],
   ]
 
   constructor(private http: HttpClient,
@@ -302,6 +310,11 @@ export class GenerateBarcodeComponent {
             .forEach(val=>this.done[vi][0]=val)
         this.selectedProductCode='';
         // this.done[vi][0] = v.data[vi];
+      }
+      if (v.data.length < this.done.length) {
+        for(let x=v.data.length; x< this.done.length; x++) {
+          this.done[x]=[]
+        }
       }
     }
   }

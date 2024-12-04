@@ -14,9 +14,9 @@ import { InvoiceDataItem } from "../models/invoice-data-item";
   export class DataService {
     inofficeratesurl= '/in/ci/Inofficerates';
     inofficecatsurl='/in/ci/Inofficerates/grades';
-    saveBillUrl='/in/ci/Posinvoice/add'; //TODO v1 url
+    saveBillUrl='/in/ci/Posinvoice/add/'; //TODO v1 url
     getBillUrl='/in/ci/Posinvoice'; //TODO v1 url
-    addItemUrl='/in/ci/Inofficerates/additem';//add item in inofficerate
+    addItemUrl='/in/ci/Inofficerates/additem/';//add item in inofficerate
 
     httpOptions = {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' })

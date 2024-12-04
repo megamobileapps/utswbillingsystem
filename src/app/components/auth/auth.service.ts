@@ -9,7 +9,7 @@ import { User } from '../../models/utswuser';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-    loginUrl = '/in/ci/Login/posoperator';
+    loginUrl = '/in/ci/Login/posoperator/';
  
   
     private userSubject: BehaviorSubject<User>|null=null;

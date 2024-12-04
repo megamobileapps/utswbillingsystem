@@ -49,4 +49,7 @@ export class CartComponent implements OnInit {
     return this._cartService.totalQuantity;
   }
 
+  get customerDiscount ():number {
+    return this._cartService.discount??0
+  }
 }

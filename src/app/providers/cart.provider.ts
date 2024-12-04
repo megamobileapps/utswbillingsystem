@@ -48,4 +48,8 @@ export class CartService{
         });
         return grossAmnt;
     }
+
+    get discount ():number|undefined {      
+      return this._cartDetails?.discount      
+  }
   };

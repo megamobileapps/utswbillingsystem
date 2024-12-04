@@ -21,6 +21,7 @@ export class CheckoutComponent implements OnInit {
         cPayname: ['', Validators.required],       
         cPayMobile: ['', [Validators.required,Validators.pattern("[1-9]{1}[0-9]{9}$")]],
         cPayEmail: [''],
+        cDiscount: ['0'],
         payment_method:['SBIQR'],        
       });
      }
@@ -31,7 +32,8 @@ export class CheckoutComponent implements OnInit {
       cPayname:this.f['cPayname'].value,
       cPayMobile:this.f['cPayMobile'].value,
       cPayEmail:this.f['cPayEmail'].value,
-      payment_method:this.f['payment_method'].value
+      payment_method:this.f['payment_method'].value,
+      cDiscount:this.f['cDiscount'].value
     };
   }
   ngOnInit(): void {
@@ -54,6 +56,7 @@ export class CheckoutComponent implements OnInit {
     this.currentCart!.phonenumber = data.cPayname?data.cPayMobile:'';
     this.currentCart!.emailid = data.cPayname?data.cPayEmail:'';
     this.currentCart!.payment_method = data.cPayname?data.payment_method:'';
+    this.currentCart!.discount = data.cDiscount?data.cDiscount:0;
 
     console.log('coming before routing to receipt');
     this.router.navigate(['/receipt']);

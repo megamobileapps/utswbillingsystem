@@ -24,6 +24,7 @@ export class DirectinvoiceComponent {
   loading:boolean=false;
   isMobileScreen:boolean = false;
   todaydate:string='';
+  currBasketAmt:number=0;
 
   constructor(private formBuilder: FormBuilder,
     private _dataService:DataService, 
@@ -144,6 +145,7 @@ export class DirectinvoiceComponent {
     // }
 
     addItem() {
+      console.log('addItem() called')
       const items = this.invoice.get('items') as FormArray;
       if (!items.invalid) {
         items.push(
@@ -167,6 +169,9 @@ export class DirectinvoiceComponent {
             barcode:['Barcode'+(items.length+1)],
           })
         );
+      }else {
+        console.log('additem(): items is Invalid');
+        alert('onPushSingleItemToCart() List of items have invalid values.. pls check')
       }
     }
 
@@ -257,6 +262,11 @@ export class DirectinvoiceComponent {
       // this.cart.push(ofItem!);
     }
 
+    getItemAmount(ofItem:InventoryItem|null){
+      let l = this.prepareCartItem(1, ofItem!);
+      return l.productPrice * l.quantity;
+    }
+
     removeFromCart(ofItem:InventoryItem|null){
       var existingItem = this.checkIfExistInCart(ofItem!);
       var txId = this.cart!.invoicedatalist.length == 0?
@@ -278,6 +288,24 @@ export class DirectinvoiceComponent {
       this._cartService.currentCart!.invoicedatalist=[];
     }
 
+    // Push single item to cart
+    onPushSingleItemToCart(itemIndex=0){
+      
+      const items = this.invoice.get('items') as FormArray;
+      if (!items.invalid) {        
+          let allControls = (items.at(itemIndex) as FormGroup).controls;
+          let itemValues = this.prepare_json_from_formgroup(items.at(itemIndex) as FormGroup);
+          console.log('onPushSingleItemToCart(): item = '+JSON.stringify(itemValues));
+          this.addToCart(itemValues);
+      }else {
+        console.log('onPushSingleItemToCart() List of items have invalid values.. pls check');
+        alert('onPushSingleItemToCart() List of items have invalid values.. pls check');
+      }
+     
+    }
+    //
+    // push all items to cart
+    //
     onPushToCart(){
       console.log('onPushToCart called');
       console.log("onPushToCart component");
@@ -312,6 +340,30 @@ export class DirectinvoiceComponent {
       // this.router.navigate(['/']);
     }
   
+    onCalculateBillAmount(){
+      console.log('onCalculateBillAmount called');
+      console.log("onCalculateBillAmount component");
+      this.submitted = true;
+      this.currBasketAmt = 0.0;
+      
+      if (this.invoice.invalid) {
+        console.log("inventory options form is invalid");
+          return;
+      }
+  
+      this.loading = true;
+      var formData:Array<any> = this.allInvoiceItems();
+      
+      var amount = 0;
+      for(let indexItem = 0;indexItem<formData.length;indexItem++){
+        console.log("onCalculateBillAmount(): adding item number "+indexItem+" "+JSON.stringify(formData[indexItem]));
+        amount += this.getItemAmount(formData[indexItem]);
+      }
+      console.log('total Amount = '+amount);
+      this.currBasketAmt = amount;
+      
+    }
+
     get currentCart():CartDetails|undefined|null{
       return this._cartService.currentCart;
     }

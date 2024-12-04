@@ -113,20 +113,22 @@
     <div>MRP Disc(%) Price Qty Total</div>
     <div>-------------------------------</div>
     <div *ngFor="let cartItem of currentCart!.invoicedatalist, let i=index">
-        {{i+1}} 
-        {{cartItem.productName.toString() |slice:0:100}}
-        <div> 
-            {{cartItem.initialPrice.toString() |slice:0:5}} 
-            {{cartItem.discount.toString() |slice:0:7}} 
-            {{cartItem.productPrice.toString() |slice:0:5}} 
-            {{cartItem.quantityProvider.value.toString() |slice:0:3}} 
-            {{(cartItem.quantityProvider.value*cartItem.productPrice).toString() |slice:0:5}}
-        </div>
+        <span *ngIf="cartItem.quantityProvider.value >0">
+            {{i+1}} 
+            {{cartItem.productName.toString() |slice:0:100}}
+            <div> 
+                {{cartItem.initialPrice.toString() |slice:0:5}} 
+                {{cartItem.discount.toString() |slice:0:7}} 
+                {{cartItem.productPrice.toString() |slice:0:5}} 
+                {{cartItem.quantityProvider.value.toString() |slice:0:3}} 
+                {{(cartItem.quantityProvider.value*cartItem.productPrice).toString() |slice:0:5}}
+            </div>
+        </span>
     </div>
     <div>-------------------------------</div>
-    <div>Net Amount:{{totalAmount}}</div>
+    <div>Net Amount:{{totalAmount - customerDiscount}}</div>
     <div>Total Items:{{totalQuantity}}</div>
-    <div>Saving:{{grossAmount - totalAmount}}</div>
+    <div>Saving:{{grossAmount - totalAmount - customerDiscount}}</div>
    
     <div>       Thank You</div>
     <div>       Please Visit Again</div>

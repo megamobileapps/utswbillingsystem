@@ -46,6 +46,14 @@
                 </div>
 
             </div>
+            <div class="row">
+                <div class="form-group  col-md-12">
+                    <input name="cDiscount" formControlName="cDiscount" id="cDiscount"
+                    [(ngModel)]="currentCart!.discount"
+                        [ngClass]="{ 'is-invalid': submitted && f['cDiscount'].errors }" class="input form-control"
+                        type="text" placeholder="Disc Value" value="">
+                </div>
+            </div>
             <!-- <div class="row">
                 <div class="form-group  col-md-12">
                     <input name="payment_method" formControlName="payment_method" id="payment_method"

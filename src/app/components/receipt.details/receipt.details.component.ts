@@ -39,7 +39,7 @@ export class ReceiptDetailsComponent implements OnInit {
     var extraData = {};
     //nameValuePairs["soldsubjects"] = _getSoldSubQuanity(cart.cart);
     data = {...data, ...{
-                    "amount":this._cartService.totalAmount,
+                    "amount":(this._cartService.totalAmount - this.customerDiscount),
                     "invoicedate":this.datePipe.transform(this.currentCart?.invoicedateNum,'yyyy-MM-dd'),
                     "salepoint":"office",
                     "soldsubjects":this.soldItemForBackend(),
@@ -81,4 +81,8 @@ export class ReceiptDetailsComponent implements OnInit {
     return this._cartService.grossAmount;
   }
 
+  get customerDiscount():number{
+    console.log('customerDiscount '+this._cartService.discount);
+    return this._cartService.discount??0;
+  }
 }

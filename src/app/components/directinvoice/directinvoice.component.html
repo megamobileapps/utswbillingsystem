@@ -46,6 +46,10 @@
                                 color="warn" title="Delete Row">
                                 <mat-icon>delete</mat-icon>
                             </button>
+                            <button  mat-icon-button (click)="onPushSingleItemToCart(i)" 
+                                color="black" title="Add to cart Single Item">
+                                <mat-icon>send</mat-icon>
+                            </button>
                            
                         </div>
                         
@@ -138,6 +142,10 @@
     <button class="btn  btn-warning offset-md-4 col-md-2 " 
         (click)="onPushToCart()"    
         value="Click to Submit">Push to Cart      
+    </button> 
+    <button class="btn  btn-secondary offset-md-2 col-md-2 " 
+        (click)="onCalculateBillAmount()"    
+        value="Click to Submit">Calculate Amount <br>{{currBasketAmt}}    
     </button> 
     <!-- <button class="btn  btn-warning offset-md-4 col-md-2 " 
         (click)="checkoutpayu('')"    
