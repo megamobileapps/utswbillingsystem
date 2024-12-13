@@ -135,4 +135,6 @@ export class CatalogueComponent implements OnInit {
   get txId():number{
     return this._cartService.currentCart!.invoicenumber ;
   }
+
+  
 }

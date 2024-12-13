@@ -51,5 +51,8 @@ export class CartService{
 
     get discount ():number|undefined {      
       return this._cartDetails?.discount      
-  }
+    }
+    initialize_from_existing_cartdata(json_data:any){
+      this._cartDetails?.initialize_meta_data(json_data)
+    }
   };

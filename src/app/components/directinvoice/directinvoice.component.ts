@@ -175,6 +175,57 @@ export class DirectinvoiceComponent {
       }
     }
 
+    load_old_invoice_data(jsondata_in:any){
+      
+      var jsondata = {
+        "id": 6958,
+        "username": "Shiffauli Garg",
+        "amount": 289.0,
+        "phonenumber": "9611146074",
+        "emailid": "shiffauli74@yahoo.com",
+        "invoicenumber": "655705",
+        "invoicedate": "2024-12-11",
+        "discount": "0",
+        "payment_method": "SBIQR",
+        "invoicedata": "[{\"txId\":655705,\"id\":\"Barcode1\",\"quantityProvider\":{\"closed\":false,\"currentObservers\":null,\"observers\":[],\"isStopped\":false,\"hasError\":false,\"thrownError\":null,\"_value\":1},\"quantity\":1,\"productCategory\":\"utsw\",\"productId\":\"Barcode1\",\"productName\":\"dairy\",\"initialPrice\":\"249\",\"productPrice\":249,\"discount\":0,\"gst\":\"0\",\"hsn\":\"49011010\",\"unitTag\":\"Nos\",\"image\":\"\",\"labeldate\":\"2024-12-11\"},{\"txId\":655705,\"id\":\"Barcode2\",\"quantityProvider\":{\"closed\":false,\"currentObservers\":null,\"observers\":[],\"isStopped\":false,\"hasError\":false,\"thrownError\":null,\"_value\":4},\"quantity\":4,\"productCategory\":\"utsw\",\"productId\":\"Barcode2\",\"productName\":\"hauser\",\"initialPrice\":\"10\",\"productPrice\":10,\"discount\":0,\"gst\":\"0\",\"hsn\":\"49011010\",\"unitTag\":\"Nos\",\"image\":\"\",\"labeldate\":\"2024-12-11\"}]"
+    }
+      
+      console.log('load_old_invoice_data() called')
+      this._cartService.initialize_from_existing_cartdata(jsondata)
+      const items = this.invoice.get('items') as FormArray;
+      items.clear();
+      const data_to_load:Array<UTSWCartItem> = JSON.parse(jsondata["invoicedata"]);
+      data_to_load.forEach(element => {
+        if (true) {
+          items.push(
+            this.formBuilder.group({
+              productname:[element["productName"]],
+              hsn: [element["hsn"]],
+              quantity: [element["quantity"]],
+              unit: [element["unitTag"]],
+              cp: [element["initialPrice"]],
+              percentgst: ['0'],
+              netcp: [element["initialPrice"]],
+              calculatedmrp: [element["productPrice"]],
+              mrp: [element["productPrice"]],
+              discount:['0'],
+              fixedprofit: ['0'],
+              percentprofit: ['0'],
+              labeleddate: [this.todaydate],
+              vendor: ['utsw'],
+              brand: ['utsw'],
+              shippingcost: ['0'],
+              barcode:[element["id"]],
+            })
+          );
+        }else {
+          console.log('load_old_invoice_data(): items is Invalid');
+          alert('onPushSingleItemToCart() List of items have invalid values.. pls check')
+        }
+      });
+    
+    }
+
     removeItem(index: any) {
       const items = this.invoice.get('items') as FormArray;
       //first remove this item from cart and then from this list

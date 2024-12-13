@@ -4,7 +4,7 @@
     <form [formGroup]="options">
       <div class="example-form-fields">
         <div class="row">
-            <div class="col-12">
+            <div class="col-10">
                 <mat-form-field >
                     <mat-label>HSN</mat-label> 
                     <input matInput placeholder="HSN" formControlName="hsn" required>
@@ -26,7 +26,7 @@
             
         </div>
         <div class="row">
-            <div class="col-12">
+            <div class="col-10">
                 <mat-form-field >
                     <mat-label>CP </mat-label> 
                     <input matInput placeholder="CP" formControlName="cp" required>
@@ -48,7 +48,7 @@
             
         </div>
        <div class="row">
-        <div class="col-12">
+        <div class="col-10">
             <mat-form-field >
                 <mat-label>calculated MRP</mat-label>
                 <input matInput placeholder="calculated MRP" formControlName="calculatedmrp" required>
@@ -70,7 +70,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-12">
+            <div class="col-10">
                 <mat-form-field >
                     <mat-label>Labelled Date yyyy-mm-dd</mat-label>
                     <input matInput placeholder="Labelled Date yyyy-mm-dd" formControlName="labeleddate" required>
@@ -91,7 +91,7 @@
                             value="Submit">Submit                    
                         </button> 
                     </mat-form-field> -->
-        </div>
+            </div>
         
         
        </div>
@@ -99,10 +99,10 @@
       </div>
     </form>
     
-  </div>
+  
   <div class="row m-4">
     <p>Barcode {{barcode}}</p>
-    <button class="btn  btn-info col-md-2 " 
+    <button class="btn  btn-warning col-md-2 " 
         (click)="calculateCPMRPProfit()"    
         value="Click to Calculate">Click to Calculate      
     </button> 
