@@ -1,5 +1,5 @@
 import { isNgTemplate } from '@angular/compiler';
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UTSWCartItem } from 'src/app/models/cart-item';
@@ -12,6 +12,7 @@ import { ScreenSizeService } from 'src/app/services/screen-size.service';
 import { BehaviorSubject } from 'rxjs';
 import { environment } from "src/environments/environment";
 import * as $ from "jquery";
+import { InvoiceDataItem } from 'src/app/models/invoice-data-item';
 
 @Component({
   selector: 'app-directinvoice',
@@ -25,6 +26,7 @@ export class DirectinvoiceComponent {
   isMobileScreen:boolean = false;
   todaydate:string='';
   currBasketAmt:number=0;
+  @Input() oldinvoiceid!: string;
 
   constructor(private formBuilder: FormBuilder,
     private _dataService:DataService, 
@@ -175,88 +177,101 @@ export class DirectinvoiceComponent {
       }
     }
 
-    load_old_invoice_data(jsondata_in:any){
-      
-      var jsondata = {
-        "id": 6958,
-        "username": "Shiffauli Garg",
-        "amount": 289.0,
-        "phonenumber": "9611146074",
-        "emailid": "shiffauli74@yahoo.com",
-        "invoicenumber": "655705",
-        "invoicedate": "2024-12-11",
-        "discount": "0",
-        "payment_method": "SBIQR",
-        "invoicedata": "[{\"txId\":655705,\"id\":\"Barcode1\",\"quantityProvider\":{\"closed\":false,\"currentObservers\":null,\"observers\":[],\"isStopped\":false,\"hasError\":false,\"thrownError\":null,\"_value\":1},\"quantity\":1,\"productCategory\":\"utsw\",\"productId\":\"Barcode1\",\"productName\":\"dairy\",\"initialPrice\":\"249\",\"productPrice\":249,\"discount\":0,\"gst\":\"0\",\"hsn\":\"49011010\",\"unitTag\":\"Nos\",\"image\":\"\",\"labeldate\":\"2024-12-11\"},{\"txId\":655705,\"id\":\"Barcode2\",\"quantityProvider\":{\"closed\":false,\"currentObservers\":null,\"observers\":[],\"isStopped\":false,\"hasError\":false,\"thrownError\":null,\"_value\":4},\"quantity\":4,\"productCategory\":\"utsw\",\"productId\":\"Barcode2\",\"productName\":\"hauser\",\"initialPrice\":\"10\",\"productPrice\":10,\"discount\":0,\"gst\":\"0\",\"hsn\":\"49011010\",\"unitTag\":\"Nos\",\"image\":\"\",\"labeldate\":\"2024-12-11\"}]"
-    }
-      
-      console.log('load_old_invoice_data() called')
-      this._cartService.initialize_from_existing_cartdata(jsondata)
-      const items = this.invoice.get('items') as FormArray;
-      items.clear();
-      const data_to_load:Array<UTSWCartItem> = JSON.parse(jsondata["invoicedata"]);
-      data_to_load.forEach(element => {
-        if (true) {
-          items.push(
-            this.formBuilder.group({
-              productname:[element["productName"]],
-              hsn: [element["hsn"]],
-              quantity: [element["quantity"]],
-              unit: [element["unitTag"]],
-              cp: [element["initialPrice"]],
-              percentgst: ['0'],
-              netcp: [element["initialPrice"]],
-              calculatedmrp: [element["productPrice"]],
-              mrp: [element["productPrice"]],
-              discount:['0'],
-              fixedprofit: ['0'],
-              percentprofit: ['0'],
-              labeleddate: [this.todaydate],
-              vendor: ['utsw'],
-              brand: ['utsw'],
-              shippingcost: ['0'],
-              barcode:[element["id"]],
-            })
-          );
-        }else {
-          console.log('load_old_invoice_data(): items is Invalid');
-          alert('onPushSingleItemToCart() List of items have invalid values.. pls check')
+  load_old_invoice_data(invoiceid:any){
+    
+    console.log(`load_old_invoice_data() entered with invoiceid=${invoiceid}`)
+    var jsondata:InvoiceDataItem|null = null
+  //   var jsondata = {
+  //     "id": 6958,
+  //     "username": "Shiffauli Garg",
+  //     "amount": 289.0,
+  //     "phonenumber": "9611146074",
+  //     "emailid": "shiffauli74@yahoo.com",
+  //     "invoicenumber": "655705",
+  //     "invoicedate": "2024-12-11",
+  //     "discount": "0",
+  //     "payment_method": "SBIQR",
+  //     "invoicedata": "[{\"txId\":655705,\"id\":\"Barcode1\",\"quantityProvider\":{\"closed\":false,\"currentObservers\":null,\"observers\":[],\"isStopped\":false,\"hasError\":false,\"thrownError\":null,\"_value\":1},\"quantity\":1,\"productCategory\":\"utsw\",\"productId\":\"Barcode1\",\"productName\":\"dairy\",\"initialPrice\":\"249\",\"productPrice\":249,\"discount\":0,\"gst\":\"0\",\"hsn\":\"49011010\",\"unitTag\":\"Nos\",\"image\":\"\",\"labeldate\":\"2024-12-11\"},{\"txId\":655705,\"id\":\"Barcode2\",\"quantityProvider\":{\"closed\":false,\"currentObservers\":null,\"observers\":[],\"isStopped\":false,\"hasError\":false,\"thrownError\":null,\"_value\":4},\"quantity\":4,\"productCategory\":\"utsw\",\"productId\":\"Barcode2\",\"productName\":\"hauser\",\"initialPrice\":\"10\",\"productPrice\":10,\"discount\":0,\"gst\":\"0\",\"hsn\":\"49011010\",\"unitTag\":\"Nos\",\"image\":\"\",\"labeldate\":\"2024-12-11\"}]"
+  // }
+    if (invoiceid != null && invoiceid != "-1") {
+      // get it from db
+      this._dataService.getInvoiceDataFromServer_with_invoiceid(invoiceid).subscribe((d) => {       
+        console.log('load_old_invoice_data(): '+JSON.stringify(d));      
+        if( d.length > 0)  {
+          jsondata = d[0]
+          console.log('load_old_invoice_data() called')
+          this._cartService.initialize_from_existing_cartdata(jsondata)
+          const items = this.invoice.get('items') as FormArray;
+          items.clear();
+          const data_to_load:Array<UTSWCartItem> = JSON.parse(jsondata!["invoicedata"]);
+          data_to_load.forEach(element => {
+            if (true) {
+              items.push(
+                this.formBuilder.group({
+                  productname:[element["productName"]],
+                  hsn: [element["hsn"]],
+                  quantity: [element["quantity"]],
+                  unit: [element["unitTag"]],
+                  cp: [element["initialPrice"]],
+                  percentgst: ['0'],
+                  netcp: [element["initialPrice"]],
+                  calculatedmrp: [element["productPrice"]],
+                  mrp: [element["productPrice"]],
+                  discount:['0'],
+                  fixedprofit: ['0'],
+                  percentprofit: ['0'],
+                  labeleddate: [this.todaydate],
+                  vendor: ['utsw'],
+                  brand: ['utsw'],
+                  shippingcost: ['0'],
+                  barcode:[element["id"]],
+                })
+              );
+            }else {
+              console.log('load_old_invoice_data(): items is Invalid');
+              alert('onPushSingleItemToCart() List of items have invalid values.. pls check')
+            }
+          });
         }
       });
-    
-    }
-
-    removeItem(index: any) {
-      const items = this.invoice.get('items') as FormArray;
-      //first remove this item from cart and then from this list
-      this.removeFromCart(this.prepare_json_from_formgroup(items.at(index) as FormGroup));
-
-      //remove from FormArray after it is removed from cart
-      items.removeAt(index);
-    }
-
-    calculateCPMRPProfit(){
-      let fd = this.allInvoiceItems();
-      
-    }
-    ngOnInit(): void {
-    }
-
-    get cart():CartDetails|null|undefined{
-      return this._cartService.currentCart;
     }
   
- 
-    checkIfCartItemExistInCart(ofItem:UTSWCartItem|null):Array<UTSWCartItem>|undefined{
-      if(null == ofItem) return [];
-      return this.cart?.invoicedatalist.filter((value, index)=> 
-      value.productCategory == ofItem.productCategory &&
-      value.productId == ofItem.productId &&
-      value.id == ofItem.id &&
-      value.productName == ofItem.productName
-      );
-      
+  }
+
+  removeItem(index: any) {
+    const items = this.invoice.get('items') as FormArray;
+    //first remove this item from cart and then from this list
+    this.removeFromCart(this.prepare_json_from_formgroup(items.at(index) as FormGroup));
+
+    //remove from FormArray after it is removed from cart
+    items.removeAt(index);
+  }
+
+  calculateCPMRPProfit(){
+    let fd = this.allInvoiceItems();
+    
+  }
+  ngOnInit(): void {
+    if (this.oldinvoiceid != null && this.oldinvoiceid != "-1"){
+      this.load_old_invoice_data(this.oldinvoiceid)
     }
+  }
+
+  get cart():CartDetails|null|undefined{
+    return this._cartService.currentCart;
+  }
+
+
+  checkIfCartItemExistInCart(ofItem:UTSWCartItem|null):Array<UTSWCartItem>|undefined{
+    if(null == ofItem) return [];
+    return this.cart?.invoicedatalist.filter((value, index)=> 
+    value.productCategory == ofItem.productCategory &&
+    value.productId == ofItem.productId &&
+    value.id == ofItem.id &&
+    value.productName == ofItem.productName
+    );
+    
+  }
     
     
   
@@ -301,6 +316,7 @@ export class DirectinvoiceComponent {
                 Math.floor(Math.random() * 1000000)
                 :this.cart!.invoicedatalist[0].txId;
       this._cartService.currentCart!.invoicenumber = txId;
+      this._cartService.currentCart!.invoicedate = Date.now().toString();
       if(existingItem!.length == 0) {
         // txId = Math.floor(Math.random() * 1000000);
         this.cart!.invoicedatalist.push(this.prepareCartItem(txId, ofItem!))

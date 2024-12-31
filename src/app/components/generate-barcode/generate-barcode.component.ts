@@ -52,7 +52,7 @@ interface barcodePartStore{
 
 export class GenerateBarcodeComponent {
 
-  maxLevelOfSelection:number=5;
+  maxLevelOfSelection:number=8;
   selectedValue : Array<any>=[];
   minLengthTerm:number=2;
   dataLoading:boolean=false;
@@ -83,7 +83,7 @@ export class GenerateBarcodeComponent {
   relationshipholder:Array<barcodePartStore[]> = [[],[],[],[],[],[],[]];
   levelList = [0,1,2,3,4,5,6,7,8];
   kay_value_separator ='###'
-  levelnames = ['Category', 'Sub Category','Material','Size','Clr','Design','quantity per packet','Brand','Special']
+  levelnames = ['Category', 'Sub Category','Material','Clr','Design','quantity per packet','Size','Brand','Special']
 
   // These the barcode parts and can be added by add function in UI
   barcodeparts: Array<barcodePartStore[]> = [[{"id":"1", "key":"1", "level":1, "component":'Item 14-L14'}],

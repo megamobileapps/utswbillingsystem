@@ -39,6 +39,7 @@ import { ListInventoryComponent } from './components/inventory/list-inventory/li
 import { ConfirmationDialogComponent } from './components/confirmation-dialog/confirmation-dialog.component';
 import { DirectinvoiceComponent } from './components/directinvoice/directinvoice.component';
 import { QRCodeModule } from 'angularx-qrcode';
+import { ZXingScannerModule } from '@zxing/ngx-scanner';
 
 @NgModule({
   declarations: [
@@ -75,6 +76,7 @@ import { QRCodeModule } from 'angularx-qrcode';
     BrowserAnimationsModule,
     AppMaterialModule,
     QRCodeModule,
+    ZXingScannerModule,
     AngularFireModule.initializeApp(environment.firebase),
     provideFirebaseApp(() => initializeApp({"projectId":"bookstore-c1f49","appId":"1:342884727291:web:2530396bfdccb07f","databaseURL":"https://bookstore-c1f49.firebaseio.com","storageBucket":"bookstore-c1f49.appspot.com","apiKey":"AIzaSyAPInkWwSrhwOE4SMapLb7S5t50Ge_vi7M","authDomain":"bookstore-c1f49.firebaseapp.com","messagingSenderId":"342884727291","measurementId":"G-RX2PQEWHQN"})),
     provideDatabase(() => getDatabase()),

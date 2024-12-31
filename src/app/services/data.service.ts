@@ -5,18 +5,20 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { MessageService } from "./message.service";
 import { environment } from "src/environments/environment";
 import { param } from "jquery";
-import { InvoiceDataItem } from "../models/invoice-data-item";
+import { InvoiceDataItem, InvoiceSoldItems } from "../models/invoice-data-item";
 
 @Injectable({
     providedIn: 'root'
   })
   
   export class DataService {
-    inofficeratesurl= '/in/ci/Inofficerates';
-    inofficecatsurl='/in/ci/Inofficerates/grades';
+    inofficeratesurl= '/in/ci/inofficerates';
+    inofficecatsurl='/in/ci/inofficerates/grades';
     saveBillUrl='/in/ci/Posinvoice/add/'; //TODO v1 url
     getBillUrl='/in/ci/Posinvoice'; //TODO v1 url
     addItemUrl='/in/ci/Inofficerates/additem/';//add item in inofficerate
+    getsoldinventoryitemsbackend='/in/ci/analyze/get_all_inventory_sold_items/';//add item in inofficerate
+    private readonly valid_user = "9999";
 
     httpOptions = {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' })
@@ -59,23 +61,61 @@ import { InvoiceDataItem } from "../models/invoice-data-item";
     );
   }
 
-  getInvoiceDataFromServer(invoicedate:string) :Observable<InvoiceDataItem[]> {
-    let params = new HttpParams();
-       params = params.append('posuserid', '9999');
-       params = params.append('posuserpswd', '8888');
-       params = params.append('invoicedate', invoicedate);
+  getInvoiceDataFromServer(invoicestartdate:string, invoiceenddate:string) :Observable<InvoiceDataItem[]> {
+    if (localStorage.getItem('user')) {
+      let user:Record<string,string> = JSON.parse(localStorage.getItem('user')??"")
+      console.log(`Data service user details are : ${user}`)
+      if (user["username"] == this.valid_user) {
+        let params = new HttpParams();
+          params = params.append('posuserid', '9999');
+          params = params.append('posuserpswd', '8888');
+          params = params.append('invoicedate', invoicestartdate);
+          params = params.append('invoiceenddate', invoiceenddate);
 
-    let params_string = params.toString();
-    console.log('Service getInvoiceDataFromServer() ' + params_string);
+        let params_string = params.toString();
+        console.log('Service getInvoiceDataFromServer() ' + params_string);
 
-    let options = {
-        headers: new HttpHeaders().set('Content-Type', 'application/x-www-form-urlencoded'),
-        
-    };
-    return this._http.get<InvoiceDataItem[]>(environment.apiBackend+this.getBillUrl+'?'+params_string, options).pipe(
-      tap(_ => this.log('fetched getInvoiceDataFromServer')),
-      catchError(this.handleError<InvoiceDataItem[]>('getInvoiceDataFromServer', []))
-    );
+        let options = {
+            headers: new HttpHeaders().set('Content-Type', 'application/x-www-form-urlencoded'),
+            
+        };
+        return this._http.get<InvoiceDataItem[]>(environment.apiBackend+this.getBillUrl+'?'+params_string, options).pipe(
+          tap(_ => this.log('fetched getInvoiceDataFromServer')),
+          catchError(this.handleError<InvoiceDataItem[]>('getInvoiceDataFromServer', []))
+        );
+      }
+    }
+    //Error scenario
+    return of([]);
+
+  }
+
+  getInvoiceDataFromServer_with_invoiceid(invoiceid:string) :Observable<InvoiceDataItem[]> {
+    if (localStorage.getItem('user')) {
+      let user:Record<string,string> = JSON.parse(localStorage.getItem('user')??"")
+      console.log(`Data service user details are : ${user}`)
+      if (user["username"] == this.valid_user) {
+        let params = new HttpParams();
+          params = params.append('posuserid', '9999');
+          params = params.append('posuserpswd', '8888');
+          params = params.append('invoiceid', invoiceid);
+          
+
+        let params_string = params.toString();
+        console.log('Service getInvoiceDataFromServer_with_invoiceid() ' + params_string);
+
+        let options = {
+            headers: new HttpHeaders().set('Content-Type', 'application/x-www-form-urlencoded'),
+            
+        };
+        return this._http.get<InvoiceDataItem[]>(environment.apiBackend+this.getBillUrl+'?'+params_string, options).pipe(
+          tap(_ => this.log('fetched getInvoiceDataFromServer_with_invoiceid')),
+          catchError(this.handleError<InvoiceDataItem[]>('getInvoiceDataFromServer_with_invoiceid', []))
+        );
+      }
+    }
+    //Error scenario
+    return of([]);
 
   }
 
@@ -93,5 +133,29 @@ import { InvoiceDataItem } from "../models/invoice-data-item";
             .pipe(map(dmap => {
                 return dmap;
             }));
+  }
+
+  //Invoice sold items data
+  //invoicestartdate and invoiceenddate are not used in backend
+  // If you want them to be used then send extra parameter userdatefilter by setting value as "1"
+  getInvoiceSoldItemsFromServer(invoicestartdate:string, invoiceenddate:string) :Observable<InvoiceSoldItems[]> {
+    let params = new HttpParams();
+       params = params.append('posuserid', '9999');
+       params = params.append('posuserpswd', '8888');
+       params = params.append('invoicestartdate', invoicestartdate);
+       params = params.append('invoiceenddate', invoiceenddate);
+
+    let params_string = params.toString();
+    console.log('Service getInvoiceSoldItemsFromServer() ' + params_string);
+
+    let options = {
+        headers: new HttpHeaders().set('Content-Type', 'application/x-www-form-urlencoded'),
+        
+    };
+    return this._http.get<InvoiceSoldItems[]>(environment.apiBackend+this.getsoldinventoryitemsbackend+'?'+params_string, options).pipe(
+      tap(_ => this.log('fetched getInvoiceSoldItemsFromServer')),
+      catchError(this.handleError<InvoiceSoldItems[]>('getInvoiceSoldItemsFromServer', []))
+    );
+
   }
 }

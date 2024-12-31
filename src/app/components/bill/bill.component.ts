@@ -3,7 +3,7 @@ import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, Sort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-import { FormBuilder } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { DataService } from 'src/app/services/data.service';
 import { InventoryService } from 'src/app/services/inventory.service';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
@@ -12,6 +12,7 @@ import { DatePipe } from '@angular/common';
 import { InvoiceDataItem } from 'src/app/models/invoice-data-item';
 import { InventoryItem } from 'src/app/models/inoffice';
 import { UTSWCartItem } from 'src/app/models/cart-item';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-bill',
@@ -35,7 +36,8 @@ export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
     private _dataService:DataService,
     private _inventoryService:InventoryService,
     private _liveAnnouncer: LiveAnnouncer, private dialog: MatDialog,
-    private datePipe:DatePipe
+    private datePipe:DatePipe,
+    private router:Router
   ){
     
   }
@@ -54,7 +56,8 @@ export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
         "invoicenumber",
         "invoicedate",
         "discount",
-        "payment_method"
+        "payment_method",
+        "edit"
   ]
   ;
   // displayedColumns: string[] = [
@@ -83,6 +86,18 @@ export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
     this.getInvoiceDataFromServer();
   }
 
+  readonly range = new FormGroup({
+    start: new FormControl<Date | null>(new Date()),
+    end: new FormControl<Date | null>(new Date()),
+  });
+  
+  // convenience getter for easy access to form fields
+  get fdaterange() { return this.range.controls; }
+
+  filter_clicked() {
+    this.getInvoiceDataFromServer(this.fdaterange['start'].value, this.fdaterange['end'].value)
+  }
+  
   // getAllInventory(filterwith=''){
   //   let self = this;
   //    this._inventoryService.getAllInventory().subscribe(data => { 
@@ -113,12 +128,13 @@ export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
   //  }
 
    //getInvoiceDataFromServer
-   getInvoiceDataFromServer(){
-    let invoicedate = Date();
-    let tr_date:string = this.datePipe.transform(invoicedate,'yyyy-MM-dd')??'2024-01-13';
+   getInvoiceDataFromServer(startDate:Date|null=new Date(), endDate:Date|null=new Date()){
+    // let invoicedate = Date();
+    let tr_start_date:string = this.datePipe.transform(startDate,'yyyy-MM-dd')??'2024-01-13';
+    let tr_end_date:string = this.datePipe.transform(endDate,'yyyy-MM-dd')??'2024-01-13';
     
-    console.log('getInvoiceDataFromServer() date of invoice '+tr_date);
-    this._dataService.getInvoiceDataFromServer(invoicedate=tr_date).subscribe((d) => { 
+    console.log('getInvoiceDataFromServer() date of invoice '+tr_end_date);
+    this._dataService.getInvoiceDataFromServer(tr_start_date, tr_end_date).subscribe((d) => { 
       this.invoicelist = d; 
       console.log('getInvoiceDataFromServer(): '+JSON.stringify(d));  
       this.dataSource.data = d;     
@@ -128,12 +144,12 @@ export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
     });
    }
 
-   openDialogForDeleteConfirmation(event:any, item:any) {
+   openDialogForEditConfirmation(event:any, item:any) {
     const dialogRef = this.dialog.open(ConfirmationDialogComponent,{
       data:{
-        message: 'Are you sure want to delete this Inventory Data?',
+        message: 'Are you sure want to Edit this Invoice Data?',
         buttonText: {
-          ok: 'Delete',
+          ok: 'Edit',
           cancel: 'Cancel'
         }
       }
@@ -143,19 +159,22 @@ export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {  
         // Clicked on delete
-        console.log('Clicked on confirmed');      
-        this._inventoryService.deleteInventory(item).then((res) => {
-          console.log('openDialogForDeleteConfirmation: ',res);    
-          alert('Successfully deleted');
-        })
-        .catch((err) => {
-          console.log('openDialogForDeleteConfirmation error: ' + err);
-          alert('Error while openDialogForDeleteConfirmation');        
-        });
+        console.log('Clicked on confirmed'); 
+        this.router.navigate(['/catalogue'] ,
+          { queryParams: { oldinvoiceid: item.invoicenumber } });     
+
+        // this._inventoryService.deleteInventory(item).then((res) => {
+        //   console.log('openDialogForEditConfirmation: ',res);    
+        //   alert('Successfully deleted');
+        // })
+        // .catch((err) => {
+        //   console.log('openDialogForEditConfirmation error: ' + err);
+        //   alert('Error while openDialogForEditConfirmation');        
+        // });
         
       }else {
         // Cancelled
-        console.log('Cancelled click')
+        console.log('Cancelled click inside openDialogForEditConfirmation')
       }
     });
     

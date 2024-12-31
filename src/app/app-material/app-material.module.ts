@@ -18,6 +18,8 @@ import {MatTableDataSource} from '@angular/material/table';
 import { MatSortModule } from '@angular/material/sort';
 import {MatDialogModule} from '@angular/material/dialog';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import {MatDatepickerModule} from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 
 @NgModule({
   declarations: [],
@@ -28,7 +30,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
     MatChipsModule, CdkDropList, NgFor, CdkDrag,
     MatIconModule,MatFormFieldModule,MatButtonModule,MatInputModule,MatListModule,
     MatGridListModule,MatSelectModule,MatTableModule, MatPaginatorModule,MatSortModule,
-    MatDialogModule,
+    MatDialogModule,MatDatepickerModule,MatNativeDateModule
   ],
   exports: [
     MatSlideToggleModule,
@@ -36,7 +38,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
     MatChipsModule, CdkDropList, NgFor, CdkDrag,
     MatIconModule,MatButtonModule,MatInputModule,MatListModule,
     MatGridListModule,MatSelectModule,MatTableModule, MatPaginatorModule,MatSortModule,
-    MatDialogModule,
+    MatDialogModule,MatDatepickerModule,MatNativeDateModule
   ],
   providers: [
     { provide: MAT_DIALOG_DATA, useValue: {} },

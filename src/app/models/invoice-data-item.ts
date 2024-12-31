@@ -10,3 +10,8 @@ export interface InvoiceDataItem {
     payment_method:string;
     invoicedata:string;
 };
+
+export interface InvoiceSoldItems {
+    barcode:string;
+    quantity:number;
+}

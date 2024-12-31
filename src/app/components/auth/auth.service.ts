@@ -6,7 +6,8 @@ import { catchError, map, tap } from 'rxjs/operators';
 
 import { environment } from '../../../environments/environment';
 import { User } from '../../models/utswuser';
-
+import { getAuth, signInWithCustomToken } from "firebase/auth";
+import { initializeApp } from 'firebase/app';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
     loginUrl = '/in/ci/Login/posoperator/';
@@ -46,7 +47,23 @@ export class AuthService {
                 }else{
                   this.userSubject!.next(user);
                 }
+                // const app = initializeApp(environment.firebase);
+                // const auth = getAuth(app);
+                // signInWithCustomToken(auth, user["authdata"])
+                //   .then((userCredential) => {
+                //     // Signed in
+                //     const user2 = userCredential.user;
+                //     console.log('firebase authentication successful : '+JSON.stringify(userCredential))
+                //     // ...
+                //   })
+                //   .catch((error) => {
+                //     const errorCode = error.code;
+                //     const errorMessage = error.message;
+                //     console.log('firebase authentication failed with '+errorCode+ ' '+errorMessage)
+                //     // ...
+                //   });
                 return user;
+
             }));
     }
     

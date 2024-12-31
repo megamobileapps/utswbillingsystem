@@ -17,6 +17,7 @@ export class CartDetails{
     invoicedate: String|null=Date.now().toString();
     discount: number=0;
     payment_method: String='GPay';
+    isEditing:boolean=false;
     
     prepareCartItem(txId:number, ofItem:any):UTSWCartItem{
         var retVal:UTSWCartItem  = {
@@ -34,7 +35,8 @@ export class CartDetails{
           hsn:ofItem.hsn,
           unitTag:ofItem.unitTag,
           image:ofItem.image,
-          labeldate:ofItem.labeldate
+          labeldate:ofItem.labeldate,
+          
         };
         return retVal;
       }
@@ -55,5 +57,6 @@ export class CartDetails{
         invoice_data.forEach(element=>{
             parent.invoicedatalist.push(parent.prepareCartItem(json_data["invoicenumber"], element));
         })
+        this.isEditing = true;
     }
 }

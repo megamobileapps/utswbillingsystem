@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, AfterViewInit, ViewChild, OnChanges, SimpleChanges} from '@angular/core';
-import { FormBuilder } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
 import { DataService } from 'src/app/services/data.service';
@@ -8,6 +8,9 @@ import {MatSort, Sort, MatSortModule} from '@angular/material/sort';
 import {LiveAnnouncer} from '@angular/cdk/a11y';
 import { ConfirmationDialogComponent } from '../../confirmation-dialog/confirmation-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { MatDatepicker } from '@angular/material/datepicker';
+import { DatePipe } from '@angular/common';
+import { InvoiceSoldItems } from 'src/app/models/invoice-data-item';
 
 
 @Component({
@@ -26,9 +29,11 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
 
   inventoryList:any=[]
   dataSource = new MatTableDataSource<string>(this.inventoryList);
+  allsoldItems:Record<string, number> = {}
   constructor(private formBuilder: FormBuilder,
     private _dataService:DataService,
     private _inventoryService:InventoryService,
+    private datePipe:DatePipe,
     private _liveAnnouncer: LiveAnnouncer, private dialog: MatDialog
   ){
     
@@ -45,6 +50,8 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
     'labeleddate',
     'hsn',
   'quantity',
+  'sold',
+  'qtyavailable',
   'unit',
   'cp', 
   'shippingcost',   
@@ -56,13 +63,39 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
   'percentprofit',  
   'vendor',
   'brand',  
+  
   'delete',
   ];
   
 
   ngOnInit(): void {
-    this.getAllInventory();
+    
+    this.getInvoiceSoldItemsFromServer();
   }
+
+  readonly range = new FormGroup({
+    start: new FormControl<Date | null>(new Date()),
+    end: new FormControl<Date | null>(new Date()),
+  });
+  
+  // convenience getter for easy access to form fields
+  get fdaterange() { return this.range.controls; }
+
+  filter_clicked() {
+    this.getInvoiceSoldItemsFromServer(this.fdaterange['start'].value, this.fdaterange['end'].value)
+  }
+  getInvoiceSoldItemsFromServer(startDate:Date|null=new Date(), endDate:Date|null=new Date()){
+    // let invoicedate = Date();
+    let tr_start_date:string = this.datePipe.transform(startDate,'yyyy-MM-dd')??'2024-01-13';
+    let tr_end_date:string = this.datePipe.transform(endDate,'yyyy-MM-dd')??'2024-01-13';
+    
+    console.log('getInvoiceSoldItemsFromServer() date of invoice sold items '+tr_start_date);
+    this._dataService.getInvoiceSoldItemsFromServer(tr_start_date, tr_end_date).subscribe((d) => {       
+      console.log('getInvoiceSoldItemsFromServer(): '+JSON.stringify(d));        
+      d.forEach(val=>this.allsoldItems[ val["barcode"] ]=val["quantity"])
+      this.getAllInventory();
+    });
+   }
 
   getAllInventory(filterwith=''){
     let self = this;
@@ -77,12 +110,20 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
          if (this.filterwithbarcode != null || filterwith != ''){
           if (typeof data[i][datekeys[0]].itemdetails != 'undefined')
             if(data[i][datekeys[0]].itemdetails['barcode'] == this.filterwithbarcode??filterwith)
-              for (let datekeyindex=0;datekeyindex<datekeys.length; datekeyindex++)
-                rcvddata.push( data[i][datekeys[datekeyindex]].itemdetails ); 
+              for (let datekeyindex=0;datekeyindex<datekeys.length; datekeyindex++){
+                let itemdetails = data[i][datekeys[datekeyindex]].itemdetails;
+                let sold_items = this.allsoldItems[itemdetails["barcode"]]??0
+                let present_available_items = itemdetails["quantity"] - sold_items
+                rcvddata.push( {...itemdetails, sold:sold_items,qtyavailable: present_available_items} ); 
+              }
          }else{
           for (let datekeyindex=0;datekeyindex<datekeys.length; datekeyindex++){
-              if (typeof data[i][datekeys[datekeyindex]].itemdetails != 'undefined')
-                rcvddata.push( data[i][datekeys[datekeyindex]].itemdetails ); 
+              if (typeof data[i][datekeys[datekeyindex]].itemdetails != 'undefined'){
+                let itemdetails = data[i][datekeys[datekeyindex]].itemdetails;
+                let sold_items = this.allsoldItems[itemdetails["barcode"]]??0
+                let present_available_items = itemdetails["quantity"] - sold_items
+                rcvddata.push( {...itemdetails, sold:sold_items, qtyavailable: present_available_items} ); 
+              }
           }
               // rcvddata.push( data[i][datekeys[0]].itemdetails );        
          }

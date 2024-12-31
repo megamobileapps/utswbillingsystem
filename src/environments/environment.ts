@@ -7,7 +7,7 @@ export const environment = {
   apiUrl:'http://localhost:4200',
   // apiBackend:'https://www.uptoschoolworksheets.com'
   // apiBackend:'http://192.168.1.6',
-  apiBackend:'http://localhost',
+  apiBackend:'http://localhost:8000',
   pathToDeployDir:'',
   // firebase:{
   //   apiKey: "AIzaSyAPInkWwSrhwOE4SMapLb7S5t50Ge_vi7M",

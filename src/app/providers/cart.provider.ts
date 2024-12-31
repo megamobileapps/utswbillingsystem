@@ -55,4 +55,12 @@ export class CartService{
     initialize_from_existing_cartdata(json_data:any){
       this._cartDetails?.initialize_meta_data(json_data)
     }
+
+    get isEditing():boolean|undefined{
+      return this._cartDetails?.isEditing;
+    }
+    set isEditing(val:boolean){
+      if(this._cartDetails != null)
+        this._cartDetails.isEditing = val;
+    }
   };

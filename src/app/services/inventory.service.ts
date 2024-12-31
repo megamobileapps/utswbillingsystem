@@ -11,6 +11,7 @@ import { OutwardsaletypeJson } from '../models/outwardsaletype';
 // import { InwardpurchasetypeJson } from '../types/inwardpurchasetype';
 // import { ExpenseTypeJson } from '../types/expesnetype';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { JsonPipe } from '@angular/common';
 
 @Injectable({
   providedIn: 'root'
@@ -20,6 +21,8 @@ export class InventoryService {
   inwardpurchases: Array<any> = [];
   expenses: Array<any> = [];
   basefolder : any = '/inventory';
+  private readonly valid_user = "9999";
+
   constructor(public commonService: CommonService,
               public afDb: AngularFireDatabase,
               public afAuth: AngularFireAuth,
@@ -37,14 +40,20 @@ export class InventoryService {
   
 
   addInventory(data: any) {
-    
-    if(typeof data.id === 'undefined'  || data.id === '' || data.id == null )
-      data.id = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 12);
-    //this.outwardSales.push(data);
-    console.log("addInventory():",JSON.stringify(data));
-    data.key = data.id;
-    
-    return this.commonService.add(this.basefolder+"/", data);
+    if (localStorage.getItem('user')) {
+      let user:Record<string,string> = JSON.parse(localStorage.getItem('user')??"")
+      console.log(`Inventory service user details are : ${user}`)
+      if (user["username"] == this.valid_user) {
+        console.log(`Inventory service : right user is logged in`)
+        if(typeof data.id === 'undefined'  || data.id === '' || data.id == null )
+          data.id = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 12);
+          //this.outwardSales.push(data);
+          console.log("addInventory():",JSON.stringify(data));
+          data.key = data.id;        
+          return this.commonService.add(this.basefolder+"/", data);
+        }
+    }
+    return Promise.reject(new Error("Not valid user to performa action"));
   }
 
   
@@ -68,7 +77,16 @@ export class InventoryService {
   
   getAllInventory() {
     //console.log("getAllOutwardSales called", JSON.stringify(this.outwardSales));
-    return this.commonService.getList(this.basefolder+'/');
+    if (localStorage.getItem('user')) {
+      let user:Record<string,string> = JSON.parse(localStorage.getItem('user')??"")
+      console.log(`Inventory service user details are : ${user}`)
+      if (user["username"] == this.valid_user) {
+        console.log(`Inventory service : right user is logged in`)
+        return this.commonService.getList(this.basefolder+'/');
+      }
+
+    }
+    return of([]);
   }
 
   

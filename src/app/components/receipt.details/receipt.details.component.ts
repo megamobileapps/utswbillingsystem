@@ -34,6 +34,7 @@ export class ReceiptDetailsComponent implements OnInit {
 
   ngOnInit(): void {
     var data ={...this.currentCart};//TODO fill this data
+    var pos_operation = this.isCartEditOperation==false?"addinvoice":"editinvoice";
     // Add additional parameters
     //
     var extraData = {};
@@ -43,17 +44,19 @@ export class ReceiptDetailsComponent implements OnInit {
                     "invoicedate":this.datePipe.transform(this.currentCart?.invoicedateNum,'yyyy-MM-dd'),
                     "salepoint":"office",
                     "soldsubjects":this.soldItemForBackend(),
-                    "posoperation":"addinvoice", "invoicedata":JSON.stringify(JSON.stringify(data.invoicedatalist))}};
+                    "posoperation":pos_operation, "invoicedata":JSON.stringify(JSON.stringify(data.invoicedatalist))}};
 
     this._dataService.saveInvoiceDataOnServer(data).pipe(first())
     .subscribe(
         data => {
           
           alert('bill is sent to the Center');
+          this._cartService.isEditing = false; //reset editing field to false
         },
         error => {
             this.error = error;
             console.log("receipt component: Error in submitting to service ", error);
+            alert('Server encountered problem while bill submission '+error)
             
         });
   }
@@ -65,6 +68,9 @@ export class ReceiptDetailsComponent implements OnInit {
     return this._cartService.currentCart?.invoicenumber;
   }
 
+  get isCartEditOperation():boolean{
+    return this._cartService.currentCart?.isEditing!;
+  }
   get txDate():number|null|undefined{
     return this._cartService.currentCart?.invoicedateNum;
   }
