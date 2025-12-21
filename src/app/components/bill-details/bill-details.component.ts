@@ -11,6 +11,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterModule } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog } from '@angular/material/dialog';
+import { InventoryComponent } from '../inventory/inventory.component';
+import { SoldItemSummary } from '../sold-items-summary/sold-items-summary.component';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-bill-details',
@@ -25,18 +30,21 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatIconModule,
     MatButtonModule,
     RouterModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatTooltipModule // Add MatTooltipModule here as well
   ]
 })
 export class BillDetailsComponent implements OnInit {
   invoice: InvoiceDataItem | undefined;
   itemsDataSource = new MatTableDataSource<UTSWCartItem>();
-  displayedColumns: string[] = ['productName', 'quantity', 'productPrice', 'total'];
+  displayedColumns: string[] = ['productName', 'quantity', 'productPrice', 'total', 'actions'];
   isLoading = true;
 
   constructor(
     private route: ActivatedRoute,
-    private dataService: DataService
+    private dataService: DataService,
+    private dialog: MatDialog,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -70,5 +78,25 @@ export class BillDetailsComponent implements OnInit {
 
   getTotal(item: UTSWCartItem): number {
     return item.quantity * item.productPrice;
+  }
+
+  openInventoryDialog(item: UTSWCartItem): void {
+    const soldItemSummary: SoldItemSummary = {
+      productName: item.productName as string,
+      quantity: item.quantity,
+      price: item.productPrice,
+      discount: item.discount,
+      total: item.productPrice * item.quantity
+    };
+    this.dialog.open(InventoryComponent, {
+      width: '80%',
+      data: soldItemSummary
+    });
+  }
+
+  printReceipt(): void {
+    if (this.invoice) {
+      this.router.navigate(['/receipt'], { queryParams: { invoiceid: this.invoice.invoicenumber } });
+    }
   }
 }

@@ -1,4 +1,6 @@
-<div class="card" *ngIf="printOnNormalPrinter">
+<!-- Original content for saving a new receipt -->
+<ng-container *ngIf="!isPrintingExistingBill">
+  <div class="card" *ngIf="printOnNormalPrinter">
     <div class="card-header">
         <p class="h2 text text-center">UpToSchoolWorksheets</p>
         <p class=" text text-center">SJC Building, Ground floor, Opposite HP Petrol Pump, Sarjapura Main Road, Sompura Gate, Bangalore-562125</p>
@@ -88,56 +90,116 @@
             </div>
         </div>
     </div>
-</div>
-<div *ngIf="!printOnNormalPrinter">
-    <p></p>
-    <p></p>
-    <p></p>
-    <p></p>
-    <p></p>
-    <p></p>
-    
-    <div>   UpToSchoolWorksheets  (R)</div>
-    <div>Co.  : Sripank Software Solutions</div>
-    <div>GSTIN: 29AIPPG66702H1ZP</div>
-    <div>Ph: 9611146074</div>
-    <div>-------------------------------</div>
-    <div>          PAID BILL</div>
-    <div>Customer Name :{{currentCart!.username}}</div>
-    <div>Customer Phone:{{currentCart!.phonenumber}}</div>
-    <div>Bill no       : {{txId}}</div>
-    <div>Date:{{txDate| date:'fullDate'}}</div>
-    <div></div>
-    <div>-------------------------------</div>
-    <div>S. Item          </div>
-    <div>MRP Disc(%) Price Qty Total</div>
-    <div>-------------------------------</div>
-    <div *ngFor="let cartItem of currentCart!.invoicedatalist, let i=index">
-        <span *ngIf="cartItem.quantityProvider.value >0">
-            {{i+1}} 
-            {{cartItem.productName.toString() |slice:0:100}}
-            <div> 
-                {{cartItem.initialPrice.toString() |slice:0:5}} 
-                {{cartItem.discount.toString() |slice:0:7}} 
-                {{cartItem.productPrice.toString() |slice:0:5}} 
-                {{cartItem.quantityProvider.value.toString() |slice:0:3}} 
-                {{(cartItem.quantityProvider.value*cartItem.productPrice).toString() |slice:0:5}}
-            </div>
-        </span>
-    </div>
-    <div>-------------------------------</div>
-    <div>Net Amount:{{totalAmount - customerDiscount}}</div>
-    <div>Total Items:{{totalQuantity}}</div>
-    <div>Saving:{{grossAmount - totalAmount - customerDiscount}}</div>
-   
-    <div>       Thank You</div>
-    <div>       Please Visit Again</div>
-    <p>.</p>
-    <p>.</p>
-    <p>.</p>
-    <p>.</p>
-    <p>.</p>
-    <p>.</p>
-    <p>.</p>
+  </div>
+  <div *ngIf="!printOnNormalPrinter">
+      <p></p>
+      <p></p>
+      <p></p>
+      <p></p>
+      <p></p>
+      <p></p>
+      
+      <div>   UpToSchoolWorksheets  (R)</div>
+      <div>Co.  : Sripank Software Solutions</div>
+      <div>GSTIN: 29AIPPG66702H1ZP</div>
+      <div>Ph: 9611146074</div>
+      <div>-------------------------------</div>
+      <div>          PAID BILL</div>
+      <div>Customer Name :{{currentCart!.username}}</div>
+      <div>Customer Phone:{{currentCart!.phonenumber}}</div>
+      <div>Bill no       : {{txId}}</div>
+      <div>Date:{{txDate| date:'fullDate'}}</div>
+      <div></div>
+      <div>-------------------------------</div>
+      <div>S. Item          </div>
+      <div>MRP Disc(%) Price Qty Total</div>
+      <div>-------------------------------</div>
+      <div *ngFor="let cartItem of currentCart!.invoicedatalist, let i=index">
+          <span *ngIf="cartItem.quantityProvider.value >0">
+              {{i+1}} 
+              {{cartItem.productName.toString() |slice:0:100}}
+              <div> 
+                  {{cartItem.initialPrice.toString() |slice:0:5}} 
+                  {{cartItem.discount.toString() |slice:0:7}} 
+                  {{cartItem.productPrice.toString() |slice:0:5}} 
+                  {{cartItem.quantityProvider.value.toString() |slice:0:3}} 
+                  {{(cartItem.quantityProvider.value*cartItem.productPrice).toString() |slice:0:5}}
+              </div>
+          </span>
+      </div>
+      <div>-------------------------------</div>
+      <div>Net Amount:{{totalAmount - customerDiscount}}</div>
+      <div>Total Items:{{totalQuantity}}</div>
+      <div>Saving:{{grossAmount - totalAmount - customerDiscount}}</div>
+     
+      <div>       Thank You</div>
+      <div>       Please Visit Again</div>
+      <p>.</p>
+      <p>.</p>
+      <p>.</p>
+      <p>.</p>
+      <p>.</p>
+      <p>.</p>
+      <p>.</p>
+  </div>
+</ng-container>
 
-</div>
+<!-- New content for printing an existing receipt -->
+<ng-container *ngIf="isPrintingExistingBill && printableBill">
+  <div class="no-print" style="text-align: center; margin: 20px;">
+    <button mat-raised-button color="primary" (click)="print()">Print Receipt</button>
+  </div>
+
+  <div *ngIf="!printOnNormalPrinter" id="printable-receipt">
+      <p></p>
+      <p></p>
+      <p></p>
+      <p></p>
+      <p></p>
+      <p></p>
+      
+      <div>   UpToSchoolWorksheets  (R)</div>
+      <div>Co.  : Sripank Software Solutions</div>
+      <div>GSTIN: 29AIPPG66702H1ZP</div>
+      <div>Ph: 9611146074</div>
+      <div>-------------------------------</div>
+      <div>          PAID BILL</div>
+      <div>Customer Name :{{printableBill.username}}</div>
+      <div>Customer Phone:{{printableBill.phonenumber}}</div>
+      <div>Bill no       : {{printableBill.invoicenumber}}</div>
+      <div>Date:{{printableBill.invoicedate | date:'fullDate'}}</div>
+      <div></div>
+      <div>-------------------------------</div>
+      <div>S. Item          </div>
+      <div>MRP Disc(%) Price Qty Total</div>
+      <div>-------------------------------</div>
+      <div *ngFor="let cartItem of printableBillItems, let i=index">
+          <span *ngIf="cartItem.quantity >0">
+              {{i+1}} 
+              {{cartItem.productName.toString() |slice:0:100}}
+              <div> 
+                  {{cartItem.initialPrice.toString() |slice:0:5}} 
+                  {{cartItem.discount.toString() |slice:0:7}} 
+                  {{cartItem.productPrice.toString() |slice:0:5}} 
+                  {{cartItem.quantity.toString() |slice:0:3}} 
+                  {{(cartItem.quantity*cartItem.productPrice).toString() |slice:0:5}}
+              </div>
+          </span>
+      </div>
+      <div>-------------------------------</div>
+      <div>Net Amount:{{printableTotalAmount}}</div>
+      <div>Total Items:{{printableTotalQuantity}}</div>
+      <div>Saving:{{printableGrossAmount - printableTotalAmount}}</div>
+     
+      <div>       Thank You</div>
+      <div>       Please Visit Again</div>
+      <p>.</p>
+      <p>.</p>
+      <p>.</p>
+      <p>.</p>
+      <p>.</p>
+      <p>.</p>
+      <p>.</p>
+  </div>
+</ng-container>
+

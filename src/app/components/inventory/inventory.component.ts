@@ -102,6 +102,7 @@ export class InventoryComponent implements OnInit {
         vendor: ['abc'],
         brand: ['abc'],
         shippingcost: ['0'],
+        barcode: ['', Validators.required]
       });
      }
     
@@ -144,7 +145,7 @@ export class InventoryComponent implements OnInit {
         vendor: this.f2['vendor'].value,
         brand: this.f2['brand'].value,
         shippingcost: this.f2['shippingcost'].value,
-        barcode:this.barcode
+        barcode: this.f2['barcode'].value
     };
   }
 
@@ -169,6 +170,9 @@ export class InventoryComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+    if (this.barcode) {
+      this.options.patchValue({ barcode: this.barcode });
+    }
     if (this.data) {
       this.options.patchValue({
         productname: this.data.productName,
