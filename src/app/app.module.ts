@@ -42,6 +42,7 @@ import { QRCodeModule } from 'angularx-qrcode';
 import { ZXingScannerModule } from '@zxing/ngx-scanner';
 import { SoldItemsSummaryComponent } from './components/sold-items-summary/sold-items-summary.component';
 import { FilteredBillsDialogComponent } from './components/filtered-bills-dialog/filtered-bills-dialog.component';
+import { BillDetailsComponent } from './components/bill-details/bill-details.component';
 
 @NgModule({
   declarations: [

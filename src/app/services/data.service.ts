@@ -20,6 +20,9 @@ import { InvoiceDataItem, InvoiceSoldItems } from "../models/invoice-data-item";
     getsoldinventoryitemsbackend='/in/ci/analyze/get_all_inventory_sold_items/';//add item in inofficerate
     private readonly valid_user = "9999";
 
+    private invoiceListCache = new Map<string, InvoiceDataItem[]>();
+    private individualInvoiceCache = new Map<string, InvoiceDataItem>();
+
     httpOptions = {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' })
       };
@@ -62,6 +65,11 @@ import { InvoiceDataItem, InvoiceSoldItems } from "../models/invoice-data-item";
   }
 
   getInvoiceDataFromServer(invoicestartdate:string, invoiceenddate:string) :Observable<InvoiceDataItem[]> {
+    const cacheKey = `${invoicestartdate}-${invoiceenddate}`;
+    if (this.invoiceListCache.has(cacheKey)) {
+      return of(this.invoiceListCache.get(cacheKey)!);
+    }
+
     if (localStorage.getItem('user')) {
       let user:Record<string,string> = JSON.parse(localStorage.getItem('user')??"")
       console.log(`Data service user details are : ${user}`)
@@ -80,6 +88,10 @@ import { InvoiceDataItem, InvoiceSoldItems } from "../models/invoice-data-item";
             
         };
         return this._http.get<InvoiceDataItem[]>(environment.apiBackend+this.getBillUrl+'?'+params_string, options).pipe(
+          tap(data => {
+            this.invoiceListCache.set(cacheKey, data);
+            data.forEach(invoice => this.individualInvoiceCache.set(invoice.invoicenumber, invoice));
+          }),
           tap(_ => this.log('fetched getInvoiceDataFromServer')),
           catchError(this.handleError<InvoiceDataItem[]>('getInvoiceDataFromServer', []))
         );
@@ -91,6 +103,10 @@ import { InvoiceDataItem, InvoiceSoldItems } from "../models/invoice-data-item";
   }
 
   getInvoiceDataFromServer_with_invoiceid(invoiceid:string) :Observable<InvoiceDataItem[]> {
+    if (this.individualInvoiceCache.has(invoiceid)) {
+      return of([this.individualInvoiceCache.get(invoiceid)!]);
+    }
+
     if (localStorage.getItem('user')) {
       let user:Record<string,string> = JSON.parse(localStorage.getItem('user')??"")
       console.log(`Data service user details are : ${user}`)
@@ -109,6 +125,11 @@ import { InvoiceDataItem, InvoiceSoldItems } from "../models/invoice-data-item";
             
         };
         return this._http.get<InvoiceDataItem[]>(environment.apiBackend+this.getBillUrl+'?'+params_string, options).pipe(
+          tap(invoices => {
+            if (invoices && invoices.length > 0) {
+              this.individualInvoiceCache.set(invoiceid, invoices[0]);
+            }
+          }),
           tap(_ => this.log('fetched getInvoiceDataFromServer_with_invoiceid')),
           catchError(this.handleError<InvoiceDataItem[]>('getInvoiceDataFromServer_with_invoiceid', []))
         );
@@ -120,6 +141,9 @@ import { InvoiceDataItem, InvoiceSoldItems } from "../models/invoice-data-item";
   }
 
   saveInvoiceDataOnServer(data:any){
+    // Clear cache on save
+    this.invoiceListCache.clear();
+    this.individualInvoiceCache.clear();
     return this._http.post<any>(`${environment.apiBackend}${this.saveBillUrl}`,
                                { data })
             .pipe(map(dmap => {

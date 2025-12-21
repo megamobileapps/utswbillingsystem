@@ -21,6 +21,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import {MatDatepickerModule} from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @NgModule({
   declarations: [],
@@ -32,7 +33,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatIconModule,MatFormFieldModule,MatButtonModule,MatInputModule,MatListModule,
     MatGridListModule,MatSelectModule,MatTableModule, MatPaginatorModule,MatSortModule,
     MatDialogModule,MatDatepickerModule,MatNativeDateModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatProgressSpinnerModule
   ],
   exports: [
     MatSlideToggleModule,
@@ -41,7 +43,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatIconModule,MatButtonModule,MatInputModule,MatListModule,
     MatGridListModule,MatSelectModule,MatTableModule, MatPaginatorModule,MatSortModule,
     MatDialogModule,MatDatepickerModule,MatNativeDateModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatProgressSpinnerModule
   ],
   providers: [
     { provide: MAT_DIALOG_DATA, useValue: {} },

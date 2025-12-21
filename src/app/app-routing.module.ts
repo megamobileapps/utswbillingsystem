@@ -13,6 +13,7 @@ import { GenerateBarcodeComponent } from './components/generate-barcode/generate
 import { ListInventoryComponent } from './components/inventory/list-inventory/list-inventory.component';
 import { DirectinvoiceComponent } from './components/directinvoice/directinvoice.component';
 import { BillComponent } from './components/bill/bill.component';
+import { BillDetailsComponent } from './components/bill-details/bill-details.component';
 
 
 const routes : Routes = [
@@ -27,6 +28,7 @@ const routes : Routes = [
   {path:'logout', component:LogoutComponent},
   {path:'directinvoice', component:DirectinvoiceComponent,canActivate:[AuthGuard]},
   {path:'showallbills', component:BillComponent,canActivate:[AuthGuard]},
+  {path:'bill-details/:id', component:BillDetailsComponent,canActivate:[AuthGuard]},
   { 
     path: '',
     component:CatalogueComponent,canActivate: [AuthGuard]     

@@ -6,29 +6,29 @@
 </div>
 
 <div mat-dialog-content>
-  <table mat-table [dataSource]="dataSource">
+  <table mat-table [dataSource]="dataSource" matSort>
 
     <!-- ID Column -->
     <ng-container matColumnDef="id">
-      <th mat-header-cell *matHeaderCellDef> ID </th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> ID </th>
       <td mat-cell *matCellDef="let element"> {{element.id}} </td>
     </ng-container>
 
     <!-- Invoice Number Column -->
     <ng-container matColumnDef="invoicenumber">
-      <th mat-header-cell *matHeaderCellDef> Invoice No. </th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Invoice No. </th>
       <td mat-cell *matCellDef="let element"> {{element.invoicenumber}} </td>
     </ng-container>
 
     <!-- Invoice Date Column -->
     <ng-container matColumnDef="invoicedate">
-      <th mat-header-cell *matHeaderCellDef> Date </th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Date </th>
       <td mat-cell *matCellDef="let element"> {{element.invoicedate}} </td>
     </ng-container>
 
     <!-- Username Column -->
     <ng-container matColumnDef="username">
-      <th mat-header-cell *matHeaderCellDef> Customer </th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Customer </th>
       <td mat-cell *matCellDef="let element"> {{element.username}} </td>
     </ng-container>
 
@@ -46,20 +46,30 @@
 
     <!-- Amount Column -->
     <ng-container matColumnDef="amount">
-      <th mat-header-cell *matHeaderCellDef> Amount </th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Amount </th>
       <td mat-cell *matCellDef="let element"> {{element.amount | number : '1.2-2'}} </td>
     </ng-container>
 
     <!-- Discount Column -->
     <ng-container matColumnDef="discount">
-      <th mat-header-cell *matHeaderCellDef> Discount </th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Discount </th>
       <td mat-cell *matCellDef="let element"> {{element.discount}} </td>
     </ng-container>
 
     <!-- Payment Method Column -->
     <ng-container matColumnDef="payment_method">
-      <th mat-header-cell *matHeaderCellDef> Payment Method </th>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header> Payment Method </th>
       <td mat-cell *matCellDef="let element"> {{element.payment_method}} </td>
+    </ng-container>
+
+    <!-- Actions Column -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef> Actions </th>
+      <td mat-cell *matCellDef="let element">
+        <button mat-icon-button (click)="openBillDetails(element)" matTooltip="View Details">
+          <mat-icon>visibility</mat-icon>
+        </button>
+      </td>
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

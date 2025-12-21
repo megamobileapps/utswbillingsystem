@@ -13,11 +13,15 @@ import { InvoiceDataItem } from 'src/app/models/invoice-data-item';
 import { InventoryItem } from 'src/app/models/inoffice';
 import { UTSWCartItem } from 'src/app/models/cart-item';
 import { Router } from '@angular/router';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-bill',
   templateUrl: './bill.component.html',
-  styleUrls: ['./bill.component.css']
+  styleUrls: ['./bill.component.css'],
+  standalone: false, // This component is not standalone, it's declared in AppModule
+  // No imports here because it's not standalone. Imports are handled by AppModule.
 })
 export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
 
@@ -32,6 +36,8 @@ export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
   inventoryList:any=[]
   dataSource = new MatTableDataSource<InvoiceDataItem>(this.invoicelist);
   totalInvoice:{count:number, amount:number} = {count:0,amount:0} 
+  isLoading = true;
+
   constructor(private formBuilder: FormBuilder,
     private _dataService:DataService,
     private _inventoryService:InventoryService,
@@ -57,7 +63,7 @@ export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
         "invoicedate",
         "discount",
         "payment_method",
-        "edit"
+        "actions"
   ]
   ;
   // displayedColumns: string[] = [
@@ -129,18 +135,25 @@ export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
 
    //getInvoiceDataFromServer
    getInvoiceDataFromServer(startDate:Date|null=new Date(), endDate:Date|null=new Date()){
-    // let invoicedate = Date();
+    this.isLoading = true;
     let tr_start_date:string = this.datePipe.transform(startDate,'yyyy-MM-dd')??'2024-01-13';
     let tr_end_date:string = this.datePipe.transform(endDate,'yyyy-MM-dd')??'2024-01-13';
     
     console.log('getInvoiceDataFromServer() date of invoice '+tr_end_date);
-    this._dataService.getInvoiceDataFromServer(tr_start_date, tr_end_date).subscribe((d) => { 
-      this.invoicelist = d; 
-      console.log('getInvoiceDataFromServer(): '+JSON.stringify(d));  
-      this.dataSource.data = d;     
-      this.totalInvoice.count = d.length;
-      this.totalInvoice.amount = 0;
-      d.forEach(val=>this.totalInvoice.amount+=Number.parseFloat(val.amount.toString()))
+    this._dataService.getInvoiceDataFromServer(tr_start_date, tr_end_date).subscribe({
+      next: (d) => { 
+        this.invoicelist = d; 
+        console.log('getInvoiceDataFromServer(): '+JSON.stringify(d));  
+        this.dataSource.data = d;     
+        this.totalInvoice.count = d.length;
+        this.totalInvoice.amount = 0;
+        d.forEach(val=>this.totalInvoice.amount+=Number.parseFloat(val.amount.toString()));
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error fetching invoice data:', err);
+        this.isLoading = false;
+      }
     });
    }
 
@@ -178,6 +191,10 @@ export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
       }
     });
     
+  }
+
+  openBillDetails(invoice: InvoiceDataItem): void {
+    this.router.navigate(['/bill-details', invoice.invoicenumber]);
   }
   
    row_click_event(event:InvoiceDataItem){
