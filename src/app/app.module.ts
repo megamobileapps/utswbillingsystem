@@ -40,6 +40,8 @@ import { ConfirmationDialogComponent } from './components/confirmation-dialog/co
 import { DirectinvoiceComponent } from './components/directinvoice/directinvoice.component';
 import { QRCodeModule } from 'angularx-qrcode';
 import { ZXingScannerModule } from '@zxing/ngx-scanner';
+import { SoldItemsSummaryComponent } from './components/sold-items-summary/sold-items-summary.component';
+import { FilteredBillsDialogComponent } from './components/filtered-bills-dialog/filtered-bills-dialog.component';
 
 @NgModule({
   declarations: [
@@ -51,7 +53,6 @@ import { ZXingScannerModule } from '@zxing/ngx-scanner';
     UtswGenericfilterPipe,
     ReceiptDetailsComponent,
     CheckoutComponent,
-    InventoryComponent,
     DisplayitemComponent,
     DisplaycartitemComponent,
     DisplaycartComponent,
@@ -63,6 +64,7 @@ import { ZXingScannerModule } from '@zxing/ngx-scanner';
     ListInventoryComponent,
     ConfirmationDialogComponent,
     DirectinvoiceComponent,
+    SoldItemsSummaryComponent,
 
   ],
   imports: [
@@ -80,6 +82,7 @@ import { ZXingScannerModule } from '@zxing/ngx-scanner';
     AngularFireModule.initializeApp(environment.firebase),
     provideFirebaseApp(() => initializeApp({"projectId":"bookstore-c1f49","appId":"1:342884727291:web:2530396bfdccb07f","databaseURL":"https://bookstore-c1f49.firebaseio.com","storageBucket":"bookstore-c1f49.appspot.com","apiKey":"AIzaSyAPInkWwSrhwOE4SMapLb7S5t50Ge_vi7M","authDomain":"bookstore-c1f49.firebaseapp.com","messagingSenderId":"342884727291","measurementId":"G-RX2PQEWHQN"})),
     provideDatabase(() => getDatabase()),
+    InventoryComponent
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: BasicAuthInterceptor, multi: true },

@@ -87,12 +87,18 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
   getInvoiceSoldItemsFromServer(startDate:Date|null=new Date(), endDate:Date|null=new Date()){
     // let invoicedate = Date();
     let tr_start_date:string = this.datePipe.transform(startDate,'yyyy-MM-dd')??'2024-01-13';
-    let tr_end_date:string = this.datePipe.transform(endDate,'yyyy-MM-dd')??'2024-01-13';
+    let tr_end_date:string = this.datePipe.transform(endDate,'yyyy-MM-dd')??'2099-01-13';
     
     console.log('getInvoiceSoldItemsFromServer() date of invoice sold items '+tr_start_date);
     this._dataService.getInvoiceSoldItemsFromServer(tr_start_date, tr_end_date).subscribe((d) => {       
       console.log('getInvoiceSoldItemsFromServer(): '+JSON.stringify(d));        
-      d.forEach(val=>this.allsoldItems[ val["barcode"] ]=val["quantity"])
+      d.forEach(val=>{
+        let sold_key = `${val["barcode"]}` + (typeof val["labeldate"] != 'undefined' ? `::${val["labeldate"]}` : '')
+                                            + (typeof val["brand"] != 'undefined' ? `::${val["brand"]}` : '');
+        this.allsoldItems[ sold_key ]= (this.allsoldItems[ sold_key ]??0) + val["quantity"];
+        //
+        // this.allsoldItems[ val["barcode"] ]=val["quantity"]
+    })
       this.getAllInventory();
     });
    }
@@ -112,7 +118,10 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
             if(data[i][datekeys[0]].itemdetails['barcode'] == this.filterwithbarcode??filterwith)
               for (let datekeyindex=0;datekeyindex<datekeys.length; datekeyindex++){
                 let itemdetails = data[i][datekeys[datekeyindex]].itemdetails;
-                let sold_items = this.allsoldItems[itemdetails["barcode"]]??0
+                let sold_key = `${itemdetails["barcode"]}` 
+                            + (typeof itemdetails["labeleddate"] != 'undefined' ? `::${itemdetails["labeleddate"]}` : '')
+                            + (typeof itemdetails["brand"] != 'undefined' ? `::${itemdetails["brand"]}` : '');
+                let sold_items = this.allsoldItems[sold_key]??0
                 let present_available_items = itemdetails["quantity"] - sold_items
                 rcvddata.push( {...itemdetails, sold:sold_items,qtyavailable: present_available_items} ); 
               }
@@ -120,7 +129,10 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
           for (let datekeyindex=0;datekeyindex<datekeys.length; datekeyindex++){
               if (typeof data[i][datekeys[datekeyindex]].itemdetails != 'undefined'){
                 let itemdetails = data[i][datekeys[datekeyindex]].itemdetails;
-                let sold_items = this.allsoldItems[itemdetails["barcode"]]??0
+                let sold_key = `${itemdetails["barcode"]}` 
+                            + (typeof itemdetails["labeleddate"] != 'undefined' ? `::${itemdetails["labeleddate"]}` : '')
+                            + (typeof itemdetails["brand"] != 'undefined' ? `::${itemdetails["brand"]}` : '');
+                let sold_items = this.allsoldItems[sold_key]??0
                 let present_available_items = itemdetails["quantity"] - sold_items
                 rcvddata.push( {...itemdetails, sold:sold_items, qtyavailable: present_available_items} ); 
               }

@@ -5,6 +5,12 @@
 
   }
   
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+  
   /* .example-container mat-form-field {
     width: 220px;
   } */

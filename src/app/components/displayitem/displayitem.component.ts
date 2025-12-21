@@ -18,7 +18,7 @@ export class DisplayitemComponent implements OnInit {
 
 
   isMobileScreen:boolean = false;
-
+  myImgSrc:string="https://utswv2-v2.s3.amazonaws.com/inventory/invdummy.jpg"
   constructor(private _cartService:CartService, private screenSizeService:ScreenSizeService) { 
     this.isMobileScreen = this.screenSizeService.getIsMobileResolution;
   }
@@ -52,7 +52,8 @@ export class DisplayitemComponent implements OnInit {
         value.productCategory == ofItem.brand &&
         value.productId == ofItem.barcode &&
         value.id == ofItem.barcode.toString() &&
-        value.productName == ofItem.productname
+        value.productName == ofItem.productname &&
+        value.labeldate == ofItem.labeleddate
       );
     
     

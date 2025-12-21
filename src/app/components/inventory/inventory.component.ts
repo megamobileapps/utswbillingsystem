@@ -1,17 +1,37 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component, Inject, Input, OnInit, Optional } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { first } from 'rxjs';
 import { CartDetails } from 'src/app/providers/cart.details';
 import { CartService } from 'src/app/providers/cart.provider';
 import { DataService } from 'src/app/services/data.service';
-import { ReceiptDetailsComponent } from '../receipt.details/receipt.details.component';
 import { InventoryService } from 'src/app/services/inventory.service';
+import * as XLSX from "xlsx";
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { SoldItemSummary } from '../sold-items-summary/sold-items-summary.component';
+import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { google_web_search } from 'src/app/tools/google_web_search';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-inventory',
   templateUrl: './inventory.component.html',
-  styleUrls: ['./inventory.component.css']
+  styleUrls: ['./inventory.component.css'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatDialogModule,
+    MatProgressSpinnerModule
+  ]
 })
 export class InventoryComponent implements OnInit {
   @Input() barcode:string|null=null
@@ -22,15 +42,19 @@ export class InventoryComponent implements OnInit {
   error = '';
   isMobileScreen:boolean=false;
   todaydate='';
+  hsnLoading = false;
 
   constructor(private formBuilder: FormBuilder,
     private _dataService:DataService,
     private _inventoryService:InventoryService,
-    private _cartService:CartService,private router: Router, private route: ActivatedRoute) {
+    private _cartService:CartService,private router: Router, private route: ActivatedRoute,
+    @Optional() public dialogRef: MatDialogRef<InventoryComponent>,
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: SoldItemSummary
+    ) {
       let date1 = new Date();
-      const year = date1.getFullYear(); // e.g., 2023
-      let month = date1.getMonth()+1; // e.g., 7 (for July)
-      const day = date1.getDate(); // e.g., 7 (for July)
+      const year = date1.getFullYear();
+      let month = date1.getMonth()+1;
+      const day = date1.getDate();
       let formattedmonth:string='';
       let formattedday:string='';
       if (month<10){
@@ -45,7 +69,6 @@ export class InventoryComponent implements OnInit {
       }
       
       this.todaydate = `${year}-${formattedmonth}-${formattedday}`;
-      // console.log('today = '+this.todaydate);
       this.deliveryForm = this.formBuilder.group({
         grade: ['ZM4', Validators.required],       
         gradelevel2: ['ZM4'],
@@ -86,23 +109,6 @@ export class InventoryComponent implements OnInit {
   get f() { return this.deliveryForm.controls; }
   get f2() { return this.options.controls; }
 
-  /*
-   id: '',
-          grade: f['grade']!.value.toString(),
-          gradelevel2: f['gradelevel2']!.value.toString(),
-          subId: f['subId']!.value.toString(),
-          barcode: f['barcode']!.value.toString(),
-          subject: f['subject']!.value.toString(),
-          pcost: f['pcost']!.value.toString(),
-          discount: f['discount']!.value.toString(),
-          inventory: f['inventory']!.value.toString(),
-          subposition: f['subposition']!.value.toString(),
-          netvalue: 1,
-          gst: int.parse(f['gst']!.value.toString()),
-          quantity: 1,
-          total: 1,
-          hsn: int.parse(f['hsn']!.value.toString()));
-  */
   get getFormData():any{
     return {
       grade: this.f['grade'].value,       
@@ -146,12 +152,9 @@ export class InventoryComponent implements OnInit {
     let fd = this.getInventoryFormData;
     var cp_plus_shipping = Number(fd["cp"]) + Number(fd["shippingcost"]);
     var netcp = Number(fd["cp"]) *( (100+ Number(fd["percentgst"]))/100) + Number(fd["shippingcost"]);
-    // double of netcp - shipping cost
     var calMRP = netcp*2 - Number(fd["shippingcost"]);
     var MRP = calMRP;
 
-    //profit will be mrp - %GST
-    // mrp = mrp_wo_gst(1+GST)
     var MRP_wo_GST = MRP/(1+Number(fd["percentgst"])/100);
     var fixedProfit = MRP_wo_GST - (cp_plus_shipping);
     var percentProfit = fixedProfit*100/cp_plus_shipping;
@@ -164,14 +167,42 @@ export class InventoryComponent implements OnInit {
       percentprofit :percentProfit
     });
   }
-  ngOnInit(): void {
+
+  async ngOnInit(): Promise<void> {
+    if (this.data) {
+      this.options.patchValue({
+        productname: this.data.productName,
+        cp: this.data.price,
+        mrp: this.data.price
+      });
+      if (this.data.productName) {
+        await this.fetchHsnCode(this.data.productName);
+      }
+    }
+  }
+
+  async fetchHsnCode(productName: string): Promise<void> {
+    this.hsnLoading = true;
+    try {
+      const result = await google_web_search({ query: `HSN code for ${productName}` });
+      if (result && result.results.length > 0) {
+        const snippets = result.results.map((r: { snippet: string }) => r.snippet).join(' ');
+        const hsnMatch = snippets.match(/\b\d{8}\b/);
+        if (hsnMatch) {
+          this.options.patchValue({ hsn: hsnMatch[0] });
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching HSN code:', error);
+    } finally {
+      this.hsnLoading = false;
+    }
   }
 
   onSubmit() {
     console.log("Submitting payment form in cart component");
     this.submitted = true;
 
-    // stop here if form is invalid
     if (this.deliveryForm.invalid) {
       console.log("inventory form is invalid");
         return;
@@ -196,15 +227,12 @@ export class InventoryComponent implements OnInit {
             
         });
 
-    console.log('coming before routing to Home');
     this.router.navigate(['/']);
   }
 
   onSubmitFire(){
     console.log('onSubmitFire called');
-    console.log("Submitting payment form in cart component");
     this.submitted = true;
-    // stop here if form is invalid
     if (this.options.invalid) {
       console.log("inventory options form is invalid");
         return;
@@ -212,25 +240,108 @@ export class InventoryComponent implements OnInit {
 
     this.loading = true;
     var formData = this.getInventoryFormData;
-    //
-    // key will be barcode/labeleddate to have multiple entries under same barcode
-    //
     var data = {"itemdetails":formData, id:formData["barcode"]+'/'+formData["labeleddate"]};
-                //_inventoryService
+
     this._inventoryService.addInventory(data).then((res) => {
       console.log('Inventory onSubmitFire(): ',res);   
-      alert('inventory is added successfully')     
+      alert('inventory is added successfully');
+      if (this.dialogRef) {
+        this.dialogRef.close();
+      }
     })
     .catch((err) => {
       console.log('Inventory onSubmitFire() error: ' + err);
       alert('Error while Inventory onSubmitFire()');        
     });    
-    console.log('coming before routing to Home');
-    // this.router.navigate(['/']);
+  }
+
+  onClose(): void {
+    if (this.dialogRef) {
+      this.dialogRef.close();
+    }
   }
 
   get currentCart():CartDetails|undefined|null{
     return this._cartService.currentCart;
   }
 
+  prepare_inventory_row_from_excel(row1:Array<string>, rowtoinsert:Array<string>):any{
+    var retVal:Record<string, string> = {}
+    for(let i=0;i<row1.length;i++){
+      retVal[row1 [ i ] ] = rowtoinsert[i]
+    }
+    return retVal;
+    
+  }
+
+  onxlsxFileChange(evt: any) {
+    const target: DataTransfer = <DataTransfer>(evt.target);
+    let date1 = new Date();
+    const year = date1.getFullYear();
+    let month = date1.getMonth()+1;
+    const day = date1.getDate();
+    let formattedmonth:string='';
+    let formattedday:string='';
+    if (month<10){
+      formattedmonth=`0${month}`
+    } else{
+      formattedmonth=`${month}`
+    }
+    if (day<10){
+      formattedday=`0${day}`
+    } else{
+      formattedday=`${day}`
+    }
+    
+    this.todaydate = `${year}-${formattedmonth}-${formattedday}`;
+
+    if (target.files.length > 1) {
+      alert('Multiple files are not allowed');
+      return;
+    }
+    else {
+      const reader: FileReader = new FileReader();
+      reader.onload = (e: any) => {
+        const bstr: string = e.target.result;
+        const wb: XLSX.WorkBook = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws: XLSX.WorkSheet = wb.Sheets[wsname];
+        let data:Array<Array<string>> = (XLSX.utils.sheet_to_json(ws, { header: 1 }));
+        console.log(data);
+
+        let data_to_push:Array<Record<string, string>> = [];
+        for(let csvIndex=1;csvIndex<data.length; csvIndex++){
+          if (data[csvIndex].length != 16 ){
+            console.log(`skipping row number ${csvIndex}`)
+            continue;
+          }
+          let insert_record = this.prepare_inventory_row_from_excel(data[0], data[csvIndex])          
+          console.log(`onxlsxFileChange()  value ${insert_record}`);          
+          data_to_push.push(insert_record);
+        }
+        console.log('data to push to db for inventory  is '+`${data_to_push}`)
+        data_to_push.forEach((m_value, m_key)=>{    
+          if (m_value["labeleddate"]==''){
+            m_value["labeleddate"]=this.todaydate;
+          }   
+          if(m_value["barcode"]==''){
+            m_value["barcode"]=m_value["productname"];
+          }
+          if (m_value["barcode"] == '' || m_value["labeleddate"] == '') {
+            console.log('empty barcode and labeldate is not allowed')
+          } else {
+            var data = {"itemdetails":m_value, id:m_value["barcode"]+'/'+m_value["labeleddate"]};
+            this._inventoryService.addInventory(data).then((res) => {
+              console.log('Inventory onSubmitFire(): ',res);   
+            })
+            .catch((err) => {
+              console.log('Inventory onSubmitFire() error: ' + err);
+              alert('Error while Inventory onSubmitFire()');        
+            });    
+          }
+         });
+      }
+      reader.readAsBinaryString(target.files[0]);
+    }
+  }
 }

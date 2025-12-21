@@ -1,6 +1,11 @@
 
 <div class="example-container bg-info">
-    <p class="text-bg-secondary">Add inventory for Label/Barcode</p>
+    <div class="dialog-header">
+        <p class="text-bg-secondary">Add inventory for Label/Barcode</p>
+        <button mat-icon-button (click)="onClose()">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
     <form [formGroup]="options">
       <div class="example-form-fields">
         <div class="row">
@@ -8,7 +13,8 @@
                 <mat-form-field >
                     <mat-label>HSN</mat-label> 
                     <input matInput placeholder="HSN" formControlName="hsn" required>
-                </mat-form-field>  
+                </mat-form-field>
+                <mat-spinner [diameter]="30" *ngIf="hsnLoading"></mat-spinner>
                 <mat-form-field >
                     <mat-label>Product Name</mat-label> 
                     <input matInput placeholder="Prod Name" formControlName="productname" required>
@@ -110,4 +116,7 @@
         (click)="onSubmitFire()"    
         value="Click to Submit">Click to Submit      
     </button> 
+    
+        <input type="file" id="leveldata" name="leveldata" (input)="onxlsxFileChange($event)" multiple="false">
+    
 </div> 

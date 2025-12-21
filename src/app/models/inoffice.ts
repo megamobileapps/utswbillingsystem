@@ -40,4 +40,6 @@ export interface InventoryItem {
     vendor:String;
     discount:number;
     netvalue:number;
+    qtyavailable:number;
+    sold:number;
 };

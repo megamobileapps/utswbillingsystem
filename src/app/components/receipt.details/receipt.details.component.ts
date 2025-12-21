@@ -27,7 +27,7 @@ export class ReceiptDetailsComponent implements OnInit {
         subQuantity += "##";
       }
       subQuantity +=
-          billItem.productId! + "::" + billItem.quantity.toString();
+          billItem.productId! + "::" + billItem.quantity.toString()+"::"+billItem.labeldate.toString()+"::"+billItem.productCategory.toString();
     });
     return subQuantity;
   }

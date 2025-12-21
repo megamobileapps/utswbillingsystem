@@ -1,0 +1,17 @@
+img {
+    width: 100px;
+    height: 150px;
+  
+    @media screen and (min-device-width: 1200px) and (max-device-width: 1920px) and (-webkit-min-device-pixel-ratio: 1) {
+      width: 80px;
+      height: 100px;
+    }
+  
+    @media screen and (min-device-width: 1920px) and (-webkit-min-device-pixel-ratio: 1) {
+      width: 80px;
+      height: 100px;
+    }
+  }
+  img:hover {
+    transform: scale(2.5); /* (150% zoom - Note: if the zoom is too large, it will go outside of the viewport) */
+  }

@@ -14,4 +14,6 @@ export interface InvoiceDataItem {
 export interface InvoiceSoldItems {
     barcode:string;
     quantity:number;
+    labeldate:string;
+    brand:string;
 }

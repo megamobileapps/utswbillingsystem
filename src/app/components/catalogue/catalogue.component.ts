@@ -11,6 +11,7 @@ import { InventoryService } from 'src/app/services/inventory.service';
 import { ScreenSizeService } from 'src/app/services/screen-size.service';
 import Quagga from 'quagga';
 import { BarcodeFormat } from '@zxing/library';
+import { DatePipe } from '@angular/common';
 @Component({
   selector: 'app-catalogue',
   templateUrl: './catalogue.component.html',
@@ -26,6 +27,7 @@ export class CatalogueComponent implements OnInit {
   searchStr:String='g1';
   isMobileScreen:boolean=false;
   oldinvoiceid:string="-1"
+  allsoldItems:Record<string, number> = {}
  
   today: number = Date.now();
   filterwithbarcode:string|null=null;
@@ -39,19 +41,20 @@ export class CatalogueComponent implements OnInit {
   scannedResult: string = '';
   allowedFormats = [BarcodeFormat.CODE_128, BarcodeFormat.QR_CODE]; // Add formats as needed
 
-  onCodeResult(result: string): void {
-    console.log('Scanned code:', result);
-    this.scannedResult = result;
-  }
-  onError(error: any): void {
-    console.error('Scanning error:', error);
-  }
+  // onCodeResult(result: string): void {
+  //   console.log('Scanned code:', result);
+  //   this.scannedResult = result;
+  // }
+  // onError(error: any): void {
+  //   console.error('Scanning error:', error);
+  // }
   
   constructor(private _dataService:DataService,
     private route: ActivatedRoute,
     private router:Router,
     private _sanitizer: DomSanitizer,
     private _inventoryService:InventoryService,
+    private datePipe:DatePipe,
     private _cartService:CartService, private screenSizeService:ScreenSizeService) { 
       this._cartService.isEditing = false;
       this.isMobileScreen = this.screenSizeService.getIsMobileResolution;
@@ -70,7 +73,7 @@ export class CatalogueComponent implements OnInit {
     }
   ngOnInit(): void {
     
-    this.getAllInventory();
+    this.getInvoiceSoldItemsFromServer();
   }
 
   quagga_init() {
@@ -101,6 +104,64 @@ export class CatalogueComponent implements OnInit {
     });
   }
 
+  // getAllInventory(filterwith=''){
+  //   let self = this;
+  //    this._inventoryService.getAllInventory().subscribe(data => { 
+  //      console.log('getAllInventory(): step 1', JSON.stringify(data));
+  //     //  self.inventoryList=[];
+  //     var rcvddata=[];
+  //      for(let i=0;i<data.length;i++){
+  //        console.log('getAllInventory(): step 2', JSON.stringify(data[i]));
+  //        let datekeys = Object.keys(data[i])
+  //        console.log('getAllInventory(): filter value is '+this.filterwithbarcode);
+  //        if (this.filterwithbarcode != null || filterwith != ''){
+  //         if (typeof data[i][datekeys[0]].itemdetails != 'undefined')
+  //           if(data[i][datekeys[0]].itemdetails['barcode'] == this.filterwithbarcode??filterwith)
+  //             for (let datekeyindex=0;datekeyindex<datekeys.length; datekeyindex++)
+  //               rcvddata.push( data[i][datekeys[datekeyindex]].itemdetails ); 
+  //        }else{
+  //         for (let datekeyindex=0;datekeyindex<datekeys.length; datekeyindex++){
+  //             if (typeof data[i][datekeys[datekeyindex]].itemdetails != 'undefined'){
+  //               if (typeof data[i][datekeys[datekeyindex]].itemdetails["discount"] == 'undefined') {
+  //                 data[i][datekeys[datekeyindex]].itemdetails["discount"] = 0;
+  //               }
+  //               if (typeof data[i][datekeys[datekeyindex]].itemdetails["netvalue"] == 'undefined') {
+  //                 data[i][datekeys[datekeyindex]].itemdetails["netvalue"] = data[i][datekeys[datekeyindex]].itemdetails["mrp"]*(100-data[i][datekeys[datekeyindex]].itemdetails["discount"])/100;
+  //               }
+  //               rcvddata.push( data[i][datekeys[datekeyindex]].itemdetails ); 
+  //             }
+  //         }
+  //             // rcvddata.push( data[i][datekeys[0]].itemdetails );        
+  //        }
+  //        }
+  //        this.catalogueItems = rcvddata;
+  //        console.log('getAllInventory(): Data after filling ', JSON.stringify(rcvddata));
+       
+  //    });
+  //  }
+
+   //start
+   getInvoiceSoldItemsFromServer(startDate:Date|null=new Date(), endDate:Date|null=new Date()){
+    // let invoicedate = Date();
+    let tr_start_date:string = this.datePipe.transform(startDate,'yyyy-MM-dd')??'2024-01-13';
+    let tr_end_date:string = this.datePipe.transform(endDate,'yyyy-MM-dd')??'2099-01-13';
+    
+    console.log('getInvoiceSoldItemsFromServer() date of invoice sold items '+tr_start_date);
+    this._dataService.getInvoiceSoldItemsFromServer(tr_start_date, tr_end_date).subscribe((d) => {       
+      console.log('getInvoiceSoldItemsFromServer(): '+JSON.stringify(d)); 
+            
+      d.forEach(val=>{
+        let sold_key = `${val["barcode"]}` + (typeof val["labeldate"] != 'undefined' ? `::${val["labeldate"]}` : '')
+                                            + (typeof val["brand"] != 'undefined' ? `::${val["brand"]}` : '');
+        this.allsoldItems[ sold_key ]= (this.allsoldItems[ sold_key ]??0) + val["quantity"];
+        //
+        // this.allsoldItems[ val["barcode"] ]=val["quantity"]
+    })
+    console.log('getInvoiceSoldItemsFromServer(): allsolditems'+JSON.stringify(this.allsoldItems)); 
+      this.getAllInventory();
+    });
+   }
+
   getAllInventory(filterwith=''){
     let self = this;
      this._inventoryService.getAllInventory().subscribe(data => { 
@@ -114,8 +175,15 @@ export class CatalogueComponent implements OnInit {
          if (this.filterwithbarcode != null || filterwith != ''){
           if (typeof data[i][datekeys[0]].itemdetails != 'undefined')
             if(data[i][datekeys[0]].itemdetails['barcode'] == this.filterwithbarcode??filterwith)
-              for (let datekeyindex=0;datekeyindex<datekeys.length; datekeyindex++)
-                rcvddata.push( data[i][datekeys[datekeyindex]].itemdetails ); 
+              for (let datekeyindex=0;datekeyindex<datekeys.length; datekeyindex++){
+                let itemdetails = data[i][datekeys[datekeyindex]].itemdetails;
+                let sold_key = `${itemdetails["barcode"]}` 
+                            + (typeof itemdetails["labeleddate"] != 'undefined' ? `::${itemdetails["labeleddate"]}` : '')
+                            + (typeof itemdetails["brand"] != 'undefined' ? `::${itemdetails["brand"]}` : '');
+                let sold_items = this.allsoldItems[sold_key]??0
+                let present_available_items = itemdetails["quantity"] - sold_items
+                rcvddata.push( {...itemdetails, sold:sold_items,qtyavailable: present_available_items} ); 
+              }
          }else{
           for (let datekeyindex=0;datekeyindex<datekeys.length; datekeyindex++){
               if (typeof data[i][datekeys[datekeyindex]].itemdetails != 'undefined'){
@@ -125,7 +193,14 @@ export class CatalogueComponent implements OnInit {
                 if (typeof data[i][datekeys[datekeyindex]].itemdetails["netvalue"] == 'undefined') {
                   data[i][datekeys[datekeyindex]].itemdetails["netvalue"] = data[i][datekeys[datekeyindex]].itemdetails["mrp"]*(100-data[i][datekeys[datekeyindex]].itemdetails["discount"])/100;
                 }
-                rcvddata.push( data[i][datekeys[datekeyindex]].itemdetails ); 
+                let itemdetails = data[i][datekeys[datekeyindex]].itemdetails;
+                let sold_key = `${itemdetails["barcode"]}` 
+                                + (typeof itemdetails["labeleddate"] != 'undefined' ? `::${itemdetails["labeleddate"]}` : '')
+                                + (typeof itemdetails["brand"] != 'undefined' ? `::${itemdetails["brand"]}` : '');
+                let sold_items = this.allsoldItems[sold_key]??0
+                console.log('getAllInventory(): sold_key='+sold_key+' sold_items='+sold_items);
+                let present_available_items = itemdetails["quantity"] - sold_items
+                rcvddata.push( {...itemdetails, sold:sold_items, qtyavailable: present_available_items} ); 
               }
           }
               // rcvddata.push( data[i][datekeys[0]].itemdetails );        
@@ -137,6 +212,7 @@ export class CatalogueComponent implements OnInit {
      });
    }
 
+   //end
   getCategories():void{
     this._dataService.getInofficeCategories().subscribe((d) => { 
       this.categories = d; 

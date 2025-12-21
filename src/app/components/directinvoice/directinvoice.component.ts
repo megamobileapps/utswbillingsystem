@@ -107,6 +107,8 @@ export class DirectinvoiceComponent {
         brand: allControls['brand'].value,
         shippingcost: allControls['shippingcost'].value,
         barcode:allControls['barcode'].value,
+        qtyavailable:0,
+        sold:1
       };
     }
 
