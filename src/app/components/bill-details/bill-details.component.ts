@@ -16,6 +16,8 @@ import { InventoryComponent } from '../inventory/inventory.component';
 import { SoldItemSummary } from '../sold-items-summary/sold-items-summary.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
+import { InventoryService } from 'src/app/services/inventory.service';
+import { InventoryItem } from 'src/app/models/inoffice';
 
 @Component({
   selector: 'app-bill-details',
@@ -39,15 +41,26 @@ export class BillDetailsComponent implements OnInit {
   itemsDataSource = new MatTableDataSource<UTSWCartItem>();
   displayedColumns: string[] = ['productName', 'quantity', 'productPrice', 'total', 'actions'];
   isLoading = true;
+  private inventory: InventoryItem[] = [];
 
   constructor(
     private route: ActivatedRoute,
     private dataService: DataService,
     private dialog: MatDialog,
-    private router: Router
+    private router: Router,
+    private inventoryService: InventoryService
   ) {}
 
   ngOnInit(): void {
+    this.inventoryService.isCacheReady.subscribe(isReady => {
+      if(isReady) {
+        this.inventory = this.inventoryService.getInventoryCache();
+        this.loadInvoiceDetails();
+      }
+    });
+  }
+
+  loadInvoiceDetails(): void {
     const invoiceId = this.route.snapshot.paramMap.get('id');
     if (invoiceId) {
       this.dataService.getInvoiceDataFromServer_with_invoiceid(invoiceId).subscribe({
@@ -59,6 +72,7 @@ export class BillDetailsComponent implements OnInit {
               if (typeof items === 'string') {
                 items = JSON.parse(items);
               }
+              this.updateMatchType(items);
               this.itemsDataSource.data = items;
             } catch (error) {
               console.error('Error parsing invoicedata:', error, this.invoice.invoicedata);
@@ -76,6 +90,20 @@ export class BillDetailsComponent implements OnInit {
     }
   }
 
+  updateMatchType(items: UTSWCartItem[]): void {
+    const inventoryNames = this.inventory.map(invItem => (invItem.productname as string).toLowerCase());
+    items.forEach(item => {
+      const soldItemName = (item.productName as string).toLowerCase();
+      if (inventoryNames.includes(soldItemName)) {
+        item.matchType = 'exact';
+      } else if (inventoryNames.some(invName => invName.includes(soldItemName) || soldItemName.includes(invName))) {
+        item.matchType = 'approximate';
+      } else {
+        item.matchType = 'none';
+      }
+    });
+  }
+
   getTotal(item: UTSWCartItem): number {
     return item.quantity * item.productPrice;
   }
@@ -86,7 +114,9 @@ export class BillDetailsComponent implements OnInit {
       quantity: item.quantity,
       price: item.productPrice,
       discount: item.discount,
-      total: item.productPrice * item.quantity
+      total: item.productPrice * item.quantity,
+      productId: item.productId?.toString(),
+      matchType: item.matchType ?? 'none'
     };
     this.dialog.open(InventoryComponent, {
       width: '80%',

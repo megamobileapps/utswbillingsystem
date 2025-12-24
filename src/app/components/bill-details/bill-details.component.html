@@ -64,13 +64,14 @@
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+          [ngClass]="{'exact-match': row.matchType === 'exact', 'approx-match': row.matchType === 'approximate'}"></tr>
     </table>
 
   </mat-card-content>
   <mat-card-actions>
     <button mat-raised-button color="primary" [routerLink]="['/showallbills']">Back to All Bills</button>
-    <button mat-raised-button color="accent" (click)="printReceipt()">Print Receipt</button>
+    <button mat-raised-button color="primary" (click)="printReceipt()">Print Receipt</button>
   </mat-card-actions>
 </mat-card>
 

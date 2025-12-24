@@ -16,6 +16,7 @@ export interface UTSWCartItem {
     unitTag:String;
     labeldate:String;
     image:String;
+    matchType?: 'exact' | 'approximate' | 'none';
 
 }
 

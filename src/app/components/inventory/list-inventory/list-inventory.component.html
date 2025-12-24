@@ -11,6 +11,11 @@
   </mat-form-field>
   
   <button mat-fab (click)="filter_clicked()"><mat-icon>search</mat-icon></button>
+
+  <mat-form-field>
+    <mat-label>Filter</mat-label>
+    <input matInput (keyup)="applyFilter($event)" placeholder="E.g. Product Name" #input>
+  </mat-form-field>
   
   <!-- <p>Selected range: {{range.value | json}}</p> -->
     <table mat-table [dataSource]="dataSource" matSort (matSortChange)="announceSortChange($event)" class="mat-elevation-z8">

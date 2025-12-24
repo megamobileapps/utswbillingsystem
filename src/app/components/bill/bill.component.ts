@@ -13,15 +13,12 @@ import { InvoiceDataItem } from 'src/app/models/invoice-data-item';
 import { InventoryItem } from 'src/app/models/inoffice';
 import { UTSWCartItem } from 'src/app/models/cart-item';
 import { Router } from '@angular/router';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-bill',
   templateUrl: './bill.component.html',
-  styleUrls: ['./bill.component.css'],
-  standalone: false, // This component is not standalone, it's declared in AppModule
-  // No imports here because it's not standalone. Imports are handled by AppModule.
+  styleUrls: ['./bill.component.css']
 })
 export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
 
@@ -66,29 +63,8 @@ export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
         "actions"
   ]
   ;
-  // displayedColumns: string[] = [
-  //   'productname',
-  //   'barcode',
-  //   'labeleddate',
-  //   'hsn',
-  // 'quantity',
-  // 'unit',
-  // 'cp', 
-  // 'shippingcost',   
-  // 'percentgst',
-  // 'netcp',  
-  // 'calculatedmrp', 
-  // 'mrp',
-  // 'fixedprofit',
-  // 'percentprofit',  
-  // 'vendor',
-  // 'brand',  
-  // 'delete',
-  // ];
   
-
   ngOnInit(): void {
-    // this.getAllInventory();
     this.getInvoiceDataFromServer();
   }
 
@@ -97,53 +73,20 @@ export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
     end: new FormControl<Date | null>(new Date()),
   });
   
-  // convenience getter for easy access to form fields
   get fdaterange() { return this.range.controls; }
 
   filter_clicked() {
     this.getInvoiceDataFromServer(this.fdaterange['start'].value, this.fdaterange['end'].value)
   }
   
-  // getAllInventory(filterwith=''){
-  //   let self = this;
-  //    this._inventoryService.getAllInventory().subscribe(data => { 
-  //      console.log('getAllInventory(): step 1', JSON.stringify(data));
-  //     //  self.inventoryList=[];
-  //     var rcvddata=[];
-  //      for(let i=0;i<data.length;i++){
-  //        console.log('getAllInventory(): step 2', JSON.stringify(data[i]));
-  //        let datekeys = Object.keys(data[i])
-  //        console.log('getAllInventory(): filter value is '+this.filterwithbarcode);
-  //        if (this.filterwithbarcode != null || filterwith != ''){
-  //         if (typeof data[i][datekeys[0]].itemdetails != 'undefined')
-  //           if(data[i][datekeys[0]].itemdetails['barcode'] == this.filterwithbarcode??filterwith)
-  //             for (let datekeyindex=0;datekeyindex<datekeys.length; datekeyindex++)
-  //               rcvddata.push( data[i][datekeys[datekeyindex]].itemdetails ); 
-  //        }else{
-  //         for (let datekeyindex=0;datekeyindex<datekeys.length; datekeyindex++){
-  //             if (typeof data[i][datekeys[datekeyindex]].itemdetails != 'undefined')
-  //               rcvddata.push( data[i][datekeys[datekeyindex]].itemdetails ); 
-  //         }
-  //             // rcvddata.push( data[i][datekeys[0]].itemdetails );        
-  //        }
-  //        }
-  //        this.dataSource.data = rcvddata;
-  //        console.log('getAllInventory(): Data after filling ', JSON.stringify(rcvddata));
-       
-  //    });
-  //  }
-
-   //getInvoiceDataFromServer
    getInvoiceDataFromServer(startDate:Date|null=new Date(), endDate:Date|null=new Date()){
     this.isLoading = true;
     let tr_start_date:string = this.datePipe.transform(startDate,'yyyy-MM-dd')??'2024-01-13';
     let tr_end_date:string = this.datePipe.transform(endDate,'yyyy-MM-dd')??'2024-01-13';
     
-    console.log('getInvoiceDataFromServer() date of invoice '+tr_end_date);
     this._dataService.getInvoiceDataFromServer(tr_start_date, tr_end_date).subscribe({
       next: (d) => { 
         this.invoicelist = d; 
-        console.log('getInvoiceDataFromServer(): '+JSON.stringify(d));  
         this.dataSource.data = d;     
         this.totalInvoice.count = d.length;
         this.totalInvoice.amount = 0;
@@ -168,92 +111,145 @@ export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
       }
     });
     
-
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
-      if (confirmed) {  
-        // Clicked on delete
-        console.log('Clicked on confirmed'); 
+      if (confirmed) {
         this.router.navigate(['/catalogue'] ,
           { queryParams: { oldinvoiceid: item.invoicenumber } });     
-
-        // this._inventoryService.deleteInventory(item).then((res) => {
-        //   console.log('openDialogForEditConfirmation: ',res);    
-        //   alert('Successfully deleted');
-        // })
-        // .catch((err) => {
-        //   console.log('openDialogForEditConfirmation error: ' + err);
-        //   alert('Error while openDialogForEditConfirmation');        
-        // });
-        
-      }else {
-        // Cancelled
-        console.log('Cancelled click inside openDialogForEditConfirmation')
       }
     });
-    
   }
 
   openBillDetails(invoice: InvoiceDataItem): void {
     this.router.navigate(['/bill-details', invoice.invoicenumber]);
   }
   
-   row_click_event(event:InvoiceDataItem){
-    console.log('row_click_event() row event '+JSON.stringify(event));
-    var invData = event.invoicedata;
-    var invData1:Array<UTSWCartItem> = JSON.parse(invData);
-    if (typeof invData1 == 'string') {
-      invData1 = JSON.parse(invData1);
-    }
-    console.log('invdata'+invData1);
-    var dataToShow:Array<any> = [];
-    invData1.forEach(element => {
-      let tmpVal = {
-        productName:element.productName,
-        quantity:element.quantity,
-        totalprice:element.productPrice*element.quantity
-      };
-      dataToShow.push(tmpVal);
-      
-    });
-
-    console.log('Decoded Items in Invoice are '+JSON.stringify(dataToShow));
-    const dialogRef = this.dialog.open(ConfirmationDialogComponent,{
-      data:{
-        message: JSON.stringify(dataToShow, null,4),
-        buttonText: {
-          ok: 'OK',
-          cancel: 'Cancel'
-        }
-      }
-    });
-    
-
-    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
-      if (confirmed) {  
-        // Clicked on delete
-       console.log('Clicked on confirmed');      
-      }else {
-        // Cancelled
-        console.log('Cancelled click')
-      }
-    });
-   }
    ngOnChanges(changes: SimpleChanges) {
-    // changes.prop contains the old and the new value...
-    console.log('ListInventoryComponent:ngOnChanges()'+JSON.stringify(changes));
-    // this.getAllInventory(changes["filterwithbarcode"]["currentValue"]);
     this.getInvoiceDataFromServer();
   }
-   /** Announce the change in sort state for assistive technology. */
+
   announceSortChange(sortState: Sort) {
-    // This example uses English messages. If your application supports
-    // multiple language, you would internationalize these strings.
-    // Furthermore, you can customize the message to add additional
-    // details about the values being sorted.
     if (sortState.direction) {
       this._liveAnnouncer.announce(`Sorted ${sortState.direction}ending`);
     } else {
       this._liveAnnouncer.announce('Sorting cleared');
     }
+  }
+
+  // GST Report Generation
+  private getTaxableAmount(price: number, gstRate: number): number {
+    return price / (1 + gstRate / 100);
+  }
+
+  private s2ab(s: string): ArrayBuffer {
+    const buf = new ArrayBuffer(s.length);
+    const view = new Uint8Array(buf);
+    for (let i = 0; i < s.length; i++) {
+      view[i] = s.charCodeAt(i) & 0xFF;
+    }
+    return buf;
+  }
+
+  private saveAsExcel(buffer: any, fileName: string): void {
+    const data: Blob = new Blob([buffer], { type: 'application/octet-stream' });
+    const url = window.URL.createObjectURL(data);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.click();
+  }
+
+  generateB2CSReport(): void {
+    const b2csData: { [key: number]: { taxableValue: number, rate: number, cess: number } } = {};
+
+    this.invoicelist.forEach(invoice => {
+      try {
+        let items: UTSWCartItem[] = JSON.parse(invoice.invoicedata);
+        if (typeof items === 'string') items = JSON.parse(items);
+
+        items.forEach(item => {
+          const rate = item.gst ?? 0;
+          if (b2csData[rate] === undefined) {
+            b2csData[rate] = { taxableValue: 0, rate: rate, cess: 0 };
+          }
+          const itemTotal = item.quantity * item.productPrice;
+          const taxableValue = this.getTaxableAmount(itemTotal, rate);
+          b2csData[rate].taxableValue += taxableValue;
+        });
+      } catch (e) {
+        console.error('Could not parse invoicedata for B2CS report', invoice);
+      }
+    });
+
+    const reportData = Object.values(b2csData).map(d => ({
+      'Rate': d.rate,
+      'Taxable Value': d.taxableValue.toFixed(2),
+      'Cess Amount': d.cess.toFixed(2),
+      'Type': 'OE',
+      'Place Of Supply': '29-KARNATAKA'
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(reportData);
+    const workbook = { Sheets: { 'B2CS': worksheet }, SheetNames: ['B2CS'] };
+    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'binary' });
+    this.saveAsExcel(this.s2ab(excelBuffer), 'B2CS_Report.xlsx');
+  }
+
+  generateHSNReport(): void {
+    const hsnData: { [key: string]: { hsn: string, desc: string, uqc: string, qty: number, total: number, taxable: number, igst: number, cgst: number, sgst: number, cess: number } } = {};
+
+    this.invoicelist.forEach(invoice => {
+      try {
+        let items: UTSWCartItem[] = JSON.parse(invoice.invoicedata);
+        if (typeof items === 'string') items = JSON.parse(items);
+
+        items.forEach(item => {
+          const hsn = (item.hsn ?? '49011010').toString();
+          const gstRate = item.gst ?? 0;
+
+          if (hsnData[hsn] === undefined) {
+            const description = hsn === '49011010' 
+              ? 'ED BOOKS, BROCHURES, LEAFLETS AND SIMILAR ED MATTER, WHETHER OR NOT IN SINGLE SHEETS IN SINGLE SHEETS, WHETHER OR NOT FOLDED : ED BOOKS'
+              : item.productName as string;
+
+            hsnData[hsn] = {
+              hsn: hsn,
+              desc: description,
+              uqc: (item.unitTag as string) || 'NOS',
+              qty: 0, total: 0, taxable: 0, igst: 0, cgst: 0, sgst: 0, cess: 0
+            };
+          }
+
+          const itemTotal = item.quantity * item.productPrice;
+          const taxableValue = this.getTaxableAmount(itemTotal, gstRate);
+          const gstAmount = itemTotal - taxableValue;
+
+          hsnData[hsn].qty += item.quantity;
+          hsnData[hsn].total += itemTotal;
+          hsnData[hsn].taxable += taxableValue;
+          hsnData[hsn].cgst += gstAmount / 2;
+          hsnData[hsn].sgst += gstAmount / 2;
+        });
+      } catch (e) {
+        console.error('Could not parse invoicedata for HSN report', invoice);
+      }
+    });
+    
+    const reportData = Object.values(hsnData).map(d => ({
+      'HSN': d.hsn,
+      'Description': d.desc,
+      'UQC': d.uqc,
+      'Total Quantity': d.qty,
+      'Total Value': d.total.toFixed(2),
+      'Taxable Value': d.taxable.toFixed(2),
+      'Integrated Tax Amount': d.igst.toFixed(2),
+      'Central Tax Amount': d.cgst.toFixed(2),
+      'State/UT Tax Amount': d.sgst.toFixed(2),
+      'Cess Amount': d.cess.toFixed(2)
+    }));
+    
+    const worksheet = XLSX.utils.json_to_sheet(reportData);
+    const workbook = { Sheets: { 'hsn': worksheet }, SheetNames: ['hsn'] };
+    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'binary' });
+    this.saveAsExcel(this.s2ab(excelBuffer), 'HSN_Report.xlsx');
   }
 }

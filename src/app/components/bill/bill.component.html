@@ -16,6 +16,9 @@
   
   <button mat-fab (click)="filter_clicked()"><mat-icon>search</mat-icon></button>
   
+  <button mat-raised-button color="primary" (click)="generateB2CSReport()" style="margin-left: 20px;">Download B2CS Report</button>
+  <button mat-raised-button color="primary" (click)="generateHSNReport()" style="margin-left: 10px;">Download HSN Report</button>
+
     <p>Total Invoice Value {{totalInvoice.amount}}</p>
     <p>Total Invoices {{totalInvoice.count}}</p>
     <table mat-table [dataSource]="dataSource" matSort (matSortChange)="announceSortChange($event)" class="mat-elevation-z8">

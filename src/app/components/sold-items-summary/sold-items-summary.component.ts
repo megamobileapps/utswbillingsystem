@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { InvoiceDataItem } from 'src/app/models/invoice-data-item';
 import { UTSWCartItem } from 'src/app/models/cart-item';
@@ -7,6 +7,8 @@ import { MatSort } from '@angular/material/sort';
 import { MatDialog } from '@angular/material/dialog';
 import { InventoryComponent } from '../inventory/inventory.component';
 import { FilteredBillsDialogComponent } from '../filtered-bills-dialog/filtered-bills-dialog.component';
+import { InventoryService } from 'src/app/services/inventory.service';
+import { InventoryItem } from 'src/app/models/inoffice';
 
 export interface SoldItemSummary {
   productName: string;
@@ -14,6 +16,8 @@ export interface SoldItemSummary {
   price: number;
   discount: number;
   total: number;
+  productId:string|null|undefined;
+  matchType: 'exact' | 'approximate' | 'none';
 }
 
 @Component({
@@ -21,7 +25,7 @@ export interface SoldItemSummary {
   templateUrl: './sold-items-summary.component.html',
   styleUrls: ['./sold-items-summary.component.css']
 })
-export class SoldItemsSummaryComponent implements OnChanges {
+export class SoldItemsSummaryComponent implements OnInit, OnChanges {
 
   @Input() invoicelist: InvoiceDataItem[] = [];
   
@@ -30,14 +34,33 @@ export class SoldItemsSummaryComponent implements OnChanges {
 
   soldItemsSummary: SoldItemSummary[] = [];
   dataSource = new MatTableDataSource<SoldItemSummary>(this.soldItemsSummary);
+  private inventory: InventoryItem[] = [];
 
   displayedColumns: string[] = ['productName', 'quantity', 'price', 'discount', 'total', 'actions'];
 
-  constructor(private dialog: MatDialog) { }
+  constructor(
+    private dialog: MatDialog,
+    private inventoryService: InventoryService
+    ) { }
+
+  ngOnInit(): void {
+    this.inventoryService.isCacheReady.subscribe(isReady => {
+      if (isReady) {
+        this.inventory = this.inventoryService.getInventoryCache();
+        // Rerun processing if the invoice list is already here
+        if (this.invoicelist.length > 0) {
+          this.processInvoices(this.invoicelist);
+        }
+      }
+    });
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['invoicelist'] && changes['invoicelist'].currentValue) {
-      this.processInvoices(this.invoicelist);
+      // Rerun processing only if cache is ready
+      if (this.inventory.length > 0) {
+        this.processInvoices(this.invoicelist);
+      }
     }
   }
 
@@ -48,7 +71,6 @@ export class SoldItemsSummaryComponent implements OnChanges {
       if (invoice.invoicedata) {
         try {
           let items: UTSWCartItem[] = JSON.parse(invoice.invoicedata);
-          // As per requirement, parse twice
           if (typeof items === 'string') {
             items = JSON.parse(items);
           }
@@ -67,6 +89,8 @@ export class SoldItemsSummaryComponent implements OnChanges {
                 price: item.productPrice,
                 discount: item.discount,
                 total: item.productPrice * item.quantity,
+                productId: item.productId?.toString(),
+                matchType: 'none' // will be updated below
               });
             }
           });
@@ -77,9 +101,24 @@ export class SoldItemsSummaryComponent implements OnChanges {
     });
 
     this.soldItemsSummary = Array.from(summaryMap.values());
+    this.updateMatchType();
     this.dataSource.data = this.soldItemsSummary;
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
+  }
+
+  updateMatchType() {
+    const inventoryNames = this.inventory.map(invItem => (invItem.productname as string).toLowerCase());
+    this.soldItemsSummary.forEach(item => {
+      const soldItemName = item.productName.toLowerCase();
+      if (inventoryNames.includes(soldItemName)) {
+        item.matchType = 'exact';
+      } else if (inventoryNames.some(invName => invName.includes(soldItemName) || soldItemName.includes(invName))) {
+        item.matchType = 'approximate';
+      } else {
+        item.matchType = 'none';
+      }
+    });
   }
 
   openInventoryDialog(item: SoldItemSummary): void {

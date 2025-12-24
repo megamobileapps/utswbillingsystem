@@ -43,6 +43,8 @@ export class InventoryComponent implements OnInit {
   isMobileScreen:boolean=false;
   todaydate='';
   hsnLoading = false;
+  isBarcodeFromInput = false;
+  isBarcodeEditable = false;
 
   constructor(private formBuilder: FormBuilder,
     private _dataService:DataService,
@@ -170,9 +172,17 @@ export class InventoryComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    if (this.barcode) {
-      this.options.patchValue({ barcode: this.barcode });
+    const barcodeFromInput = this.barcode;
+    const barcodeFromData = this.data?.productId;
+
+    if (barcodeFromInput) {
+      this.isBarcodeFromInput = true;
+      this.options.patchValue({ barcode: barcodeFromInput });
+    } else if (barcodeFromData) {
+      this.isBarcodeFromInput = true;
+      this.options.patchValue({ barcode: barcodeFromData });
     }
+
     if (this.data) {
       this.options.patchValue({
         productname: this.data.productName,
@@ -183,6 +193,10 @@ export class InventoryComponent implements OnInit {
         await this.fetchHsnCode(this.data.productName);
       }
     }
+  }
+
+  editBarcode(): void {
+    this.isBarcodeEditable = true;
   }
 
   async fetchHsnCode(productName: string): Promise<void> {

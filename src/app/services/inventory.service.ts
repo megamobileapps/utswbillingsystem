@@ -1,27 +1,21 @@
 import { Injectable } from '@angular/core';
 import { ALL_GST, ALL_BUYERS, ALL_HSNS, ALL_GST_TYPES, ALL_VENDORS, EXPENSE_HEAD, EXPENSE_CAT } from '../data/data';
-import { Observable, from, of } from 'rxjs';
-// import 'rxjs/add/observable/of';
-// import 'rxjs/add/operator/map';
+import { BehaviorSubject, Observable, from, of } from 'rxjs';
 import { AngularFireDatabase } from '@angular/fire/compat/database';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
-import * as firebase from 'firebase/app';
 import { CommonService } from './common.service';
-import { OutwardsaletypeJson } from '../models/outwardsaletype';
-// import { InwardpurchasetypeJson } from '../types/inwardpurchasetype';
-// import { ExpenseTypeJson } from '../types/expesnetype';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { JsonPipe } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { InventoryItem } from '../models/inoffice';
 
 @Injectable({
   providedIn: 'root'
 })
 export class InventoryService {
-  outwardSales: Array<any> = [];
-  inwardpurchases: Array<any> = [];
-  expenses: Array<any> = [];
   basefolder : any = '/inventory';
   private readonly valid_user = "9999";
+
+  private inventoryCache: InventoryItem[] = [];
+  public isCacheReady = new BehaviorSubject<boolean>(false);
 
   constructor(public commonService: CommonService,
               public afDb: AngularFireDatabase,
@@ -37,19 +31,42 @@ export class InventoryService {
     return this.basefolder;
   }
   
-  
+  loadInventoryCache(): void {
+    if (this.inventoryCache.length > 0) {
+      this.isCacheReady.next(true);
+      return;
+    }
+
+    this.getAllInventory().subscribe(data => {
+      const rcvddata: InventoryItem[] = [];
+      for (const item of data) {
+        const datekeys = Object.keys(item);
+        for (const datekey of datekeys) {
+          if (item[datekey] && typeof item[datekey].itemdetails !== 'undefined') {
+            rcvddata.push(item[datekey].itemdetails as InventoryItem);
+          }
+        }
+      }
+      this.inventoryCache = rcvddata;
+      this.isCacheReady.next(true);
+      console.log('Inventory cache populated with', this.inventoryCache.length, 'items.');
+    });
+  }
+
+  getInventoryCache(): InventoryItem[] {
+    return this.inventoryCache;
+  }
 
   addInventory(data: any) {
     if (localStorage.getItem('user')) {
       let user:Record<string,string> = JSON.parse(localStorage.getItem('user')??"")
-      console.log(`Inventory service user details are : ${user}`)
       if (user["username"] == this.valid_user) {
-        console.log(`Inventory service : right user is logged in`)
         if(typeof data.id === 'undefined'  || data.id === '' || data.id == null )
           data.id = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 12);
-          //this.outwardSales.push(data);
-          console.log("addInventory():",JSON.stringify(data));
-          data.key = data.id;        
+          data.key = data.id;
+          // Invalidate cache on add
+          this.inventoryCache = [];
+          this.isCacheReady.next(false);
           return this.commonService.add(this.basefolder+"/", data);
         }
     }
@@ -58,37 +75,27 @@ export class InventoryService {
 
   
   deleteInventory(obj: any) {
-    //this.outwardSales.splice(idx, 1);
-    console.log('deleteInventory() in service'+JSON.stringify(obj))
     return new Promise<any>((resolve, reject) => {
       if (obj.labeleddate == '' || obj.barcode == '' ) {
-
         return reject('Inventory to be deleted hasnull value or key is not defined');
       }
       obj.key = obj.labeleddate;
       let path1 = this.basefolder+"/"+obj.barcode+"/";
-      console.log('deleteInventory service path='+path1)
+      // Invalidate cache on delete
+      this.inventoryCache = [];
+      this.isCacheReady.next(false);
       return this.commonService.delete(path1, obj);
-      
     });
-    
   }
 
   
-  getAllInventory() {
-    //console.log("getAllOutwardSales called", JSON.stringify(this.outwardSales));
+  getAllInventory() : Observable<any[]> {
     if (localStorage.getItem('user')) {
       let user:Record<string,string> = JSON.parse(localStorage.getItem('user')??"")
-      console.log(`Inventory service user details are : ${user}`)
       if (user["username"] == this.valid_user) {
-        console.log(`Inventory service : right user is logged in`)
         return this.commonService.getList(this.basefolder+'/');
       }
-
     }
     return of([]);
   }
-
-  
-
 }

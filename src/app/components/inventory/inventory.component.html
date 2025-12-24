@@ -19,10 +19,23 @@
                     <mat-label>Product Name</mat-label> 
                     <input matInput placeholder="Prod Name" formControlName="productname" required>
                 </mat-form-field>
-                <mat-form-field >
-                    <mat-label>Barcode</mat-label> 
-                    <input matInput placeholder="Barcode" formControlName="barcode" required>
-                </mat-form-field>
+                
+                <ng-container *ngIf="isBarcodeFromInput && !isBarcodeEditable">
+                  <div class="barcode-display">
+                    <strong>Barcode:</strong> {{ options.get('barcode')?.value }}
+                    <button mat-icon-button (click)="editBarcode()" matTooltip="Edit Barcode">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                  </div>
+                </ng-container>
+
+                <ng-container *ngIf="!isBarcodeFromInput || isBarcodeEditable">
+                  <mat-form-field >
+                      <mat-label>Barcode</mat-label> 
+                      <input matInput placeholder="Barcode" formControlName="barcode" required>
+                  </mat-form-field>
+                </ng-container>
+
                 <mat-form-field >
                     <mat-label>Quantity</mat-label> 
                     <input matInput placeholder="Quantity" formControlName="quantity" required>
@@ -110,17 +123,9 @@
     </form>
     
   
-  <div class="row m-4">
-    <p>Barcode {{barcode}}</p>
-    <button class="btn  btn-warning col-md-2 " 
-        (click)="calculateCPMRPProfit()"    
-        value="Click to Calculate">Click to Calculate      
-    </button> 
-    <button class="btn  btn-warning offset-md-8 col-md-2 " 
-        (click)="onSubmitFire()"    
-        value="Click to Submit">Click to Submit      
-    </button> 
+  <div class="row m-4 action-buttons">
+    <button mat-raised-button color="primary" (click)="calculateCPMRPProfit()">Calculate</button> 
+    <button mat-raised-button color="primary" (click)="onSubmitFire()">Submit</button> 
     
-        <input type="file" id="leveldata" name="leveldata" (input)="onxlsxFileChange($event)" multiple="false">
-    
-</div> 
+    <input type="file" id="leveldata" name="leveldata" (input)="onxlsxFileChange($event)" multiple="false">
+  </div> 
