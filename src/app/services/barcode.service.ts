@@ -16,9 +16,9 @@ export class BarcodeService {
   expenses: Array<any> = [];
 
   // Specific base paths for each entity type
-  barcodeComponentsBasePath = '/barcode-components';
-  barcodesBasePath = '/barcodes';
-  barcodeRelationshipBasePath = '/barcode-relationship'; // Assuming a new endpoint for relationships
+  barcodeComponentsBasePath = '/in/ci/barcode-components';
+  barcodesBasePath = '/in/ci/barcodes';
+  barcodeRelationshipBasePath = '/in/ci/barcode-relationship'; // Assuming a new endpoint for relationships
 
   constructor(public commonService: CommonService,
               private http: HttpClient) {

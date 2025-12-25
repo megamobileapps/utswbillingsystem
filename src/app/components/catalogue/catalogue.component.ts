@@ -166,46 +166,39 @@ export class CatalogueComponent implements OnInit {
     let self = this;
      this._inventoryService.getAllInventory().subscribe(data => { 
        console.log('getAllInventory(): step 1', JSON.stringify(data));
-      //  self.inventoryList=[];
       var rcvddata=[];
-       for(let i=0;i<data.length;i++){
-         console.log('getAllInventory(): step 2', JSON.stringify(data[i]));
-         let datekeys = Object.keys(data[i])
-         console.log('getAllInventory(): filter value is '+this.filterwithbarcode);
-         if (this.filterwithbarcode != null || filterwith != ''){
-          if (typeof data[i][datekeys[0]].itemdetails != 'undefined')
-            if(data[i][datekeys[0]].itemdetails['barcode'] == this.filterwithbarcode??filterwith)
-              for (let datekeyindex=0;datekeyindex<datekeys.length; datekeyindex++){
-                let itemdetails = data[i][datekeys[datekeyindex]].itemdetails;
+       for(const itemWrapper of data) {
+         if (itemWrapper && itemWrapper.itemdetails) {
+            let itemdetails = itemWrapper.itemdetails;
+            
+            // Default discount and netvalue if undefined
+            if (typeof itemdetails["discount"] == 'undefined') {
+                itemdetails["discount"] = 0;
+            }
+            if (typeof itemdetails["netvalue"] == 'undefined' || itemdetails["netvalue"] === 0) { // Check for 0 as well
+                itemdetails["netvalue"] = itemdetails["mrp"] * (100 - itemdetails["discount"]) / 100;
+            }
+
+            // Apply barcode filter if present
+            if ((this.filterwithbarcode != null && itemdetails['barcode'] == this.filterwithbarcode) || (filterwith != '' && itemdetails['barcode'] == filterwith)) {
+              let sold_key = `${itemdetails["barcode"]}` 
+                            + (typeof itemdetails["labeleddate"] != 'undefined' ? `::${itemdetails["labeleddate"]}` : '')
+                            + (typeof itemdetails["brand"] != 'undefined' ? `::${itemdetails["brand"]}` : '');
+              let sold_items = this.allsoldItems[sold_key]??0
+              let present_available_items = itemdetails["quantity"] - sold_items
+              rcvddata.push( { ...itemdetails, sold:sold_items,qtyavailable: present_available_items} ); 
+            } else if (this.filterwithbarcode == null && filterwith == ''){
+                // If no barcode filter, add all items
                 let sold_key = `${itemdetails["barcode"]}` 
                             + (typeof itemdetails["labeleddate"] != 'undefined' ? `::${itemdetails["labeleddate"]}` : '')
                             + (typeof itemdetails["brand"] != 'undefined' ? `::${itemdetails["brand"]}` : '');
                 let sold_items = this.allsoldItems[sold_key]??0
-                let present_available_items = itemdetails["quantity"] - sold_items
-                rcvddata.push( {...itemdetails, sold:sold_items,qtyavailable: present_available_items} ); 
-              }
-         }else{
-          for (let datekeyindex=0;datekeyindex<datekeys.length; datekeyindex++){
-              if (typeof data[i][datekeys[datekeyindex]].itemdetails != 'undefined'){
-                if (typeof data[i][datekeys[datekeyindex]].itemdetails["discount"] == 'undefined') {
-                  data[i][datekeys[datekeyindex]].itemdetails["discount"] = 0;
-                }
-                if (typeof data[i][datekeys[datekeyindex]].itemdetails["netvalue"] == 'undefined') {
-                  data[i][datekeys[datekeyindex]].itemdetails["netvalue"] = data[i][datekeys[datekeyindex]].itemdetails["mrp"]*(100-data[i][datekeys[datekeyindex]].itemdetails["discount"])/100;
-                }
-                let itemdetails = data[i][datekeys[datekeyindex]].itemdetails;
-                let sold_key = `${itemdetails["barcode"]}` 
-                                + (typeof itemdetails["labeleddate"] != 'undefined' ? `::${itemdetails["labeleddate"]}` : '')
-                                + (typeof itemdetails["brand"] != 'undefined' ? `::${itemdetails["brand"]}` : '');
-                let sold_items = this.allsoldItems[sold_key]??0
                 console.log('getAllInventory(): sold_key='+sold_key+' sold_items='+sold_items);
                 let present_available_items = itemdetails["quantity"] - sold_items
-                rcvddata.push( {...itemdetails, sold:sold_items, qtyavailable: present_available_items} ); 
-              }
-          }
-              // rcvddata.push( data[i][datekeys[0]].itemdetails );        
+                rcvddata.push( { ...itemdetails, sold:sold_items, qtyavailable: present_available_items} ); 
+            }
          }
-         }
+       }
          this.catalogueItems = rcvddata;
          console.log('getAllInventory(): Data after filling ', JSON.stringify(rcvddata));
        

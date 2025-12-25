@@ -11,7 +11,7 @@ import { InventoryItem } from '../models/inoffice';
   providedIn: 'root'
 })
 export class InventoryService {
-  basefolder : any = '/inventory';
+  basefolder : any = '/in/ci/inventory';
   private readonly valid_user = "9999";
 
   private inventoryCache: InventoryItem[] = [];

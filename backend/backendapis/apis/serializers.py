@@ -1,6 +1,14 @@
 from rest_framework import serializers
 from .models import BarcodeComponents, Barcodes, Inventory, OutwardSale, OutwardSaleItem, BarcodeRelationship
+from apis.models import (
+    BarcodeRelationship,
+    BarcodeComponents,
+    Barcodes,
+    Inventory,
+    OutwardSale,
+    OutwardSaleItem,
 
+    )
 class BarcodeComponentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = BarcodeComponents

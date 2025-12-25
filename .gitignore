@@ -54,3 +54,4 @@ env/
 debug.log
 **/__pycache__/
 backend/backendapis/apis/migrations/
+backend/backendapis/backendapis/.env

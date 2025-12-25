@@ -5,6 +5,9 @@ class BarcodeComponents(models.Model):
     level = models.IntegerField()
     component_left = models.CharField(max_length=100)
     component_right = models.CharField(max_length=100)
+    class Meta:
+        managed = False
+        db_table = 'barcodecomponents'
     
 class Barcodes(models.Model):
     id = models.AutoField(primary_key=True)
@@ -13,6 +16,9 @@ class Barcodes(models.Model):
     description = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        managed = False
+        db_table = 'barcodes'
 
 class Inventory(models.Model):
     id = models.AutoField(primary_key=True)
@@ -33,6 +39,9 @@ class Inventory(models.Model):
     unit = models.CharField(max_length=200)
     vendor = models.CharField(max_length=200)    
     last_updated = models.DateTimeField(auto_now=True)
+    class Meta:
+        managed = False
+        db_table = 'inventory'
 
 class OutwardSale(models.Model):
     id = models.AutoField(primary_key=True)
@@ -43,6 +52,9 @@ class OutwardSale(models.Model):
     netvalue = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        managed = False
+        db_table = 'ontwardsale'
 
 class OutwardSaleItem(models.Model):
     outward_sale = models.ForeignKey(OutwardSale, related_name='saleitems', on_delete=models.CASCADE)
@@ -53,6 +65,9 @@ class OutwardSaleItem(models.Model):
     
     def __str__(self):
         return f'{self.item_name} ({self.quantity})'
+    class Meta:
+        managed = False
+        db_table = 'outwardsaleitem'
 
 class BarcodeRelationship(models.Model):
     id = models.AutoField(primary_key=True)
@@ -61,3 +76,6 @@ class BarcodeRelationship(models.Model):
     parent_value = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    class Meta:
+        managed = False
+        db_table = 'barcoderelationship'
