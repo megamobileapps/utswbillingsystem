@@ -1,11 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ALL_GST, ALL_BUYERS, ALL_HSNS, ALL_GST_TYPES, ALL_VENDORS, EXPENSE_HEAD, EXPENSE_CAT } from '../data/data';
 import { Observable, from, of } from 'rxjs';
-// import 'rxjs/add/observable/of';
-// import 'rxjs/add/operator/map';
-import { AngularFireDatabase } from '@angular/fire/compat/database';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
-import * as firebase from 'firebase/app';
 import { CommonService } from './common.service';
 import { OutwardsaletypeJson } from '../models/outwardsaletype';
 // import { InwardpurchasetypeJson } from '../types/inwardpurchasetype';
@@ -19,20 +14,23 @@ export class BarcodeService {
   outwardSales: Array<any> = [];
   inwardpurchases: Array<any> = [];
   expenses: Array<any> = [];
-  basefolder : any = '/barcode';
+
+  // Specific base paths for each entity type
+  barcodeComponentsBasePath = '/barcode-components';
+  barcodesBasePath = '/barcodes';
+  barcodeRelationshipBasePath = '/barcode-relationship'; // Assuming a new endpoint for relationships
+
   constructor(public commonService: CommonService,
-              public afDb: AngularFireDatabase,
-              public afAuth: AngularFireAuth,
               private http: HttpClient) {
   }
 
-  setbasefolder(in_basefolder:any) {
-    this.basefolder =  in_basefolder;
-  }
+  // setbasefolder(in_basefolder:any) { // No longer needed
+  //   this.basefolder =  in_basefolder;
+  // }
 
-  getbasefolder() {
-    return this.basefolder;
-  }
+  // getbasefolder() { // No longer needed
+  //   return this.basefolder;
+  // }
   
   addBarcodeRelationship(data: any) {
     if((typeof data.level === 'undefined'  || data.level === '' || data.level == null ) ||
@@ -49,19 +47,19 @@ export class BarcodeService {
     console.log("addBarcodeRelationship():",JSON.stringify(data));
     data.key = data.id;
     
-    return this.commonService.add(this.basefolder+"/relationship/"+data.level+"/", data);
+    return this.commonService.add(this.barcodeRelationshipBasePath+"/", data);
   }
 
   
   deleteBarcodeRelationship(obj: any) {
     //this.outwardSales.splice(idx, 1);
-    return this.commonService.delete(this.basefolder+"/relationship/", obj);
+    return this.commonService.delete(this.barcodeRelationshipBasePath+"/", obj);
   }
 
   
   getAllBarcodeRelationship() {
     //console.log("getAllOutwardSales called", JSON.stringify(this.outwardSales));
-    return this.commonService.getList(this.basefolder+'/relationship/');
+    return this.commonService.getList(this.barcodeRelationshipBasePath+'/');
   }
 
   addBarcode(data: any) {
@@ -72,19 +70,19 @@ export class BarcodeService {
     console.log("addBarcode():",JSON.stringify(data));
     data.key = data.id;
     
-    return this.commonService.add(this.basefolder+"/barcodelist/", data);
+    return this.commonService.add(this.barcodesBasePath+"/", data);
   }
 
   
   deleteBarcode(obj: any) {
     //this.outwardSales.splice(idx, 1);
-    return this.commonService.delete(this.basefolder+"/barcodelist/", obj);
+    return this.commonService.delete(this.barcodesBasePath+"/", obj);
   }
 
   
   getAllBarcode() {
     //console.log("getAllOutwardSales called", JSON.stringify(this.outwardSales));
-    return this.commonService.getList(this.basefolder+'/barcodelist/');
+    return this.commonService.getList(this.barcodesBasePath+'/');
   }
 
   addBarcodecomponentAtLevel(data: any) {
@@ -95,19 +93,19 @@ export class BarcodeService {
     console.log("addBarcodecomponentAtLevel():",JSON.stringify(data));
     data.key = data.id;
     
-    return this.commonService.add(this.basefolder+"/barcodecomponents/", data);
+    return this.commonService.add(this.barcodeComponentsBasePath+"/", data);
   }
 
   
   deleteBarcodecomponentAtLevel(obj: any) {
     //this.outwardSales.splice(idx, 1);
-    return this.commonService.delete(this.basefolder+"/barcodecomponents/", obj);
+    return this.commonService.delete(this.barcodeComponentsBasePath+"/", obj);
   }
 
   
   getAllBarcodecomponentAtLevel() {
     //console.log("getAllOutwardSales called", JSON.stringify(this.outwardSales));
-    return this.commonService.getList(this.basefolder+'/barcodecomponents/');
+    return this.commonService.getList(this.barcodeComponentsBasePath+'/');
   }
 
 }

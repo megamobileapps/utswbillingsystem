@@ -18,8 +18,6 @@ export class InventoryService {
   public isCacheReady = new BehaviorSubject<boolean>(false);
 
   constructor(public commonService: CommonService,
-              public afDb: AngularFireDatabase,
-              public afAuth: AngularFireAuth,
               private http: HttpClient) {
   }
 
@@ -40,11 +38,8 @@ export class InventoryService {
     this.getAllInventory().subscribe(data => {
       const rcvddata: InventoryItem[] = [];
       for (const item of data) {
-        const datekeys = Object.keys(item);
-        for (const datekey of datekeys) {
-          if (item[datekey] && typeof item[datekey].itemdetails !== 'undefined') {
-            rcvddata.push(item[datekey].itemdetails as InventoryItem);
-          }
+        if (item && item.itemdetails) {
+          rcvddata.push(item.itemdetails as InventoryItem);
         }
       }
       this.inventoryCache = rcvddata;
@@ -67,7 +62,10 @@ export class InventoryService {
           // Invalidate cache on add
           this.inventoryCache = [];
           this.isCacheReady.next(false);
-          return this.commonService.add(this.basefolder+"/", data);
+          
+          const path = `${this.basefolder}/${data.itemdetails.barcode}/${data.itemdetails.labeleddate}/`;
+          
+          return this.commonService.add(path, data);
         }
     }
     return Promise.reject(new Error("Not valid user to performa action"));
@@ -76,15 +74,13 @@ export class InventoryService {
   
   deleteInventory(obj: any) {
     return new Promise<any>((resolve, reject) => {
-      if (obj.labeleddate == '' || obj.barcode == '' ) {
-        return reject('Inventory to be deleted hasnull value or key is not defined');
+      if (typeof obj.id === 'undefined') {
+        return reject('Inventory to be deleted has no ID defined');
       }
-      obj.key = obj.labeleddate;
-      let path1 = this.basefolder+"/"+obj.barcode+"/";
       // Invalidate cache on delete
       this.inventoryCache = [];
       this.isCacheReady.next(false);
-      return this.commonService.delete(path1, obj);
+      return this.commonService.delete(this.basefolder, obj);
     });
   }
 

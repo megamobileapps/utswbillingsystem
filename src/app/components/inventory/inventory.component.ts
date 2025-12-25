@@ -45,6 +45,8 @@ export class InventoryComponent implements OnInit {
   hsnLoading = false;
   isBarcodeFromInput = false;
   isBarcodeEditable = false;
+  isEditMode: boolean = false; // Added for edit mode
+
 
   constructor(private formBuilder: FormBuilder,
     private _dataService:DataService,
@@ -193,6 +195,17 @@ export class InventoryComponent implements OnInit {
         await this.fetchHsnCode(this.data.productName);
       }
     }
+
+    this.route.queryParams.subscribe(params => {
+      if (params['data']) {
+        this.isEditMode = true;
+        const inventoryItem = JSON.parse(params['data']);
+        this.options.patchValue(inventoryItem);
+        // Disable barcode and labeleddate fields if in edit mode, as they are part of the URL key
+        this.f2['barcode'].disable();
+        this.f2['labeleddate'].disable();
+      }
+    });
   }
 
   editBarcode(): void {
@@ -262,7 +275,7 @@ export class InventoryComponent implements OnInit {
 
     this._inventoryService.addInventory(data).then((res) => {
       console.log('Inventory onSubmitFire(): ',res);   
-      alert('inventory is added successfully');
+      alert(this.isEditMode ? 'Inventory updated successfully' : 'inventory is added successfully');
       if (this.dialogRef) {
         this.dialogRef.close();
       }

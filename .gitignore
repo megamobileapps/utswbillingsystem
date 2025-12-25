@@ -46,3 +46,11 @@ Thumbs.db
 .firebase
 *-debug.log
 .runtimeconfig.json
+
+# Django specific ignores
+db.sqlite3
+venv/
+env/
+debug.log
+**/__pycache__/
+backend/backendapis/apis/migrations/

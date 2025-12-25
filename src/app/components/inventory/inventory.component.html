@@ -125,7 +125,7 @@
   
   <div class="row m-4 action-buttons">
     <button mat-raised-button color="primary" (click)="calculateCPMRPProfit()">Calculate</button> 
-    <button mat-raised-button color="primary" (click)="onSubmitFire()">Submit</button> 
+    <button mat-raised-button color="primary" (click)="onSubmitFire()">{{ isEditMode ? 'Update Inventory' : 'Add Inventory' }}</button> 
     
     <input type="file" id="leveldata" name="leveldata" (input)="onxlsxFileChange($event)" multiple="false">
   </div> 

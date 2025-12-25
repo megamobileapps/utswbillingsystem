@@ -11,6 +11,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatDatepicker } from '@angular/material/datepicker';
 import { DatePipe } from '@angular/common';
 import { InvoiceSoldItems } from 'src/app/models/invoice-data-item';
+import { Router } from '@angular/router'; // Import Router
 
 
 @Component({
@@ -34,7 +35,8 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
     private _dataService:DataService,
     private _inventoryService:InventoryService,
     private datePipe:DatePipe,
-    private _liveAnnouncer: LiveAnnouncer, private dialog: MatDialog
+    private _liveAnnouncer: LiveAnnouncer, private dialog: MatDialog,
+    private router: Router // Inject Router
   ){
     
   }
@@ -65,6 +67,7 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
   'brand',  
   
   'delete',
+  'edit', // Added for edit functionality
   ];
   
 
@@ -107,39 +110,30 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
     let self = this;
      this._inventoryService.getAllInventory().subscribe(data => { 
        console.log('getAllInventory(): step 1', JSON.stringify(data));
-      //  self.inventoryList=[];
-      var rcvddata=[];
-       for(let i=0;i<data.length;i++){
-         console.log('getAllInventory(): step 2', JSON.stringify(data[i]));
-         let datekeys = Object.keys(data[i])
-         console.log('getAllInventory(): filter value is '+this.filterwithbarcode);
-         if (this.filterwithbarcode != null || filterwith != ''){
-          if (typeof data[i][datekeys[0]].itemdetails != 'undefined')
-            if(data[i][datekeys[0]].itemdetails['barcode'] == this.filterwithbarcode??filterwith)
-              for (let datekeyindex=0;datekeyindex<datekeys.length; datekeyindex++){
-                let itemdetails = data[i][datekeys[datekeyindex]].itemdetails;
+      var rcvddata = [];
+       for(const itemWrapper of data) {
+         if (itemWrapper && itemWrapper.itemdetails) {
+            let itemdetails = itemWrapper.itemdetails;
+            
+            // Apply barcode filter if present
+            if ((this.filterwithbarcode != null && itemdetails['barcode'] == this.filterwithbarcode) || (filterwith != '' && itemdetails['barcode'] == filterwith)) {
+              let sold_key = `${itemdetails["barcode"]}` 
+                            + (typeof itemdetails["labeleddate"] != 'undefined' ? `::${itemdetails["labeleddate"]}` : '')
+                            + (typeof itemdetails["brand"] != 'undefined' ? `::${itemdetails["brand"]}` : '');
+              let sold_items = this.allsoldItems[sold_key]??0
+              let present_available_items = itemdetails["quantity"] - sold_items
+              rcvddata.push( { ...itemdetails, sold:sold_items, qtyavailable: present_available_items } ); 
+            } else if (this.filterwithbarcode == null && filterwith == ''){
+                // If no barcode filter, add all items
                 let sold_key = `${itemdetails["barcode"]}` 
                             + (typeof itemdetails["labeleddate"] != 'undefined' ? `::${itemdetails["labeleddate"]}` : '')
                             + (typeof itemdetails["brand"] != 'undefined' ? `::${itemdetails["brand"]}` : '');
                 let sold_items = this.allsoldItems[sold_key]??0
                 let present_available_items = itemdetails["quantity"] - sold_items
-                rcvddata.push( {...itemdetails, sold:sold_items,qtyavailable: present_available_items} ); 
-              }
-         }else{
-          for (let datekeyindex=0;datekeyindex<datekeys.length; datekeyindex++){
-              if (typeof data[i][datekeys[datekeyindex]].itemdetails != 'undefined'){
-                let itemdetails = data[i][datekeys[datekeyindex]].itemdetails;
-                let sold_key = `${itemdetails["barcode"]}` 
-                            + (typeof itemdetails["labeleddate"] != 'undefined' ? `::${itemdetails["labeleddate"]}` : '')
-                            + (typeof itemdetails["brand"] != 'undefined' ? `::${itemdetails["brand"]}` : '');
-                let sold_items = this.allsoldItems[sold_key]??0
-                let present_available_items = itemdetails["quantity"] - sold_items
-                rcvddata.push( {...itemdetails, sold:sold_items, qtyavailable: present_available_items} ); 
-              }
-          }
-              // rcvddata.push( data[i][datekeys[0]].itemdetails );        
+                rcvddata.push( { ...itemdetails, sold:sold_items, qtyavailable: present_available_items } ); 
+            }
          }
-         }
+       }
          this.dataSource.data = rcvddata;
          console.log('getAllInventory(): Data after filling ', JSON.stringify(rcvddata));
        
@@ -178,6 +172,10 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
     });
   }
   
+  onEditInventory(item: any) {
+    this.router.navigate(['/inventory'], { queryParams: { data: JSON.stringify(item) } });
+  }
+
    
    ngOnChanges(changes: SimpleChanges) {
     // changes.prop contains the old and the new value...

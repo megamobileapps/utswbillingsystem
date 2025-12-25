@@ -28,9 +28,6 @@ import { GenerateBarcodeComponent } from './components/generate-barcode/generate
 import { UtswGenericfilterPipe } from './pipes/utswgenericfilter';
 import { NgxBarcode6Module } from 'ngx-barcode6';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { AngularFireModule } from '@angular/fire/compat';
-import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
-import { getDatabase, provideDatabase } from '@angular/fire/database';
 import { environment } from '../environments/environment';
 import { CommonService } from './services/common.service';
 import { BarcodeService } from './services/barcode.service';
@@ -80,9 +77,6 @@ import { BillDetailsComponent } from './components/bill-details/bill-details.com
     AppMaterialModule,
     QRCodeModule,
     ZXingScannerModule,
-    AngularFireModule.initializeApp(environment.firebase),
-    provideFirebaseApp(() => initializeApp({"projectId":"bookstore-c1f49","appId":"1:342884727291:web:2530396bfdccb07f","databaseURL":"https://bookstore-c1f49.firebaseio.com","storageBucket":"bookstore-c1f49.appspot.com","apiKey":"AIzaSyAPInkWwSrhwOE4SMapLb7S5t50Ge_vi7M","authDomain":"bookstore-c1f49.firebaseapp.com","messagingSenderId":"342884727291","measurementId":"G-RX2PQEWHQN"})),
-    provideDatabase(() => getDatabase()),
     InventoryComponent
   ],
   providers: [

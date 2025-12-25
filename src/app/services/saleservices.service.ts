@@ -1,11 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ALL_GST, ALL_BUYERS, ALL_HSNS, ALL_GST_TYPES, ALL_VENDORS, EXPENSE_HEAD, EXPENSE_CAT } from '../data/data';
 import { Observable, from, of } from 'rxjs';
-// import 'rxjs/add/observable/of';
-// import 'rxjs/add/operator/map';
-import { AngularFireDatabase } from '@angular/fire/compat/database';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
-import * as firebase from 'firebase/app';
 import { CommonService } from './common.service';
 import { OutwardsaletypeJson } from '../models/outwardsaletype';
 // import { InwardpurchasetypeJson } from '../types/inwardpurchasetype';
@@ -21,8 +16,6 @@ export class SaleservicesService {
   expenses: Array<any> = [];
   basefolder : any = '/fy2021';
   constructor(public commonService: CommonService,
-              public afDb: AngularFireDatabase,
-              public afAuth: AngularFireAuth,
               private http: HttpClient) {
               // this.commonService.getList(this.basefolder+'/expenses/')
               // .subscribe(data => {

@@ -125,6 +125,13 @@
             <mat-icon>delete</mat-icon>
           </button> </mat-cell>
       </ng-container>
+      <ng-container matColumnDef="edit">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Edit</th>
+        <mat-cell *matCellDef="let element"> <button mat-icon-button matTooltip="Click to Edit" class="iconbutton"
+            (click)="onEditInventory(element)" color="primary">
+            <mat-icon>edit</mat-icon>
+          </button> </mat-cell>
+      </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>

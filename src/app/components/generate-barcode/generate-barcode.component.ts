@@ -34,7 +34,8 @@ interface barCodeStore {
   id:string;
   key:string;
   labeltype:string;
-  data:string[];
+  data:string[]|string;
+  barcode_components?:string[];
 };
 
 interface barcodePartStore{
@@ -86,8 +87,8 @@ export class GenerateBarcodeComponent {
   levelnames = ['Category', 'Sub Category','Material','Clr','Design','quantity per packet','Size','Brand','Special']
 
   // These the barcode parts and can be added by add function in UI
-  barcodeparts: Array<barcodePartStore[]> = [[{"id":"1", "key":"1", "level":1, "component":'Item 14-L14'}],
-[{"id":"2", "key":"2", "level":2, "component":'21-21'}],
+  barcodeparts: Array<barcodePartStore[]> = [[{"id":"1", "key":"1", "level":1, "component":'Item 14###L14'}],
+[{"id":"2", "key":"2", "level":2, "component":'21###21'}],
 [],
 [],
 [],
@@ -153,8 +154,11 @@ export class GenerateBarcodeComponent {
       }
   }
 
-  prepareLabelFromDataArray(data:any[], labeltype:string="utsw"){
+  prepareLabelFromDataArray(data:any[]|string, labeltype:string="utsw"){
     
+    if (typeof data == 'string'){
+      return data;
+    }
     let map1 =  data.map((val)=>{
       if (labeltype == 'product') {
         return val;
@@ -305,22 +309,29 @@ export class GenerateBarcodeComponent {
 
   
   existingLabelSelectionChange(event:MatSelectionListChange){
+    let self = this;
     let selected = event.options.filter(o => o.selected).map(o => o.value);
     console.log('selected label is '+JSON.stringify(selected )) ;
     for(let i=0;i<selected.length;i++){
       console.log('existingLabelSelectionChange() at index='+i+' val:'+JSON.stringify(selected[i]));
       let v = selected[i]
-      for ( let vi=0; vi<v.data.length;vi++){
-        console.log("existingLabelSelectionChange() "+v.data[vi])
+      if (v.barcode_components && v.barcode_components.length >0){
+        if (typeof v.barcode_components == 'string'){
+          v.barcode_components = JSON.parse(v.barcode_components);
+        }
+
+      }
+      for ( let vi=0; vi<v.barcode_components.length;vi++){
+        console.log("existingLabelSelectionChange() "+v.barcode_components[vi])
 
         // search in level data for this component match
-        this.filterBarcodecomponent(v.data[vi], vi)
-            .forEach(val=>this.done[vi][0]=val)
+        this.filterBarcodecomponent(v.barcode_components[vi], vi)
+            .forEach(val=>self.done[vi][0]=val)
         this.selectedProductCode='';
         // this.done[vi][0] = v.data[vi];
       }
-      if (v.data.length < this.done.length) {
-        for(let x=v.data.length; x< this.done.length; x++) {
+      if (v.barcode_components.length < this.done.length) {
+        for(let x=v.barcode_components.length; x< this.done.length; x++) {
           this.done[x]=[]
         }
       }
@@ -331,10 +342,10 @@ export class GenerateBarcodeComponent {
     let selected = event.options.filter(o => o.selected).map(o => o.value);
     console.log('selected Product label is '+JSON.stringify(selected )) ;
     for(let i=0;i<selected.length;i++){
-      console.log('existingLabelSelectionChange() at index='+i+' val:'+JSON.stringify(selected[i]));
+      console.log('existingProductLabelSelectionChange() at index='+i+' val:'+JSON.stringify(selected[i]));
       let v = selected[i]
       for ( let vi=0; vi<v.data.length;vi++){
-        console.log("existingLabelSelectionChange() "+v.data[vi])
+        console.log("existingProductLabelSelectionChange() "+v.data[vi])
         this.selectedProductCode = v.data[vi];
         
       }
@@ -343,6 +354,7 @@ export class GenerateBarcodeComponent {
   }
   //existingRelationshipSelectionChange
   existingRelationshipSelectionChange(event:MatSelectionListChange, level=0){
+    let self = this;
     let selected = event.options.filter(o => o.selected).map(o => o.value);
     console.log('selected Relationship is '+selected ) ;
     if(selected[0].length !=2 ){
@@ -421,9 +433,8 @@ export class GenerateBarcodeComponent {
   //
   getAllBarcodeComponents(){
     let self = this;
-     this.barcodeService.getAllBarcodecomponentAtLevel().subscribe(data => { 
+     this.barcodeService.getAllBarcodecomponentAtLevel().subscribe((data: any) => { 
        console.log('getAllBarcodeComponents(): step 1:', JSON.stringify(data));
-       //this.barcodeparts[index].push(value)
        self.barcodeparts=[[]];
        for(let i=0;i<data.length;i++){
          console.log('getAllBarcodeComponents(): step 2:', JSON.stringify(data[i]));
@@ -435,18 +446,27 @@ export class GenerateBarcodeComponent {
              }
            }
          }
-         let levelVal:string = data[i].component||'';
-         console.log('value prepared for level '+data[i].level+' is ', levelVal)
-         self.barcodeparts[data[i].level].push( data[i] )
+         // Reconstruct the component field from component_left and component_right
+         let componentValue = `${data[i].component_left}${self.kay_value_separator}${data[i].component_right}`;
          
-        //  console.log('getAllBarcodeComponents() all keys:', JSON.stringify(keys));
-         }
+         // Create an object that matches the barcodePartStore interface
+         let barcodePart: barcodePartStore = {
+           id: data[i].id,
+           key: data[i].id, // Assuming id can be used as key
+           component: componentValue,
+           level: data[i].level
+         };
+         
+         self.barcodeparts[data[i].level].push(barcodePart);
+         
+        }
          console.log('getAllBarcodeComponents(): Data after filling ', JSON.stringify(self.barcodeparts));
        
      });
    }
 
   addnow(index=0): void {
+    let self = this;
     const value = (this.newlyaddeditem || '').trim();
 
     // Add our keyword
@@ -477,7 +497,15 @@ export class GenerateBarcodeComponent {
         if (typeof old_value == 'undefined') {
           // this.barcodeparts[index].push(value);
           this.barcodeService.addBarcodecomponentAtLevel({level:index, component:value}).then((res) => {
-            console.log('addnow: ',res);        
+            console.log('addnow: ',res);   
+            let barcodePart: barcodePartStore = {
+              id: value,
+              key: value, // Assuming id can be used as key
+              component: value,
+              level: index
+            };
+            
+            self.barcodeparts[index].push(barcodePart);     
           })
           .catch((err) => {
             console.log('addnow error: ' + err);
@@ -541,16 +569,21 @@ export class GenerateBarcodeComponent {
   //labeltype can be [utsw|product]
   getAllBarcodes(){
     let self = this;
-     this.barcodeService.getAllBarcode().subscribe(data => { 
+     this.barcodeService.getAllBarcode().subscribe((data: any) => { 
        console.log('getAllBarcodes(): step 1', JSON.stringify(data));
        self.existingLabelList=[];
        self.existingProductLabelList=[];
        for(let i=0;i<data.length;i++){
          console.log('getAllBarcodes(): step 2', JSON.stringify(data[i]));
          if(typeof data[i].labeltype !== 'undefined' && data[i].labeltype == 'product') {
-          self.existingProductLabelList.push( {"id":data[i].id,"key":data[i].key,  "labeltype":data[i].labeltype,"data":data[i].bar_code} );        
+          self.existingProductLabelList.push( {"id":data[i].id,"key":data[i].key,  
+            "labeltype":data[i].labeltype,
+            "data":data[i].barcode} );        
          }else {         
-          self.existingLabelList.push( {"id":data[i].id,"key":data[i].key,  "labeltype":data[i].labeltype??"utsw","data":data[i].bar_code} );        
+          self.existingLabelList.push( {"id":data[i].id,"key":data[i].key,  
+            "labeltype":data[i].labeltype??"utsw",
+            "data":data[i].barcode,
+            "barcode_components":data[i].barcodecomponents} );        
          }
         }
         self.existingLabelList.sort((a,b)=>self.prepareLabelFromDataArray(a.data).localeCompare(self.prepareLabelFromDataArray(b.data)))
@@ -569,10 +602,13 @@ export class GenerateBarcodeComponent {
 
    //labeltype can be [utsw|product]
    //
+   //
   savebarcode(labeltype:string="utsw"){
+    let self = this;
     console.log('savebarcode clicked');
     let finalLevelComponentsArray=[];
     let dataForDBStore=[];
+    let barcode = ''; //this.getSelectedLabel();
     for(let i =0;i<this.done.length;i++){
      
       if(this.done[i].length>1 || this.done[i].length==0) {
@@ -582,6 +618,7 @@ export class GenerateBarcodeComponent {
       for(let j=0;j<this.done[i].length;j++){
         finalLevelComponentsArray.push(this.done[i][j]?this.done[i][j].component.split(this.kay_value_separator)[1]:"");
         dataForDBStore.push(this.done[i][j] && this.done[i][j].component?this.done[i][j].component:'');
+        barcode += this.done[i][j] && this.done[i][j].component?this.done[i][j].component.split(this.kay_value_separator)[1]:'';
       } 
       
     } 
@@ -595,8 +632,19 @@ export class GenerateBarcodeComponent {
       // this.existingLabelList.push(dataForDBStore);
       
       // Push data in db as well
-      this.barcodeService.addBarcode({bar_code:dataForDBStore, labeltype:labeltype}).then((res) => {
-        console.log('savebarcode: ',res);        
+      let data_to_push = {
+          barcodecomponents:JSON.stringify(dataForDBStore), 
+          barcode:barcode,
+          labeltype:labeltype};
+      this.barcodeService.addBarcode(data_to_push)
+          .then((res) => {
+            alert('Successfully saved barcode');
+            //push a copy in existingLabelList
+            self.existingLabelList.push( {"id":data_to_push.barcode,"key":data_to_push.barcode,  
+            "labeltype":data_to_push.labeltype??"utsw",
+            "data":data_to_push.barcode,
+            "barcode_components":JSON.parse(data_to_push.barcodecomponents)} );
+            console.log('savebarcode: ',res);        
       })
       .catch((err) => {
         console.log('savebarcode error: ' + err);
@@ -613,7 +661,7 @@ export class GenerateBarcodeComponent {
 
   getAllRelationships(){
    let self = this;
-    this.barcodeService.getAllBarcodeRelationship().subscribe(data => { 
+    this.barcodeService.getAllBarcodeRelationship().subscribe((data: any) => { 
       console.log('getAllRelationships():', JSON.stringify(data));
       self.levelReationList=[[]];
       for(let i=0;i<data.length;i++){
@@ -729,8 +777,8 @@ export class GenerateBarcodeComponent {
       this.catalogueItems = d; 
       console.log(d);
       
-      this.getCategories(); 
-      this.getPOSData();  
+      // this.getCategories(); 
+      // this.getPOSData();  
       for (let i=0;i<this.maxLevelOfSelection;i++){
         this.loadData(i);
       }    
@@ -793,7 +841,7 @@ export class GenerateBarcodeComponent {
   posInvoicesRaised={};
 
   getPOSData(){
-    this.saleService.getAllIPOSInvoices().subscribe( posinvdata => {
+    this.saleService.getAllIPOSInvoices().subscribe( (posinvdata: any) => {
       console.log("getAllIPOSInvoices data recdeived "+JSON.stringify(posinvdata));
       this.allorigPosInvoiceDataList = posinvdata;
       // massage it to use in our form
@@ -803,7 +851,7 @@ export class GenerateBarcodeComponent {
         console.log( 'getPOSData()', key + ": " + posinvdata[key]);
       }
     
-      posinvdata.forEach(posinvdataItem => {
+      posinvdata.forEach((posinvdataItem: any) => {
           let invoiceno = posinvdataItem.invoiceno;
           let id = posinvdataItem.id;
           // this.posInvoicesRaised[id.trim().toLowerCase()] = posinvdataItem;         
