@@ -61,7 +61,6 @@ import { BillDetailsComponent } from './components/bill-details/bill-details.com
     GenerateBarcodeComponent,
     ListInventoryComponent,
     ConfirmationDialogComponent,
-    DirectinvoiceComponent,
     SoldItemsSummaryComponent,
 
   ],
@@ -77,12 +76,13 @@ import { BillDetailsComponent } from './components/bill-details/bill-details.com
     AppMaterialModule,
     QRCodeModule,
     ZXingScannerModule,
-    InventoryComponent
+    InventoryComponent,
+    DirectinvoiceComponent // Added DirectinvoiceComponent
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: BasicAuthInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
-    {provide: APP_BASE_HREF, useValue: '/in/billing/'} ,
+    {provide: APP_BASE_HREF, useValue: '/in/new-billing/'} ,
     DatePipe,
     SearchStrfilterPipe,
     UtswGenericfilterPipe,

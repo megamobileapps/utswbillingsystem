@@ -1,6 +1,5 @@
-import { isNgTemplate } from '@angular/compiler';
-import { Component, Input } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { Component, Input, OnInit } from '@angular/core';
+import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UTSWCartItem } from 'src/app/models/cart-item';
 import { InventoryItem } from 'src/app/models/inoffice';
@@ -9,17 +8,38 @@ import { CartService } from 'src/app/providers/cart.provider';
 import { DataService } from 'src/app/services/data.service';
 import { InventoryService } from 'src/app/services/inventory.service';
 import { ScreenSizeService } from 'src/app/services/screen-size.service';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable, startWith, debounceTime, distinctUntilChanged, switchMap, map } from 'rxjs';
 import { environment } from "src/environments/environment";
 import * as $ from "jquery";
 import { InvoiceDataItem } from 'src/app/models/invoice-data-item';
+import { CommonModule, DatePipe } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+
 
 @Component({
   selector: 'app-directinvoice',
   templateUrl: './directinvoice.component.html',
-  styleUrls: ['./directinvoice.component.css']
+  styleUrls: ['./directinvoice.component.css'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatAutocompleteModule,
+    MatDatepickerModule,
+    MatNativeDateModule
+  ]
 })
-export class DirectinvoiceComponent {
+export class DirectinvoiceComponent implements OnInit {
   invoice: FormGroup;
   submitted:boolean=false;
   loading:boolean=false;
@@ -28,15 +48,20 @@ export class DirectinvoiceComponent {
   currBasketAmt:number=0;
   @Input() oldinvoiceid!: string;
 
+  allInventoryItems: InventoryItem[] = []; // Store all inventory items
+  filteredOptions: Observable<InventoryItem[]>[] = []; // Observable for filtered suggestions per item
+
   constructor(private formBuilder: FormBuilder,
     private _dataService:DataService, 
-    private    _inventoryService : InventoryService,
+    private _inventoryService : InventoryService,
     private screenSizeService:ScreenSizeService,
-    private _cartService:CartService,private router: Router, private route: ActivatedRoute) {
+    private _cartService:CartService,private router: Router, private route: ActivatedRoute,
+    private datePipe: DatePipe
+    ) {
       let date1 = new Date();
-      const year = date1.getFullYear(); // e.g., 2023
-      let month = date1.getMonth()+1; // e.g., 7 (for July)
-      const day = date1.getDate(); // e.g., 7 (for July)
+      const year = date1.getFullYear();
+      let month = date1.getMonth()+1;
+      const day = date1.getDate();
       let formattedmonth:string='';
       let formattedday:string='';
       if (month<10){
@@ -51,20 +76,33 @@ export class DirectinvoiceComponent {
       }
       
       this.todaydate = `${year}-${formattedmonth}-${formattedday}`;
-      // console.log('today = '+this.todaydate);
       
       this.invoice = this.formBuilder.group({
         items:this.formBuilder.array([
-        this.formBuilder.group({
-        productname:[''],
+          this.createItemFormGroup()
+        ])
+      });
+    }
+
+    ngOnInit(): void {
+      this.loadInventoryData(); // Load inventory first
+      if (this.oldinvoiceid != null && this.oldinvoiceid != "-1"){
+        this.load_old_invoice_data(this.oldinvoiceid) // Then load old invoice data if applicable
+      }
+      // setupFormArrayControls will be called after inventory data is loaded
+    }
+    
+    createItemFormGroup(): FormGroup {
+      return this.formBuilder.group({
+        productname:[null, Validators.required], // Initialize with null to hold InventoryItem object
         hsn: ['49011010'],
-        quantity: ['1'],
+        quantity: ['1', Validators.required],
         unit: ['Nos'],
         cp: ['0'],
         percentgst: ['0'],
         netcp: ['0'],
         calculatedmrp: ['0'],
-        mrp: ['0'],
+        mrp: ['0', Validators.required],
         discount:['0'],
         fixedprofit: ['0'],
         percentprofit: ['0'],
@@ -72,44 +110,164 @@ export class DirectinvoiceComponent {
         vendor: ['utsw'],
         brand: ['utsw'],
         shippingcost: ['0'],
-        barcode:['Barcode1'],
-      })]
-      )});
+        barcode:['', Validators.required],
+      });
     }
-    get f2() { 
-     
-        return this.invoice.controls;
-     
-     }
 
-    get itemControls(): any {
+    loadInventoryData(): void {
+      this._inventoryService.isCacheReady.subscribe(isReady => {
+        if (isReady) {
+          this._inventoryService.getAllInventory().subscribe(data => {
+            this.allInventoryItems = data.map(itemWrapper => itemWrapper.itemdetails as InventoryItem);
+            this.setupFormArrayControls(); // Setup filtering after data is loaded
+          });
+        }
+      });
+    }
+
+    setupFormArrayControls(): void {
+      const items = this.invoice.get('items') as FormArray;
+      this.filteredOptions = [];
+      items.controls.forEach((control, index) => {
+        const productNameControl = control.get('productname') as FormControl;
+        this.filteredOptions[index] = productNameControl.valueChanges.pipe(
+          startWith(''),
+          debounceTime(300),
+          distinctUntilChanged(),
+          map(value => this._filter(value || ''))
+        );
+      });
+    }
+
+    private _filter(value: string | InventoryItem | null): InventoryItem[] {
+      let filterValue: string;
+      if (typeof value === 'string') {
+        filterValue = value.toLowerCase();
+      } else if (value && value.productname) {
+        filterValue = value.productname.toLowerCase();
+      } else {
+        filterValue = '';
+      }
+      return this.allInventoryItems.filter(item => item.productname.toLowerCase().includes(filterValue) 
+                                                  || item.barcode.toLowerCase().includes(filterValue)
+                                                  || item.mrp.toString().toLowerCase().includes(filterValue)
+                                                );
+    }
+
+    displayFn(item: InventoryItem | string): string {
+      if (typeof item === 'string') {
+        return item;
+      }
+      return item && item.productname ? item.productname : '';
+    }
+
+    onProductSelected(event: MatAutocompleteSelectedEvent, itemIndex: number): void {
+      const selectedItem: InventoryItem = event.option.value;
+      this.patchItemForm(selectedItem, itemIndex);
+      this.addItem(); // Automatically add a new row
+    }
+    
+    // Helper to patch form group with selected item data
+    patchItemForm(item: InventoryItem, itemIndex: number): void {
+      const itemFormGroup = this.itemControls.at(itemIndex) as FormGroup;
+      itemFormGroup.patchValue({
+        productname: item, // Patch the whole object into the form control
+        hsn: item.hsn,
+        unit: item.unit,
+        cp: item.cp,
+        percentgst: item.percentgst,
+        netcp: item.netcp,
+        calculatedmrp: item.calculatedmrp,
+        mrp: item.mrp,
+        discount: item.discount || 0,
+        fixedprofit: item.fixedprofit,
+        percentprofit: item.percentprofit,
+        labeleddate: item.labeleddate,
+        vendor: item.vendor,
+        brand: item.brand,
+        shippingcost: item.shippingcost,
+        barcode: item.barcode,
+        // quantity: item.quantity, // Do not auto-fill quantity
+      });
+    }
+
+    get itemControls(): FormArray {
       return this.invoice.get('items') as FormArray;
     }
 
     prepare_json_from_formgroup(fg:FormGroup):InventoryItem {
       let allControls = fg.controls;
-      return {
-        productname: allControls['productname'].value,   
-        hsn: allControls['hsn'].value,       
-        quantity: Number(allControls['quantity'].value),
-        unit: allControls['unit'].value,
-        cp: allControls['cp'].value,
-        percentgst: allControls['percentgst'].value,
-        netcp: allControls['netcp'].value,
-        calculatedmrp: allControls['calculatedmrp'].value,
-        mrp: allControls['mrp'].value,
-        discount: Number(allControls['discount'].value),
-        netvalue:Number(allControls['mrp'].value)*(100-Number(allControls['discount'].value))/100,
-        fixedprofit: allControls['fixedprofit'].value,
-        percentprofit: allControls['percentprofit'].value,
-        labeleddate: allControls['labeleddate'].value,
-        vendor: allControls['vendor'].value,
-        brand: allControls['brand'].value,
-        shippingcost: allControls['shippingcost'].value,
-        barcode:allControls['barcode'].value,
-        qtyavailable:0,
-        sold:1
+      const productnameControlValue = allControls['productname'].value;
+      
+      // Helper to safely convert to number, defaulting to 0 if NaN
+      const safeNumber = (value: any) => {
+        const num = Number(value);
+        return isNaN(num) ? 0 : num;
       };
+
+      let item: InventoryItem;
+
+      if (typeof productnameControlValue === 'object' && productnameControlValue !== null) {
+        // If productname control holds the entire InventoryItem object
+        // Use properties from the object as base, then override with form control values for editable fields
+        const currentMrp = safeNumber(allControls['mrp'].value);
+        const currentDiscount = safeNumber(allControls['discount'].value);
+        const calculatedNetvalue = currentMrp * (100 - currentDiscount) / 100;
+
+        item = {
+          ...productnameControlValue, // Start with all properties from the selected InventoryItem
+          productname: productnameControlValue.productname || '', // Ensure productname is string
+          hsn: productnameControlValue.hsn || '',
+          unit: productnameControlValue.unit || '',
+          vendor: productnameControlValue.vendor || '',
+          brand: productnameControlValue.brand || '',
+          barcode: productnameControlValue.barcode || '',
+          labeleddate: productnameControlValue.labeleddate || '',
+
+          // Override numerical fields with values from form controls, ensuring they are numbers
+          quantity: safeNumber(allControls['quantity'].value),
+          cp: safeNumber(allControls['cp'].value),
+          percentgst: safeNumber(allControls['percentgst'].value),
+          netcp: safeNumber(allControls['netcp'].value),
+          calculatedmrp: safeNumber(allControls['calculatedmrp'].value),
+          mrp: currentMrp, // Use the potentially overridden MRP
+          discount: currentDiscount, // Use the potentially overridden discount
+          fixedprofit: safeNumber(allControls['fixedprofit'].value),
+          percentprofit: safeNumber(allControls['percentprofit'].value),
+          shippingcost: safeNumber(allControls['shippingcost'].value),
+          netvalue: calculatedNetvalue, // Include netvalue directly in the object literal
+        };
+        
+      } else {
+        // If productname control holds a string (manual entry) or is null/undefined
+        const currentMrp = safeNumber(allControls['mrp'].value);
+        const currentDiscount = safeNumber(allControls['discount'].value);
+        const calculatedNetvalue = currentMrp * (100 - currentDiscount) / 100;
+
+        item = {
+          productname: productnameControlValue || '',   
+          hsn: allControls['hsn'].value || '',       
+          quantity: safeNumber(allControls['quantity'].value),
+          unit: allControls['unit'].value || '',
+          cp: safeNumber(allControls['cp'].value),
+          percentgst: safeNumber(allControls['percentgst'].value),
+          netcp: safeNumber(allControls['netcp'].value),
+          calculatedmrp: safeNumber(allControls['calculatedmrp'].value),
+          mrp: currentMrp,
+          discount: currentDiscount,
+          fixedprofit: safeNumber(allControls['fixedprofit'].value),
+          percentprofit: safeNumber(allControls['percentprofit'].value),
+          labeleddate: allControls['labeleddate'].value || '',
+          vendor: allControls['vendor'].value || '',
+          brand: allControls['brand'].value || '',
+          shippingcost: safeNumber(allControls['shippingcost'].value),
+          barcode:allControls['barcode'].value || '',
+          qtyavailable:0,
+          sold:1,
+          netvalue: calculatedNetvalue, // Include netvalue directly in the object literal
+        };
+      }
+      return item;
     }
 
     allInvoiceItems():Array<any>{
@@ -127,76 +285,28 @@ export class DirectinvoiceComponent {
       return itemValueArray;
     }
 
-    // get getInventoryFormData():any{
-    //   return {
-    //       productname: this.f2['productname'].value,   
-    //       hsn: this.f2['hsn'].value,       
-    //       quantity: this.f2['quantity'].value,
-    //       unit: this.f2['unit'].value,
-    //       cp: this.f2['cp'].value,
-    //       percentgst: this.f2['percentgst'].value,
-    //       netcp: this.f2['netcp'].value,
-    //       calculatedmrp: this.f2['calculatedmrp'].value,
-    //       mrp: this.f2['mrp'].value,
-    //       fixedprofit: this.f2['fixedprofit'].value,
-    //       percentprofit: this.f2['percentprofit'].value,
-    //       labeleddate: this.f2['labeleddate'].value,
-    //       vendor: this.f2['vendor'].value,
-    //       brand: this.f2['brand'].value,
-    //       shippingcost: this.f2['shippingcost'].value,
-    //       barcode:this.f2['barcode'].value,
-    //   };
-    // }
-
     addItem() {
       console.log('addItem() called')
       const items = this.invoice.get('items') as FormArray;
-      if (!items.invalid) {
-        items.push(
-          this.formBuilder.group({
-            productname:[''],
-            hsn: ['49011010'],
-            quantity: ['1'],
-            unit: ['Nos'],
-            cp: ['0'],
-            percentgst: ['0'],
-            netcp: ['0'],
-            calculatedmrp: ['0'],
-            mrp: ['0'],
-            discount:['0'],
-            fixedprofit: ['0'],
-            percentprofit: ['0'],
-            labeleddate: [this.todaydate],
-            vendor: ['utsw'],
-            brand: ['utsw'],
-            shippingcost: ['0'],
-            barcode:['Barcode'+(items.length+1)],
-          })
-        );
-      }else {
-        console.log('additem(): items is Invalid');
-        alert('onPushSingleItemToCart() List of items have invalid values.. pls check')
-      }
+      const newItemFormGroup = this.createItemFormGroup();
+      items.push(newItemFormGroup);
+      // Setup filtering for the new item's productname control
+      const newIndex = items.length - 1;
+      const productNameControl = newItemFormGroup.get('productname') as FormControl;
+      this.filteredOptions[newIndex] = productNameControl.valueChanges.pipe(
+        startWith(''),
+        debounceTime(300),
+        distinctUntilChanged(),
+        map(value => this._filter(value || ''))
+      );
     }
 
   load_old_invoice_data(invoiceid:any){
     
     console.log(`load_old_invoice_data() entered with invoiceid=${invoiceid}`)
     var jsondata:InvoiceDataItem|null = null
-  //   var jsondata = {
-  //     "id": 6958,
-  //     "username": "Shiffauli Garg",
-  //     "amount": 289.0,
-  //     "phonenumber": "9611146074",
-  //     "emailid": "shiffauli74@yahoo.com",
-  //     "invoicenumber": "655705",
-  //     "invoicedate": "2024-12-11",
-  //     "discount": "0",
-  //     "payment_method": "SBIQR",
-  //     "invoicedata": "[{\"txId\":655705,\"id\":\"Barcode1\",\"quantityProvider\":{\"closed\":false,\"currentObservers\":null,\"observers\":[],\"isStopped\":false,\"hasError\":false,\"thrownError\":null,\"_value\":1},\"quantity\":1,\"productCategory\":\"utsw\",\"productId\":\"Barcode1\",\"productName\":\"dairy\",\"initialPrice\":\"249\",\"productPrice\":249,\"discount\":0,\"gst\":\"0\",\"hsn\":\"49011010\",\"unitTag\":\"Nos\",\"image\":\"\",\"labeldate\":\"2024-12-11\"},{\"txId\":655705,\"id\":\"Barcode2\",\"quantityProvider\":{\"closed\":false,\"currentObservers\":null,\"observers\":[],\"isStopped\":false,\"hasError\":false,\"thrownError\":null,\"_value\":4},\"quantity\":4,\"productCategory\":\"utsw\",\"productId\":\"Barcode2\",\"productName\":\"hauser\",\"initialPrice\":\"10\",\"productPrice\":10,\"discount\":0,\"gst\":\"0\",\"hsn\":\"49011010\",\"unitTag\":\"Nos\",\"image\":\"\",\"labeldate\":\"2024-12-11\"}]"
-  // }
+  
     if (invoiceid != null && invoiceid != "-1") {
-      // get it from db
       this._dataService.getInvoiceDataFromServer_with_invoiceid(invoiceid).subscribe((d) => {       
         console.log('load_old_invoice_data(): '+JSON.stringify(d));      
         if( d.length > 0)  {
@@ -207,32 +317,27 @@ export class DirectinvoiceComponent {
           items.clear();
           const data_to_load:Array<UTSWCartItem> = JSON.parse(jsondata!["invoicedata"]);
           data_to_load.forEach(element => {
-            if (true) {
-              items.push(
-                this.formBuilder.group({
-                  productname:[element["productName"]],
-                  hsn: [element["hsn"]],
-                  quantity: [element["quantity"]],
-                  unit: [element["unitTag"]],
-                  cp: [element["initialPrice"]],
-                  percentgst: ['0'],
-                  netcp: [element["initialPrice"]],
-                  calculatedmrp: [element["productPrice"]],
-                  mrp: [element["productPrice"]],
-                  discount:['0'],
-                  fixedprofit: ['0'],
-                  percentprofit: ['0'],
-                  labeleddate: [this.todaydate],
-                  vendor: ['utsw'],
-                  brand: ['utsw'],
-                  shippingcost: ['0'],
-                  barcode:[element["id"]],
-                })
-              );
-            }else {
-              console.log('load_old_invoice_data(): items is Invalid');
-              alert('onPushSingleItemToCart() List of items have invalid values.. pls check')
-            }
+            items.push(
+              this.formBuilder.group({
+                productname:[element["productName"]],
+                hsn: [element["hsn"]],
+                quantity: [element["quantity"]],
+                unit: [element["unitTag"]],
+                cp: [element["initialPrice"]],
+                percentgst: ['0'],
+                netcp: [element["initialPrice"]],
+                calculatedmrp: [element["productPrice"]],
+                mrp: [element["productPrice"]],
+                discount:['0'],
+                fixedprofit: ['0'],
+                percentprofit: ['0'],
+                labeleddate: [this.todaydate],
+                vendor: ['utsw'],
+                brand: ['utsw'],
+                shippingcost: ['0'],
+                barcode:[element["id"]],
+              })
+            );
           });
         }
       });
@@ -242,21 +347,13 @@ export class DirectinvoiceComponent {
 
   removeItem(index: any) {
     const items = this.invoice.get('items') as FormArray;
-    //first remove this item from cart and then from this list
     this.removeFromCart(this.prepare_json_from_formgroup(items.at(index) as FormGroup));
-
-    //remove from FormArray after it is removed from cart
     items.removeAt(index);
   }
 
   calculateCPMRPProfit(){
     let fd = this.allInvoiceItems();
-    
-  }
-  ngOnInit(): void {
-    if (this.oldinvoiceid != null && this.oldinvoiceid != "-1"){
-      this.load_old_invoice_data(this.oldinvoiceid)
-    }
+    // This method is commented out in HTML
   }
 
   get cart():CartDetails|null|undefined{
@@ -274,7 +371,6 @@ export class DirectinvoiceComponent {
     );
     
   }
-    
     
   
     // return -1 if it does not exist
@@ -320,15 +416,11 @@ export class DirectinvoiceComponent {
       this._cartService.currentCart!.invoicenumber = txId;
       this._cartService.currentCart!.invoicedate = Date.now().toString();
       if(existingItem!.length == 0) {
-        // txId = Math.floor(Math.random() * 1000000);
         this.cart!.invoicedatalist.push(this.prepareCartItem(txId, ofItem!))
       }else{
-        //item.quantity.next(item.quantity.getValue()+1);
         existingItem![0].quantityProvider .next(existingItem![0].quantityProvider.getValue()+1);
         existingItem![0].quantity +=1;
       }
-  
-      // this.cart.push(ofItem!);
     }
 
     getItemAmount(ofItem:InventoryItem|null){
@@ -343,15 +435,10 @@ export class DirectinvoiceComponent {
                 :this.cart!.invoicedatalist[0].txId;
       this._cartService.currentCart!.invoicenumber = txId;
       if(existingItem!.length == 0) {
-        // txId = Math.floor(Math.random() * 1000000);
-        // this.cart!.invoicedatalist.push(this.prepareCartItem(txId, ofItem!))
       }else{
-        //item.quantity.next(item.quantity.getValue()+1);
         existingItem![0].quantityProvider .next(0);
         existingItem![0].quantity =0;
       }
-  
-      // this.cart.push(ofItem!);
     }
     clearCart():void{
       this._cartService.currentCart!.invoicedatalist=[];
@@ -359,18 +446,29 @@ export class DirectinvoiceComponent {
 
     // Push single item to cart
     onPushSingleItemToCart(itemIndex=0){
-      
       const items = this.invoice.get('items') as FormArray;
-      if (!items.invalid) {        
-          let allControls = (items.at(itemIndex) as FormGroup).controls;
-          let itemValues = this.prepare_json_from_formgroup(items.at(itemIndex) as FormGroup);
-          console.log('onPushSingleItemToCart(): item = '+JSON.stringify(itemValues));
-          this.addToCart(itemValues);
-      }else {
-        console.log('onPushSingleItemToCart() List of items have invalid values.. pls check');
-        alert('onPushSingleItemToCart() List of items have invalid values.. pls check');
+      const itemGroup = items.at(itemIndex) as FormGroup;
+    
+      if (itemGroup) {
+          const productnameControlValue = itemGroup.get('productname')?.value;
+          const barcodeControl = itemGroup.get('barcode');
+    
+          // When a product is manually entered (not selected from autocomplete),
+          // productname is a string. If barcode is empty, generate a temporary one.
+          if (typeof productnameControlValue === 'string' && !barcodeControl?.value) {
+              const newBarcode = 'manual-' + Date.now();
+              barcodeControl?.setValue(newBarcode, { emitEvent: false });
+          }
+    
+          if (itemGroup.valid) {
+              const itemValues = this.prepare_json_from_formgroup(itemGroup);
+              console.log('onPushSingleItemToCart(): item = ' + JSON.stringify(itemValues));
+              this.addToCart(itemValues);
+          } else {
+              console.log('onPushSingleItemToCart() Item form has invalid values. Please check.');
+              alert('Item form has invalid values. Please check.');
+          }
       }
-     
     }
     //
     // push all items to cart
@@ -379,34 +477,41 @@ export class DirectinvoiceComponent {
       console.log('onPushToCart called');
       console.log("onPushToCart component");
       this.submitted = true;
-      // stop here if form is invalid
-      if (this.invoice.invalid) {
-        console.log("inventory options form is invalid");
-          return;
-      }
-  
       this.loading = true;
-      var formData:Array<any> = this.allInvoiceItems();
-      // this.clearCart();
-      for(let indexItem = 0;indexItem<formData.length;indexItem++){
-        console.log("onPushToCart(): adding item number "+indexItem+" "+JSON.stringify(formData[indexItem]));
-        this.addToCart(formData[indexItem]);
+    
+      const items = this.invoice.get('items') as FormArray;
+      
+      for (let i = 0; i < items.length; i++) {
+          const itemGroup = items.at(i) as FormGroup;
+          const productnameValue = itemGroup.get('productname')?.value;
+    
+          // Ignore rows that are completely empty (e.g., newly added but not filled)
+          if (!productnameValue) {
+              continue; 
+          }
+    
+          // If productname is manually entered (is a string), and barcode is missing, generate one.
+          if (typeof productnameValue === 'string' && !itemGroup.get('barcode')?.value) {
+              const newBarcode = `manual-${Date.now()}-${i}`;
+              itemGroup.get('barcode')?.setValue(newBarcode, { emitEvent: false });
+          }
+    
+          if (itemGroup.valid) {
+              const itemValues = this.prepare_json_from_formgroup(itemGroup);
+              console.log(`onPushToCart(): adding item number ${i} ${JSON.stringify(itemValues)}`);
+              this.addToCart(itemValues);
+          } else {
+              const productNameDisplay = (typeof productnameValue === 'object' && productnameValue?.productname) 
+                                         ? productnameValue.productname 
+                                         : productnameValue;
+              console.log(`onPushToCart(): Row for product "${productNameDisplay}" has invalid values.`);
+              alert(`Item "${productNameDisplay}" has invalid values and will not be added to the cart.`);
+              itemGroup.markAllAsTouched();
+          }
       }
-      //
-      // key will be barcode/labeleddate to have multiple entries under same barcode
-      //
-      var data = {"itemdetails":formData};
-                  //_inventoryService
-      // this._inventoryService.addInventory(data).then((res) => {
-      //   console.log('Inventory onSubmitFire(): ',res);   
-      //   alert('inventory is added successfully')     
-      // })
-      // .catch((err) => {
-      //   console.log('Inventory onSubmitFire() error: ' + err);
-      //   alert('Error while Inventory onSubmitFire()');        
-      // });    
-      console.log('coming before routing to Home'+JSON.stringify(data));
-      // this.router.navigate(['/']);
+    
+      this.loading = false;
+      console.log('Finished processing all items.');
     }
   
     onCalculateBillAmount(){

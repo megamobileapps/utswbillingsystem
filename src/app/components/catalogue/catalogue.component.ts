@@ -11,7 +11,10 @@ import { InventoryService } from 'src/app/services/inventory.service';
 import { ScreenSizeService } from 'src/app/services/screen-size.service';
 import Quagga from 'quagga';
 import { BarcodeFormat } from '@zxing/library';
-import { DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common'; // This was the original import
+import { DirectinvoiceComponent } from '../directinvoice/directinvoice.component';
+
+
 @Component({
   selector: 'app-catalogue',
   templateUrl: './catalogue.component.html',
@@ -23,8 +26,8 @@ export class CatalogueComponent implements OnInit {
   @ViewChild('videoElement') videoElement: ElementRef;
   catalogueItems:Array<InventoryItem>=[];
   categories:Array<InOfficeCat>=[];
-  selectedCat:String='';
-  searchStr:String='g1';
+  selectedCat:string=''; // Original type
+  searchStr:string='g1'; // Original type
   isMobileScreen:boolean=false;
   oldinvoiceid:string="-1"
   allsoldItems:Record<string, number> = {}
@@ -212,11 +215,11 @@ export class CatalogueComponent implements OnInit {
       console.log(d);       
     });
   }
-  setCatSelection(cat:String){
+  setCatSelection(cat:string){
     this.selectedCat = cat;
   }
 
-  filterResults(flt:String){
+  filterResults(flt:string){
     this.searchStr = flt;
     return false;
   }
@@ -243,7 +246,7 @@ export class CatalogueComponent implements OnInit {
   // }
 
   // holdCart():void{
-  //   this.oldTxList.push(this._cartService.currentCart!);
+  //   this._cartService.oldTxList.push(this._cartService.currentCart!);
   //   this.createNewCart();
   // }
 

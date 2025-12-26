@@ -1,10 +1,10 @@
 export interface InOfficePrice{   
     id:number;
-    grade:String;
-    gradelevel2:String;
-    subId:String;
-    barcode:String;
-    subject:String;
+    grade:string;
+    gradelevel2:string;
+    subId:string;
+    barcode:string;
+    subject:string;
     pcost:number;
     discount:number;
     inventory:number;
@@ -18,26 +18,26 @@ export interface InOfficePrice{
 
 export interface InOfficeCat{
     id:number;
-    grade:String;
+    grade:string;
 };
 
 export interface InventoryItem {
-    barcode:String;
-    brand:String;
+    barcode:string;
+    brand:string;
     calculatedmrp:number;
     cp:number;
     fixedprofit:number;
     hsn:number;
-    labeleddate:String;
+    labeleddate:string;
     mrp:number;
     netcp:number;
     percentgst:number;
     percentprofit:number;
-    productname:String;
+    productname:string;
     quantity:number;
     shippingcost:number;
-    unit:String;
-    vendor:String;
+    unit:string;
+    vendor:string;
     discount:number;
     netvalue:number;
     qtyavailable:number;

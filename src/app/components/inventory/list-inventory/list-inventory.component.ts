@@ -173,7 +173,7 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
   }
   
   onEditInventory(item: any) {
-    this.router.navigate(['/inventory'], { queryParams: { data: JSON.stringify(item) } });
+    this.router.navigate(['/addinventory'], { queryParams: { data: JSON.stringify(item) } });
   }
 
    

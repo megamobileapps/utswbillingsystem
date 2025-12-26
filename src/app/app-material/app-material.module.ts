@@ -22,6 +22,7 @@ import {MatDatepickerModule} from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatAutocompleteModule } from '@angular/material/autocomplete'; // Added
 
 @NgModule({
   declarations: [],
@@ -34,7 +35,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatGridListModule,MatSelectModule,MatTableModule, MatPaginatorModule,MatSortModule,
     MatDialogModule,MatDatepickerModule,MatNativeDateModule,
     MatTooltipModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatAutocompleteModule // Added
   ],
   exports: [
     MatSlideToggleModule,
@@ -44,7 +46,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatGridListModule,MatSelectModule,MatTableModule, MatPaginatorModule,MatSortModule,
     MatDialogModule,MatDatepickerModule,MatNativeDateModule,
     MatTooltipModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatAutocompleteModule // Added
   ],
   providers: [
     { provide: MAT_DIALOG_DATA, useValue: {} },
