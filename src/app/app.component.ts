@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { InventoryService } from './services/inventory.service';
+import { Store } from '@ngrx/store';
+import * as InventoryActions from './store/inventory/inventory.actions';
 
 @Component({
   selector: 'app-root',
@@ -9,9 +10,10 @@ import { InventoryService } from './services/inventory.service';
 export class AppComponent implements OnInit {
   title = 'utswbillingsystem';
 
-  constructor(private inventoryService: InventoryService) {}
+  constructor(private store: Store) {}
 
   ngOnInit(): void {
-    this.inventoryService.loadInventoryCache();
+    this.store.dispatch(InventoryActions.loadInventory());
   }
 }
+

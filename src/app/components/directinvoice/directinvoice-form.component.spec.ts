@@ -8,7 +8,7 @@ describe('DirectinvoiceComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [DirectinvoiceComponent]
+      declarations: [DirectinvoiceComponent]
     });
     fixture = TestBed.createComponent(DirectinvoiceComponent);
     component = fixture.componentInstance;

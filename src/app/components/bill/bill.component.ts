@@ -14,6 +14,9 @@ import { InventoryItem } from 'src/app/models/inoffice';
 import { UTSWCartItem } from 'src/app/models/cart-item';
 import { Router } from '@angular/router';
 import * as XLSX from 'xlsx';
+import { Store } from '@ngrx/store';
+import * as BillActions from 'src/app/store/bill/bill.actions';
+import { selectAllBills, selectBillStatus } from 'src/app/store/bill/bill.selectors';
 
 @Component({
   selector: 'app-bill',
@@ -36,11 +39,11 @@ export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
   isLoading = true;
 
   constructor(private formBuilder: FormBuilder,
-    private _dataService:DataService,
     private _inventoryService:InventoryService,
     private _liveAnnouncer: LiveAnnouncer, private dialog: MatDialog,
     private datePipe:DatePipe,
-    private router:Router
+    private router:Router,
+    private store: Store
   ){
     
   }
@@ -65,7 +68,22 @@ export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
   ;
   
   ngOnInit(): void {
+    this.subscribeToBillStore();
     this.getInvoiceDataFromServer();
+  }
+
+  subscribeToBillStore(): void {
+    this.store.select(selectBillStatus).subscribe(status => {
+      this.isLoading = status === 'loading';
+    });
+
+    this.store.select(selectAllBills).subscribe(bills => {
+      this.invoicelist = bills;
+      this.dataSource.data = bills;
+      this.totalInvoice.count = bills.length;
+      this.totalInvoice.amount = 0;
+      bills.forEach(val => this.totalInvoice.amount += Number.parseFloat(val.amount.toString()));
+    });
   }
 
   readonly range = new FormGroup({
@@ -80,24 +98,10 @@ export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
   }
   
    getInvoiceDataFromServer(startDate:Date|null=new Date(), endDate:Date|null=new Date()){
-    this.isLoading = true;
     let tr_start_date:string = this.datePipe.transform(startDate,'yyyy-MM-dd')??'2024-01-13';
     let tr_end_date:string = this.datePipe.transform(endDate,'yyyy-MM-dd')??'2024-01-13';
     
-    this._dataService.getInvoiceDataFromServer(tr_start_date, tr_end_date).subscribe({
-      next: (d) => { 
-        this.invoicelist = d; 
-        this.dataSource.data = d;     
-        this.totalInvoice.count = d.length;
-        this.totalInvoice.amount = 0;
-        d.forEach(val=>this.totalInvoice.amount+=Number.parseFloat(val.amount.toString()));
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('Error fetching invoice data:', err);
-        this.isLoading = false;
-      }
-    });
+    this.store.dispatch(BillActions.loadBills({ startDate: tr_start_date, endDate: tr_end_date }));
    }
 
    openDialogForEditConfirmation(event:any, item:any) {
@@ -120,7 +124,7 @@ export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
   }
 
   openBillDetails(invoice: InvoiceDataItem): void {
-    this.router.navigate(['/bill-details', invoice.invoicenumber]);
+    this.router.navigate(['/bills/details', invoice.invoicenumber]);
   }
   
    ngOnChanges(changes: SimpleChanges) {

@@ -7,8 +7,10 @@ import { MatSort } from '@angular/material/sort';
 import { MatDialog } from '@angular/material/dialog';
 import { InventoryComponent } from '../inventory/inventory.component';
 import { FilteredBillsDialogComponent } from '../filtered-bills-dialog/filtered-bills-dialog.component';
-import { InventoryService } from 'src/app/services/inventory.service';
 import { InventoryItem } from 'src/app/models/inoffice';
+import { Store } from '@ngrx/store';
+import { selectAllInventory } from 'src/app/store/inventory/inventory.selectors';
+import { take } from 'rxjs/operators';
 
 export interface SoldItemSummary {
   productName: string;
@@ -40,17 +42,16 @@ export class SoldItemsSummaryComponent implements OnInit, OnChanges {
 
   constructor(
     private dialog: MatDialog,
-    private inventoryService: InventoryService
+    private store: Store
     ) { }
 
   ngOnInit(): void {
-    this.inventoryService.isCacheReady.subscribe(isReady => {
-      if (isReady) {
-        this.inventory = this.inventoryService.getInventoryCache();
-        // Rerun processing if the invoice list is already here
-        if (this.invoicelist.length > 0) {
-          this.processInvoices(this.invoicelist);
-        }
+    this.store.select(selectAllInventory).pipe(
+      take(1)
+    ).subscribe(inventory => {
+      this.inventory = inventory;
+      if (this.invoicelist.length > 0) {
+        this.processInvoices(this.invoicelist);
       }
     });
   }

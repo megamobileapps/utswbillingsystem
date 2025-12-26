@@ -1,23 +1,34 @@
 import { Component, Input, OnInit, AfterViewInit, ViewChild, OnChanges, SimpleChanges} from '@angular/core';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
-import { MatPaginator } from '@angular/material/paginator';
-import { MatTableDataSource } from '@angular/material/table';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms'; // Added ReactiveFormsModule
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { DataService } from 'src/app/services/data.service';
-import { InventoryService } from 'src/app/services/inventory.service';
 import {MatSort, Sort, MatSortModule} from '@angular/material/sort';
 import {LiveAnnouncer} from '@angular/cdk/a11y';
 import { ConfirmationDialogComponent } from '../../confirmation-dialog/confirmation-dialog.component';
-import { MatDialog } from '@angular/material/dialog';
-import { MatDatepicker } from '@angular/material/datepicker';
-import { DatePipe } from '@angular/common';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatDatepicker, MatDatepickerModule } from '@angular/material/datepicker'; 
+import { DatePipe, CommonModule } from '@angular/common';
 import { InvoiceSoldItems } from 'src/app/models/invoice-data-item';
-import { Router } from '@angular/router'; // Import Router
+import { Router } from '@angular/router';
+import { Store } from '@ngrx/store';
+import * as InventoryActions from 'src/app/store/inventory/inventory.actions';
+import { selectAllInventory, selectInventoryStatus, selectInventoryError } from 'src/app/store/inventory/inventory.selectors';
+import { InventoryItem } from 'src/app/models/inoffice';
+import { BehaviorSubject, combineLatest, map as rxjsMap } from 'rxjs';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatFormFieldModule } from '@angular/material/form-field'; // Added MatFormFieldModule
+import { MatInputModule } from '@angular/material/input'; // Added MatInputModule
+import { MatButtonModule } from '@angular/material/button'; // Added MatButtonModule
+import { MatIconModule } from '@angular/material/icon'; // Added MatIconModule
 
 
 @Component({
   selector: 'app-list-inventory',
   templateUrl: './list-inventory.component.html',
-  styleUrls: ['./list-inventory.component.css']
+  styleUrls: ['./list-inventory.component.css'],
+  // No standalone: true here as it's declared in AppModule
+  // Imports for non-standalone components go into their declaring NgModule (AppModule in this case)
 })
 export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
 
@@ -29,16 +40,23 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
   @ViewChild(MatSort) sort: MatSort;
 
   inventoryList:any=[]
-  dataSource = new MatTableDataSource<string>(this.inventoryList);
+  dataSource = new MatTableDataSource<InventoryItem>([]); // Changed to InventoryItem
   allsoldItems:Record<string, number> = {}
+  isLoading = true;
+  private filterBarcodeSubject = new BehaviorSubject<string | null>(null); // New BehaviorSubject
+
   constructor(private formBuilder: FormBuilder,
     private _dataService:DataService,
-    private _inventoryService:InventoryService,
     private datePipe:DatePipe,
     private _liveAnnouncer: LiveAnnouncer, private dialog: MatDialog,
-    private router: Router // Inject Router
+    private router: Router, // Inject Router
+    private store: Store
   ){
-    
+    this.dataSource.filterPredicate = (data: InventoryItem, filter: string) => {
+      return data.productname.toLowerCase().includes(filter) || 
+             data.barcode.toLowerCase().includes(filter) ||
+             data.brand.toLowerCase().includes(filter);
+    };
   }
 
   ngAfterViewInit() {
@@ -72,8 +90,71 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
   
 
   ngOnInit(): void {
-    
+    this.store.dispatch(InventoryActions.loadInventory());
+    this.subscribeToInventoryStore();
     this.getInvoiceSoldItemsFromServer();
+  }
+
+  subscribeToInventoryStore(): void {
+    this.store.select(selectInventoryStatus).subscribe(status => {
+      this.isLoading = status === 'loading';
+    });
+
+    combineLatest([
+      this.store.select(selectAllInventory),
+      this.filterBarcodeSubject.asObservable()
+    ]).pipe(
+      rxjsMap(([inventory, filterBarcode]) => {
+        // Apply barcode filter if present and combine with sold items data
+        return inventory.map(itemdetails => {
+          let sold_key = `${itemdetails.barcode}` 
+                        + (typeof itemdetails.labeleddate != 'undefined' ? `::${itemdetails.labeleddate}` : '')
+                        + (typeof itemdetails.brand != 'undefined' ? `::${itemdetails.brand}` : '');
+          let sold_items = this.allsoldItems[sold_key]??0
+          let present_available_items = itemdetails.quantity - sold_items
+          return { ...itemdetails, sold:sold_items, qtyavailable: present_available_items };
+        }).filter(item => {
+          if (filterBarcode != null && item.barcode == filterBarcode) {
+            return true;
+          } else if (filterBarcode == null) {
+            return true;
+          }
+          return false;
+        });
+      })
+    ).subscribe(filteredAndProcessedInventory => {
+      this.dataSource.data = filteredAndProcessedInventory;
+    });
+  }
+  
+  onEditInventory(item: any) {
+    this.router.navigate(['/addinventory'], { queryParams: { data: JSON.stringify(item) } });
+  }
+
+   openDialogForDeleteConfirmation(event:any, item:InventoryItem) {
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent,{
+      data:{
+        message: 'Are you sure want to delete this Inventory Data?',
+        buttonText: {
+          ok: 'Delete',
+          cancel: 'Cancel'
+        }
+      }
+    });
+    
+
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {  
+        this.store.dispatch(InventoryActions.deleteInventory({ barcode: item.barcode }));
+      }
+    });
+  }
+
+   
+   ngOnChanges(changes: SimpleChanges) {
+    if (changes['filterwithbarcode']) {
+      this.filterBarcodeSubject.next(changes['filterwithbarcode'].currentValue);
+    }
   }
 
   readonly range = new FormGroup({
@@ -88,7 +169,6 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
     this.getInvoiceSoldItemsFromServer(this.fdaterange['start'].value, this.fdaterange['end'].value)
   }
   getInvoiceSoldItemsFromServer(startDate:Date|null=new Date(), endDate:Date|null=new Date()){
-    // let invoicedate = Date();
     let tr_start_date:string = this.datePipe.transform(startDate,'yyyy-MM-dd')??'2024-01-13';
     let tr_end_date:string = this.datePipe.transform(endDate,'yyyy-MM-dd')??'2099-01-13';
     
@@ -99,95 +179,11 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
         let sold_key = `${val["barcode"]}` + (typeof val["labeldate"] != 'undefined' ? `::${val["labeldate"]}` : '')
                                             + (typeof val["brand"] != 'undefined' ? `::${val["brand"]}` : '');
         this.allsoldItems[ sold_key ]= (this.allsoldItems[ sold_key ]??0) + val["quantity"];
-        //
-        // this.allsoldItems[ val["barcode"] ]=val["quantity"]
     })
-      this.getAllInventory();
     });
    }
-
-  getAllInventory(filterwith=''){
-    let self = this;
-     this._inventoryService.getAllInventory().subscribe(data => { 
-       console.log('getAllInventory(): step 1', JSON.stringify(data));
-      var rcvddata = [];
-       for(const itemWrapper of data) {
-         if (itemWrapper && itemWrapper.itemdetails) {
-            let itemdetails = itemWrapper.itemdetails;
-            
-            // Apply barcode filter if present
-            if ((this.filterwithbarcode != null && itemdetails['barcode'] == this.filterwithbarcode) || (filterwith != '' && itemdetails['barcode'] == filterwith)) {
-              let sold_key = `${itemdetails["barcode"]}` 
-                            + (typeof itemdetails["labeleddate"] != 'undefined' ? `::${itemdetails["labeleddate"]}` : '')
-                            + (typeof itemdetails["brand"] != 'undefined' ? `::${itemdetails["brand"]}` : '');
-              let sold_items = this.allsoldItems[sold_key]??0
-              let present_available_items = itemdetails["quantity"] - sold_items
-              rcvddata.push( { ...itemdetails, sold:sold_items, qtyavailable: present_available_items } ); 
-            } else if (this.filterwithbarcode == null && filterwith == ''){
-                // If no barcode filter, add all items
-                let sold_key = `${itemdetails["barcode"]}` 
-                            + (typeof itemdetails["labeleddate"] != 'undefined' ? `::${itemdetails["labeleddate"]}` : '')
-                            + (typeof itemdetails["brand"] != 'undefined' ? `::${itemdetails["brand"]}` : '');
-                let sold_items = this.allsoldItems[sold_key]??0
-                let present_available_items = itemdetails["quantity"] - sold_items
-                rcvddata.push( { ...itemdetails, sold:sold_items, qtyavailable: present_available_items } ); 
-            }
-         }
-       }
-         this.dataSource.data = rcvddata;
-         console.log('getAllInventory(): Data after filling ', JSON.stringify(rcvddata));
-       
-     });
-   }
-
-   openDialogForDeleteConfirmation(event:any, item:any) {
-    const dialogRef = this.dialog.open(ConfirmationDialogComponent,{
-      data:{
-        message: 'Are you sure want to delete this Inventory Data?',
-        buttonText: {
-          ok: 'Delete',
-          cancel: 'Cancel'
-        }
-      }
-    });
-    
-
-    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
-      if (confirmed) {  
-        // Clicked on delete
-        console.log('Clicked on confirmed');      
-        this._inventoryService.deleteInventory(item).then((res) => {
-          console.log('openDialogForDeleteConfirmation: ',res);    
-          alert('Successfully deleted');
-        })
-        .catch((err) => {
-          console.log('openDialogForDeleteConfirmation error: ' + err);
-          alert('Error while openDialogForDeleteConfirmation');        
-        });
-        
-      }else {
-        // Cancelled
-        console.log('Cancelled click')
-      }
-    });
-  }
-  
-  onEditInventory(item: any) {
-    this.router.navigate(['/addinventory'], { queryParams: { data: JSON.stringify(item) } });
-  }
-
-   
-   ngOnChanges(changes: SimpleChanges) {
-    // changes.prop contains the old and the new value...
-    console.log('ListInventoryComponent:ngOnChanges()'+JSON.stringify(changes));
-    this.getAllInventory(changes["filterwithbarcode"]["currentValue"]);
-  }
    /** Announce the change in sort state for assistive technology. */
   announceSortChange(sortState: Sort) {
-    // This example uses English messages. If your application supports
-    // multiple language, you would internationalize these strings.
-    // Furthermore, you can customize the message to add additional
-    // details about the values being sorted.
     if (sortState.direction) {
       this._liveAnnouncer.announce(`Sorted ${sortState.direction}ending`);
     } else {

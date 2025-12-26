@@ -16,8 +16,10 @@ import { InventoryComponent } from '../inventory/inventory.component';
 import { SoldItemSummary } from '../sold-items-summary/sold-items-summary.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
-import { InventoryService } from 'src/app/services/inventory.service';
 import { InventoryItem } from 'src/app/models/inoffice';
+import { Store } from '@ngrx/store';
+import { selectAllInventory } from 'src/app/store/inventory/inventory.selectors';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-bill-details',
@@ -48,15 +50,15 @@ export class BillDetailsComponent implements OnInit {
     private dataService: DataService,
     private dialog: MatDialog,
     private router: Router,
-    private inventoryService: InventoryService
+    private store: Store
   ) {}
 
   ngOnInit(): void {
-    this.inventoryService.isCacheReady.subscribe(isReady => {
-      if(isReady) {
-        this.inventory = this.inventoryService.getInventoryCache();
-        this.loadInvoiceDetails();
-      }
+    this.store.select(selectAllInventory).pipe(
+      take(1) // Take the first emission of the inventory
+    ).subscribe(inventory => {
+      this.inventory = inventory;
+      this.loadInvoiceDetails();
     });
   }
 

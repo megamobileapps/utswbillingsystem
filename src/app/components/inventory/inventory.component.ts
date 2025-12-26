@@ -5,7 +5,6 @@ import { first } from 'rxjs';
 import { CartDetails } from 'src/app/providers/cart.details';
 import { CartService } from 'src/app/providers/cart.provider';
 import { DataService } from 'src/app/services/data.service';
-import { InventoryService } from 'src/app/services/inventory.service';
 import * as XLSX from "xlsx";
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { SoldItemSummary } from '../sold-items-summary/sold-items-summary.component';
@@ -16,6 +15,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { google_web_search } from 'src/app/tools/google_web_search';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import { Store } from '@ngrx/store'; // Import Store
+import * as InventoryActions from 'src/app/store/inventory/inventory.actions'; // Import InventoryActions
+import { InventoryItem } from 'src/app/models/inoffice'; // Import InventoryItem
 
 @Component({
   selector: 'app-inventory',
@@ -50,10 +52,10 @@ export class InventoryComponent implements OnInit {
 
   constructor(private formBuilder: FormBuilder,
     private _dataService:DataService,
-    private _inventoryService:InventoryService,
     private _cartService:CartService,private router: Router, private route: ActivatedRoute,
     @Optional() public dialogRef: MatDialogRef<InventoryComponent>,
-    @Optional() @Inject(MAT_DIALOG_DATA) public data: SoldItemSummary
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: SoldItemSummary,
+    private store: Store // Inject Store
     ) {
       let date1 = new Date();
       const year = date1.getFullYear();
@@ -132,35 +134,39 @@ export class InventoryComponent implements OnInit {
         hsn: this.f['hsn'].value
     };
   }
-  get getInventoryFormData():any{
+  get getInventoryFormData():InventoryItem{ // Explicitly type as InventoryItem
     return {
         productname: this.f2['productname'].value,   
-        hsn: this.f2['hsn'].value,       
-        quantity: this.f2['quantity'].value,
+        hsn: Number(this.f2['hsn'].value),       // Fixed: Convert to Number
+        quantity: Number(this.f2['quantity'].value), // Ensure number type
         unit: this.f2['unit'].value,
-        cp: this.f2['cp'].value,
-        percentgst: this.f2['percentgst'].value,
-        netcp: this.f2['netcp'].value,
-        calculatedmrp: this.f2['calculatedmrp'].value,
-        mrp: this.f2['mrp'].value,
-        fixedprofit: this.f2['fixedprofit'].value,
-        percentprofit: this.f2['percentprofit'].value,
+        cp: Number(this.f2['cp'].value), // Ensure number type
+        percentgst: Number(this.f2['percentgst'].value), // Ensure number type
+        netcp: Number(this.f2['netcp'].value), // Ensure number type
+        calculatedmrp: Number(this.f2['calculatedmrp'].value), // Ensure number type
+        mrp: Number(this.f2['mrp'].value), // Ensure number type
+        discount: Number(this.f2['discount'].value), // Fixed: Add discount and convert to Number
+        fixedprofit: Number(this.f2['fixedprofit'].value), // Ensure number type
+        percentprofit: Number(this.f2['percentprofit'].value), // Ensure number type
         labeleddate: this.f2['labeleddate'].value,
         vendor: this.f2['vendor'].value,
         brand: this.f2['brand'].value,
-        shippingcost: this.f2['shippingcost'].value,
-        barcode: this.f2['barcode'].value
+        shippingcost: Number(this.f2['shippingcost'].value), // Ensure number type
+        barcode: this.f2['barcode'].value,
+        qtyavailable: 0, // Assuming default values
+        sold: 0, // Assuming default values
+        netvalue: 0 // Assuming default values
     };
   }
 
   calculateCPMRPProfit(){
-    let fd = this.getInventoryFormData;
-    var cp_plus_shipping = Number(fd["cp"]) + Number(fd["shippingcost"]);
-    var netcp = Number(fd["cp"]) *( (100+ Number(fd["percentgst"]))/100) + Number(fd["shippingcost"]);
-    var calMRP = netcp*2 - Number(fd["shippingcost"]);
+    let fd: InventoryItem = this.getInventoryFormData; // Fixed: Call getter without ()
+    var cp_plus_shipping = fd.cp + fd.shippingcost; // Use fd properties directly
+    var netcp = fd.cp *( (100+ fd.percentgst)/100) + fd.shippingcost;
+    var calMRP = netcp*2 - fd.shippingcost;
     var MRP = calMRP;
 
-    var MRP_wo_GST = MRP/(1+Number(fd["percentgst"])/100);
+    var MRP_wo_GST = MRP/(1+fd.percentgst/100);
     var fixedProfit = MRP_wo_GST - (cp_plus_shipping);
     var percentProfit = fixedProfit*100/cp_plus_shipping;
 
@@ -270,20 +276,15 @@ export class InventoryComponent implements OnInit {
     }
 
     this.loading = true;
-    var formData = this.getInventoryFormData;
-    var data = {"itemdetails":formData, id:formData["barcode"]+'/'+formData["labeleddate"]};
+    var formData: InventoryItem = this.getInventoryFormData; // Fixed: Call getter without ()
+    this.store.dispatch(InventoryActions.addInventory({ item: formData }));
 
-    this._inventoryService.addInventory(data).then((res) => {
-      console.log('Inventory onSubmitFire(): ',res);   
-      alert(this.isEditMode ? 'Inventory updated successfully' : 'inventory is added successfully');
-      if (this.dialogRef) {
-        this.dialogRef.close();
-      }
-    })
-    .catch((err) => {
-      console.log('Inventory onSubmitFire() error: ' + err);
-      alert('Error while Inventory onSubmitFire()');        
-    });    
+    // Removed direct service call and alert logic, as NgRx effects handle this
+    // and the component reacts to store state changes.
+
+    if (this.dialogRef) {
+      this.dialogRef.close();
+    }
   }
 
   onClose(): void {
@@ -361,14 +362,29 @@ export class InventoryComponent implements OnInit {
           if (m_value["barcode"] == '' || m_value["labeleddate"] == '') {
             console.log('empty barcode and labeldate is not allowed')
           } else {
-            var data = {"itemdetails":m_value, id:m_value["barcode"]+'/'+m_value["labeleddate"]};
-            this._inventoryService.addInventory(data).then((res) => {
-              console.log('Inventory onSubmitFire(): ',res);   
-            })
-            .catch((err) => {
-              console.log('Inventory onSubmitFire() error: ' + err);
-              alert('Error while Inventory onSubmitFire()');        
-            });    
+            const itemToDispatch: InventoryItem = { // Ensure correct type
+                productname: m_value["productname"],
+                hsn: Number(m_value["hsn"]), // Fixed: Convert to Number
+                quantity: Number(m_value["quantity"]),
+                unit: m_value["unit"],
+                cp: Number(m_value["cp"]),
+                percentgst: Number(m_value["percentgst"]),
+                netcp: Number(m_value["netcp"]),
+                calculatedmrp: Number(m_value["calculatedmrp"]),
+                mrp: Number(m_value["mrp"]),
+                discount: Number(m_value["discount"] ?? 0), // Fixed: Add discount and convert to Number
+                fixedprofit: Number(m_value["fixedprofit"]),
+                percentprofit: Number(m_value["percentprofit"]),
+                labeleddate: m_value["labeleddate"],
+                vendor: m_value["vendor"],
+                brand: m_value["brand"],
+                shippingcost: Number(m_value["shippingcost"]),
+                barcode: m_value["barcode"],
+                qtyavailable: 0, // Assuming default values
+                sold: 0, // Assuming default values
+                netvalue: 0 // Assuming default values
+            };
+            this.store.dispatch(InventoryActions.addInventory({ item: itemToDispatch }));
           }
          });
       }

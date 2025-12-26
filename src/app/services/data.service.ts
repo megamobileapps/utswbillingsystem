@@ -145,7 +145,7 @@ import { InvoiceDataItem, InvoiceSoldItems } from "../models/invoice-data-item";
     this.invoiceListCache.clear();
     this.individualInvoiceCache.clear();
     return this._http.post<any>(`${environment.apiBackend}${this.saveBillUrl}`,
-                               { data })
+                               { data }) // Changed back to { data }
             .pipe(map(dmap => {
                 return dmap;
             }));

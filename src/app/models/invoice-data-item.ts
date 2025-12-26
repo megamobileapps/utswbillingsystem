@@ -9,6 +9,9 @@ export interface InvoiceDataItem {
     discount:string;
     payment_method:string;
     invoicedata:string;
+    salepoint?: string;
+    soldsubjects?: string;
+    posoperation?: string;
 };
 
 export interface InvoiceSoldItems {

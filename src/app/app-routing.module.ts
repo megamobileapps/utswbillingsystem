@@ -11,9 +11,6 @@ import { LogoutComponent } from './components/auth/login/logout.component';
 import { AuthGuard } from './components/auth/auth.guard';
 import { GenerateBarcodeComponent } from './components/generate-barcode/generate-barcode.component';
 import { ListInventoryComponent } from './components/inventory/list-inventory/list-inventory.component';
-import { DirectinvoiceComponent } from './components/directinvoice/directinvoice.component';
-import { BillComponent } from './components/bill/bill.component';
-import { BillDetailsComponent } from './components/bill-details/bill-details.component';
 
 
 const routes : Routes = [
@@ -26,9 +23,8 @@ const routes : Routes = [
   {path:'newcode',component:GenerateBarcodeComponent,canActivate:[AuthGuard]},
   {path:'login', component:LoginComponent},
   {path:'logout', component:LogoutComponent},
-  {path:'directinvoice', component:DirectinvoiceComponent,canActivate:[AuthGuard]},
-  {path:'showallbills', component:BillComponent,canActivate:[AuthGuard]},
-  {path:'bill-details/:id', component:BillDetailsComponent,canActivate:[AuthGuard]},
+  {path:'directinvoice', loadChildren: () => import('./components/directinvoice/directinvoice.module').then(m => m.DirectinvoicePageModule), canActivate:[AuthGuard]},
+  {path:'bills', loadChildren: () => import('./components/bill/bills.module').then(m => m.BillsModule), canActivate:[AuthGuard]},
   { 
     path: '',
     component:CatalogueComponent,canActivate: [AuthGuard]     
