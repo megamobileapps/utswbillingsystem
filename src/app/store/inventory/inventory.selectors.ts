@@ -24,3 +24,8 @@ export const selectInventoryError = createSelector(
   selectInventoryState,
   (state: InventoryState) => state.error
 );
+
+export const selectInventoryUploadStatus = createSelector(
+  selectInventoryState,
+  (state: InventoryState) => state.uploadStatus
+);

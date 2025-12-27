@@ -32,6 +32,6 @@ export class ApiService {
   }
 
   delete(path: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}${path}`);
+    return this.http.delete(`${this.apiUrl}${path}`, { observe: 'response', responseType: 'text' });
   }
 }

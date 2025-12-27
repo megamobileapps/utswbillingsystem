@@ -19,7 +19,7 @@ export class DisplayitemComponent implements OnInit {
 
   isMobileScreen:boolean = false;
   myImgSrc:string="https://utswv2-v2.s3.amazonaws.com/inventory/invdummy.jpg"
-  constructor(private _cartService:CartService, private screenSizeService:ScreenSizeService) { 
+  constructor(private _cartService:CartService, private screenSizeService:ScreenSizeService) {
     this.isMobileScreen = this.screenSizeService.getIsMobileResolution;
   }
 
@@ -28,6 +28,10 @@ export class DisplayitemComponent implements OnInit {
   }
 
   ngOnInit(): void {
+  }
+
+  getEncodedBarcode(barcode: string): string {
+    return encodeURIComponent(barcode);
   }
   
   checkIfCartItemExistInCart(ofItem:UTSWCartItem|null):Array<UTSWCartItem>|undefined{

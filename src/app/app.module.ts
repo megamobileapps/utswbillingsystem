@@ -69,6 +69,8 @@ import { LogoutComponent } from './components/auth/login/logout.component';
 import { GenerateBarcodeComponent } from './components/generate-barcode/generate-barcode.component';
 import { ListInventoryComponent } from './components/inventory/list-inventory/list-inventory.component';
 import { ConfirmationDialogComponent } from './components/confirmation-dialog/confirmation-dialog.component';
+import { NotificationComponent } from './components/notification/notification.component';
+
 
 
 @NgModule({
@@ -90,6 +92,7 @@ import { ConfirmationDialogComponent } from './components/confirmation-dialog/co
     GenerateBarcodeComponent,
     ListInventoryComponent,
     ConfirmationDialogComponent,
+    NotificationComponent,
   ],
   imports: [
     BrowserModule,

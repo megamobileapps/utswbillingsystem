@@ -85,9 +85,9 @@ export class ReceiptDetailsComponent implements OnInit {
         phonenumber: currentCart.phonenumber.toString(),
         emailid: currentCart.emailid.toString(),
         amount: (this._cartService.totalAmount - this.customerDiscount).toFixed(2), // Convert to string
-        discount: (this.customerDiscount).toFixed(2), // Convert to string
+        discount: Number(this.customerDiscount).toFixed(2), // Convert to string
         payment_method: currentCart.payment_method.toString(),
-        invoicedata: JSON.stringify(currentCart.invoicedatalist), // Correctly stringify the list
+        invoicedata: JSON.stringify(JSON.stringify(currentCart.invoicedatalist)), // Correctly stringify the list
         salepoint: 'office',
         soldsubjects: this.soldItemForBackend().toString(),
         posoperation: this.isCartEditOperation == false ? "addinvoice" : "editinvoice",

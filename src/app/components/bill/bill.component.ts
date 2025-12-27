@@ -82,7 +82,7 @@ export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
       this.dataSource.data = bills;
       this.totalInvoice.count = bills.length;
       this.totalInvoice.amount = 0;
-      bills.forEach(val => this.totalInvoice.amount += Number.parseFloat(val.amount.toString()));
+      bills.forEach(val => this.totalInvoice.amount += Number.parseFloat(Number(val.amount).toString()));
     });
   }
 

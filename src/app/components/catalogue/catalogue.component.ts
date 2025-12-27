@@ -66,7 +66,7 @@ export class CatalogueComponent implements OnInit {
     this.subscribeToInventoryStore();
     this.subscribeToInvoiceSoldItemsStore();
     this.getInvoiceSoldItemsFromServer();
-    this.getCategories();
+    // this.getCategories();
   }
 
   subscribeToInventoryStore(): void {

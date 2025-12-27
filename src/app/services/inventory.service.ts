@@ -30,7 +30,7 @@ export class InventoryService {
           data.id = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 12);
         data.key = data.id;
 
-        const path = `${this.basefolder}/${data.itemdetails.barcode}/${data.itemdetails.labeleddate}/`;
+        const path = `${this.basefolder}/${encodeURIComponent(data.itemdetails.barcode)}/${encodeURIComponent(data.itemdetails.labeleddate)}/`;
         
         return this.commonService.add(path, data);
       }

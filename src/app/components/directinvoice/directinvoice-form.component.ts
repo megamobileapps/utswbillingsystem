@@ -348,7 +348,17 @@ export class DirectinvoiceFormComponent implements OnInit {
           this._cartService.initialize_from_existing_cartdata(jsondata)
           const items = this.invoice.get('items') as FormArray;
           items.clear();
-          const data_to_load:Array<UTSWCartItem> = JSON.parse(jsondata!["invoicedata"]);
+          // const data_to_load:Array<UTSWCartItem> = JSON.parse(jsondata!["invoicedata"]);
+          let data_to_load: UTSWCartItem[] = []
+          if (typeof jsondata!["invoicedata"] === 'string') {
+            data_to_load = JSON.parse(jsondata!["invoicedata"]);
+          }else if (typeof jsondata!["invoicedata"] === 'object') {
+            data_to_load = jsondata!["invoicedata"] as UTSWCartItem[];
+          }
+          if (typeof data_to_load === 'string') {
+            data_to_load = JSON.parse(data_to_load);
+          }
+          
           data_to_load.forEach(element => {
             items.push(
               this.formBuilder.group({

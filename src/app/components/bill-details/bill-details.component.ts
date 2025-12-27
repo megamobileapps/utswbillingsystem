@@ -70,7 +70,13 @@ export class BillDetailsComponent implements OnInit {
           if (invoices && invoices.length > 0) {
             this.invoice = invoices[0];
             try {
-              let items: UTSWCartItem[] = JSON.parse(this.invoice.invoicedata);
+              console.log('Parsing invoicedata:', this.invoice.invoicedata,'type:', typeof this.invoice.invoicedata);
+              let items: UTSWCartItem[] = []
+              if (typeof this.invoice.invoicedata === 'string') {
+                items = JSON.parse(this.invoice.invoicedata);
+              }else if (typeof this.invoice.invoicedata === 'object') {
+                items = this.invoice.invoicedata as UTSWCartItem[];
+              }
               if (typeof items === 'string') {
                 items = JSON.parse(items);
               }

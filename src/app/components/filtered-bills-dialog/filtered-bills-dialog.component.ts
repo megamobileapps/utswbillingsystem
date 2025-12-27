@@ -59,6 +59,6 @@ export class FilteredBillsDialogComponent implements AfterViewInit {
 
   openBillDetails(invoice: InvoiceDataItem): void {
     this.dialogRef.close();
-    this.router.navigate(['/bill-details', invoice.invoicenumber]);
+    this.router.navigate(['bills/details', invoice.invoicenumber]);
   }
 }

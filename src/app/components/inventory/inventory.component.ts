@@ -341,7 +341,7 @@ export class InventoryComponent implements OnInit {
         let data:Array<Array<string>> = (XLSX.utils.sheet_to_json(ws, { header: 1 }));
         console.log(data);
 
-        let data_to_push:Array<Record<string, string>> = [];
+        let itemsToDispatch: InventoryItem[] = [];
         for(let csvIndex=1;csvIndex<data.length; csvIndex++){
           if (data[csvIndex].length != 16 ){
             console.log(`skipping row number ${csvIndex}`)
@@ -349,44 +349,35 @@ export class InventoryComponent implements OnInit {
           }
           let insert_record = this.prepare_inventory_row_from_excel(data[0], data[csvIndex])          
           console.log(`onxlsxFileChange()  value ${insert_record}`);          
-          data_to_push.push(insert_record);
-        }
-        console.log('data to push to db for inventory  is '+`${data_to_push}`)
-        data_to_push.forEach((m_value, m_key)=>{    
-          if (m_value["labeleddate"]==''){
-            m_value["labeleddate"]=this.todaydate;
-          }   
-          if(m_value["barcode"]==''){
-            m_value["barcode"]=m_value["productname"];
-          }
-          if (m_value["barcode"] == '' || m_value["labeleddate"] == '') {
+          if (insert_record["barcode"] == '' || insert_record["labeleddate"] == '') {
             console.log('empty barcode and labeldate is not allowed')
           } else {
             const itemToDispatch: InventoryItem = { // Ensure correct type
-                productname: m_value["productname"],
-                hsn: Number(m_value["hsn"]), // Fixed: Convert to Number
-                quantity: Number(m_value["quantity"]),
-                unit: m_value["unit"],
-                cp: Number(m_value["cp"]),
-                percentgst: Number(m_value["percentgst"]),
-                netcp: Number(m_value["netcp"]),
-                calculatedmrp: Number(m_value["calculatedmrp"]),
-                mrp: Number(m_value["mrp"]),
-                discount: Number(m_value["discount"] ?? 0), // Fixed: Add discount and convert to Number
-                fixedprofit: Number(m_value["fixedprofit"]),
-                percentprofit: Number(m_value["percentprofit"]),
-                labeleddate: m_value["labeleddate"],
-                vendor: m_value["vendor"],
-                brand: m_value["brand"],
-                shippingcost: Number(m_value["shippingcost"]),
-                barcode: m_value["barcode"],
+                productname: insert_record["productname"],
+                hsn: Number.isNaN(Number(insert_record["hsn"]))?44111200: Number(insert_record["hsn"]), // Fixed: Convert to Number
+                quantity: Number.isNaN(Number(insert_record["quantity"]))?0: Number(insert_record["quantity"]),
+                unit: insert_record["unit"]??'Nos',
+                cp: Number.isNaN(Number(insert_record["cp"]))?0: Number(insert_record["cp"]),
+                percentgst: Number.isNaN(Number(insert_record["percentgst"])) ? 0 : Number(insert_record["percentgst"]),
+                netcp: Number.isNaN(Number(insert_record["netcp"]))?0: Number(insert_record["netcp"]),
+                calculatedmrp: Number.isNaN(Number(insert_record["calculatedmrp"]))?0: Number(insert_record["calculatedmrp"]),
+                mrp: Number.isNaN(Number(insert_record["mrp"]))?0: Number(insert_record["mrp"]),
+                discount: Number.isNaN(Number(insert_record["discount"])) ? 0 : Number(insert_record["discount"]), // Fixed: Add discount and convert to Number
+                fixedprofit: Number.isNaN(Number(insert_record["fixedprofit"])) ? 0 : Number(insert_record["fixedprofit"]),
+                percentprofit: Number.isNaN(Number(insert_record["percentprofit"])) ? 0 : Number(insert_record["percentprofit"]),
+                labeleddate: insert_record["labeleddate"]??this.todaydate,
+                vendor: insert_record["vendor"]??'utsw',
+                brand: insert_record["brand"]??'utsw',
+                shippingcost: Number.isNaN(Number(insert_record["shippingcost"]))?0: Number(insert_record["shippingcost"]),
+                barcode: insert_record["barcode"]??insert_record["productname"],
                 qtyavailable: 0, // Assuming default values
                 sold: 0, // Assuming default values
                 netvalue: 0 // Assuming default values
             };
-            this.store.dispatch(InventoryActions.addInventory({ item: itemToDispatch }));
+            itemsToDispatch.push(itemToDispatch);
           }
-         });
+         }
+        this.store.dispatch(InventoryActions.uploadInventory({ items: itemsToDispatch }));
       }
       reader.readAsBinaryString(target.files[0]);
     }

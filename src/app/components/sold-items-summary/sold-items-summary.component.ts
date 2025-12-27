@@ -71,7 +71,13 @@ export class SoldItemsSummaryComponent implements OnInit, OnChanges {
     invoices.forEach(invoice => {
       if (invoice.invoicedata) {
         try {
-          let items: UTSWCartItem[] = JSON.parse(invoice.invoicedata);
+          console.log('Processing invoicedata:', invoice.invoicedata,'type:', typeof invoice.invoicedata);
+          let items: UTSWCartItem[] = []
+              if (typeof invoice.invoicedata === 'string') {
+                items = JSON.parse(invoice.invoicedata);
+              }else if (typeof invoice.invoicedata === 'object') {
+                items = invoice.invoicedata as UTSWCartItem[];
+              }
           if (typeof items === 'string') {
             items = JSON.parse(items);
           }
@@ -135,7 +141,12 @@ export class SoldItemsSummaryComponent implements OnInit, OnChanges {
         return false;
       }
       try {
-        let items: UTSWCartItem[] = JSON.parse(invoice.invoicedata);
+        let items: UTSWCartItem[] = []
+        if (typeof invoice.invoicedata === 'string') {
+          items = JSON.parse(invoice.invoicedata);
+        }else if (typeof invoice.invoicedata === 'object') {
+          items = invoice.invoicedata as UTSWCartItem[];
+        }
         if (typeof items === 'string') {
           items = JSON.parse(items);
         }

@@ -20,6 +20,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatAutocompleteModule } from '@angular/material/autocomplete'; // Added
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 @NgModule({
   declarations: [],
@@ -33,7 +34,8 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete'; // Added
     MatDialogModule,MatDatepickerModule,MatNativeDateModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
-    MatAutocompleteModule // Added
+    MatAutocompleteModule, // Added
+    MatSnackBarModule
   ],
   exports: [
     MatSlideToggleModule,
@@ -44,7 +46,8 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete'; // Added
     MatDialogModule,MatDatepickerModule,MatNativeDateModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
-    MatAutocompleteModule // Added
+    MatAutocompleteModule, // Added
+    MatSnackBarModule
   ],
   providers: [
     { provide: MAT_DIALOG_DATA, useValue: {} },

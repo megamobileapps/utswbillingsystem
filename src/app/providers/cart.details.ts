@@ -52,9 +52,18 @@ export class CartDetails{
         this.payment_method = json_data["payment_method"]
         this.invoicedate = json_data["invoicedate"]
 
-        let invoice_data:Array<InventoryItem> = JSON.parse(json_data["invoicedata"])
+        let items: InventoryItem[] = []
+        if (typeof json_data["invoicedata"] === 'string') {
+          items = JSON.parse(json_data["invoicedata"]);
+        }else if (typeof json_data["invoicedata"] === 'object') {
+          items = json_data["invoicedata"] as InventoryItem[];
+        }
+        if (typeof items === 'string') {
+          items = JSON.parse(items);
+        }
+        // let invoice_data:Array<InventoryItem> = JSON.parse(json_data["invoicedata"])
         parent.invoicedatalist=[]
-        invoice_data.forEach(element=>{
+        items.forEach(element=>{
             parent.invoicedatalist.push(parent.prepareCartItem(json_data["invoicenumber"], element));
         })
         this.isEditing = true;

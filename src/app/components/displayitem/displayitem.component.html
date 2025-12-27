@@ -1,7 +1,7 @@
 <div *ngIf="ofItem">
     <div *ngIf="!isMobileScreen" class="py-0">
         <div class="d-flex w-100 justify-content-between">
-            <img [src]="myImgSrc" (mouseover)="myImgSrc = 'https://utswv2-v2.s3.amazonaws.com/inventory/'+ofItem!.barcode+'.jpg'" (mouseout)="myImgSrc = 'https://utswv2-v2.s3.amazonaws.com/inventory/invdummy.jpg'"/>
+            <img [src]="myImgSrc" (mouseover)="myImgSrc = 'https://utswv2-v2.s3.amazonaws.com/inventory/'+getEncodedBarcode(ofItem!.barcode)+'.jpg'" (mouseout)="myImgSrc = 'https://utswv2-v2.s3.amazonaws.com/inventory/invdummy.jpg'"/>
             <p class="mb-1 text"><strong>{{ofItem!.productname}} MRP: {{ofItem!.mrp}}</strong></p>
             <small *ngIf="enableBuy"><button (click)="addToCart(ofItem)" class="btn btn-sm btn-primary">Buy</button></small>
         </div>

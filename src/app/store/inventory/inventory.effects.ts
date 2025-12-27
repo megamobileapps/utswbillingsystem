@@ -7,6 +7,9 @@ import * as InventoryActions from './inventory.actions';
 import { InventoryItem } from 'src/app/models/inoffice';
 import { mergeMap } from 'rxjs/operators';
 
+import { forkJoin } from 'rxjs';
+import { InventoryUploadStatus } from 'src/app/models/inventory-upload-status';
+
 @Injectable()
 export class InventoryEffects {
   loadInventory$ = createEffect(() =>
@@ -30,9 +33,9 @@ export class InventoryEffects {
   deleteInventory$ = createEffect(() =>
     this.actions$.pipe(
       ofType(InventoryActions.deleteInventory),
-      mergeMap(({ barcode }) =>
-        from(this.inventoryService.deleteInventory({ id: barcode })).pipe( // Assuming deleteInventory returns a Promise
-          map(() => InventoryActions.deleteInventorySuccess({ barcode })),
+      mergeMap(({ barcode, labeldate }) =>
+        from(this.inventoryService.deleteInventory({ id: `${encodeURIComponent(barcode)}/${encodeURIComponent(labeldate)}` })).pipe(
+          map(() => InventoryActions.deleteInventorySuccess({ barcode, labeldate })),
           catchError((error) =>
             of(InventoryActions.deleteInventoryFailure({ error }))
           )
@@ -47,13 +50,40 @@ export class InventoryEffects {
       mergeMap(({ item }) => {
         const data = {
           "itemdetails": item,
-          "id": item.barcode + '/' + item.labeleddate
+          "id": `${encodeURIComponent(item.barcode)}/${encodeURIComponent(item.labeleddate)}`
         };
         return from(this.inventoryService.addInventory(data)).pipe(
           map(() => InventoryActions.addInventorySuccess({ item })),
           catchError((error) =>
             of(InventoryActions.addInventoryFailure({ error }))
           )
+        );
+      })
+    )
+  );
+
+  uploadInventory$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(InventoryActions.uploadInventory),
+      exhaustMap(({ items }) => {
+        const uploadTasks = items.map(item => {
+          const data = {
+            "itemdetails": item,
+            "id": `${encodeURIComponent(item.barcode)}/${encodeURIComponent(item.labeleddate)}`
+          };
+          return from(this.inventoryService.addInventory(data)).pipe(
+            map(() => ({ barcode: item.barcode, labeldate: item.labeleddate, status: 'SUCCESS' } as InventoryUploadStatus)),
+            catchError((error) => of({ barcode: item.barcode, labeldate: item.labeleddate, status: 'FAILED', error: error.message } as InventoryUploadStatus))
+          );
+        });
+
+        return forkJoin(uploadTasks).pipe(
+          map(results => {
+            const successfulUploads = results.filter(r => r.status === 'SUCCESS');
+            const failedUploads = results.filter(r => r.status === 'FAILED');
+            return InventoryActions.uploadInventorySuccess({ successfulUploads, failedUploads });
+          }),
+          catchError(error => of(InventoryActions.uploadInventoryFailure({ error })))
         );
       })
     )

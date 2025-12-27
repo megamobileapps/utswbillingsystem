@@ -123,7 +123,9 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
         });
       })
     ).subscribe(filteredAndProcessedInventory => {
-      this.dataSource.data = filteredAndProcessedInventory;
+      this.dataSource = new MatTableDataSource(filteredAndProcessedInventory);
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
     });
   }
   
@@ -145,7 +147,7 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
 
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {  
-        this.store.dispatch(InventoryActions.deleteInventory({ barcode: item.barcode }));
+        this.store.dispatch(InventoryActions.deleteInventory({ barcode: item.barcode, labeldate: item.labeleddate }));
       }
     });
   }

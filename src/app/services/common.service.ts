@@ -77,11 +77,12 @@ export class CommonService {
 
         return reject('Object passed is null or id is not defined');
       }
-      // Ensure basepath does not end with a slash, then append id and a slash
-      const cleanedBasepath = basepath.replace(/\/+$/, '');
-      this.apiService.delete(`${cleanedBasepath}/${dataObj.id}/`) // Using ApiService
+      this.apiService.delete(`${basepath}/${dataObj.id}/`) // Using ApiService
       .subscribe(
         result => {
+          if (result.status === 204) {
+            return resolve('Delete Successful');
+          }
           return resolve('Delete Successful');
         },
         err => {
