@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UTSWCartItem } from 'src/app/models/cart-item';
@@ -8,7 +8,7 @@ import { CartService } from 'src/app/providers/cart.provider';
 import { DataService } from 'src/app/services/data.service';
 import { InventoryService } from 'src/app/services/inventory.service';
 import { ScreenSizeService } from 'src/app/services/screen-size.service';
-import { BehaviorSubject, Observable, startWith, debounceTime, distinctUntilChanged, switchMap, map, tap } from 'rxjs';
+import { BehaviorSubject, Observable, startWith, debounceTime, distinctUntilChanged, switchMap, map, tap, Subscription } from 'rxjs';
 import { environment } from "src/environments/environment";
 import * as $ from "jquery";
 import { InvoiceDataItem } from 'src/app/models/invoice-data-item';
@@ -43,7 +43,7 @@ import { selectAllInventory, selectInventoryStatus } from 'src/app/store/invento
     MatNativeDateModule
   ]
 })
-export class DirectinvoiceFormComponent implements OnInit {
+export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
   invoice: FormGroup;
   submitted:boolean=false;
   loading:boolean=false;
@@ -55,6 +55,7 @@ export class DirectinvoiceFormComponent implements OnInit {
   allInventoryItems: InventoryItem[] = []; // Store all inventory items
   filteredOptions: Observable<InventoryItem[]>[] = []; // Observable for filtered suggestions per item
   private fuse: Fuse<InventoryItem>; // Declare fuse property
+  private amountCalculationSubscription: Subscription;
 
   constructor(private formBuilder: FormBuilder,
     private _dataService:DataService, 
@@ -96,6 +97,25 @@ export class DirectinvoiceFormComponent implements OnInit {
       if (this.oldinvoiceid != null && this.oldinvoiceid != "-1"){
         this.load_old_invoice_data(this.oldinvoiceid) // Then load old invoice data if applicable
       }
+
+      this.amountCalculationSubscription = this.invoice.get('items')!.valueChanges.pipe(
+        debounceTime(300)
+      ).subscribe(() => {
+        this.onCalculateBillAmount();
+      });
+    }
+
+    ngOnDestroy(): void {
+      if (this.amountCalculationSubscription) {
+        this.amountCalculationSubscription.unsubscribe();
+      }
+    }
+
+    clearInvoiceForm(): void {
+      const items = this.invoice.get('items') as FormArray;
+      items.clear();
+      items.push(this.createItemFormGroup());
+      this.setupFormArrayControls();
     }
 
     subscribeToInventory(): void {
@@ -151,20 +171,7 @@ export class DirectinvoiceFormComponent implements OnInit {
           startWith(''),
           debounceTime(300),
           distinctUntilChanged(),
-          map(value => ({ value, filtered: this._filter(value || '') })), // Pass both value and filtered results down
-          tap(({ value, filtered }) => {
-            if (typeof value === 'string' && value.length > 2 && filtered.length === 1) { // maybe check for value length to avoid auto-selecting on very short strings
-                const singleItem = filtered[0];
-                if (singleItem.barcode.toLowerCase() === value.toLowerCase()) {
-                    // We are in the valueChanges of the control at 'index'.
-                    // Need to make sure we're not in a weird state.
-                    this.patchItemForm(singleItem, index);
-                    this.addItem();
-                    // This will trigger valueChanges on the new control, which is fine.
-                }
-            }
-          }),
-          map(({ filtered }) => filtered) // Return only the filtered results for the async pipe
+          map(value => this._filter(value || ''))
         );
       });
     }
@@ -390,7 +397,7 @@ export class DirectinvoiceFormComponent implements OnInit {
 
   removeItem(index: any) {
     const items = this.invoice.get('items') as FormArray;
-    this.removeFromCart(this.prepare_json_from_formgroup(items.at(index) as FormGroup));
+    this._cartService.removeFromCart(this.prepare_json_from_formgroup(items.at(index) as FormGroup));
     items.removeAt(index);
   }
 
@@ -399,192 +406,99 @@ export class DirectinvoiceFormComponent implements OnInit {
     // This method is commented out in HTML
   }
 
-  get cart():CartDetails|null|undefined{
-    return this._cartService.currentCart;
+  clearCart():void{
+    this._cartService.currentCart!.invoicedatalist=[];
   }
 
-
-  checkIfCartItemExistInCart(ofItem:UTSWCartItem|null):Array<UTSWCartItem>|undefined{
-    if(null == ofItem) return [];
-    return this.cart?.invoicedatalist.filter((value, index)=> 
-    value.productCategory == ofItem.productCategory &&
-    value.productId == ofItem.productId &&
-    value.id == ofItem.id &&
-    value.productName == ofItem.productName
-    );
+  onPushToCart(){
+    console.log('onPushToCart called');
+    console.log("onPushToCart component");
+    this.submitted = true;
+    this.loading = true;
+  
+    const items = this.invoice.get('items') as FormArray;
     
+    for (let i = 0; i < items.length; i++) {
+        const itemGroup = items.at(i) as FormGroup;
+        const productnameValue = itemGroup.get('productname')?.value;
+  
+        if (!productnameValue) {
+            continue; 
+        }
+  
+        if (typeof productnameValue === 'string' && !itemGroup.get('barcode')?.value) {
+            const newBarcode = `manual-${Date.now()}-${i}`;
+            itemGroup.get('barcode')?.setValue(newBarcode, { emitEvent: false });
+        }
+  
+        if (itemGroup.valid) {
+            const itemValues = this.prepare_json_from_formgroup(itemGroup);
+            console.log(`onPushToCart(): adding item number ${i} ${JSON.stringify(itemValues)}`);
+            this._cartService.addToCart(itemValues);
+        } else {
+            const productNameDisplay = (typeof productnameValue === 'object' && productnameValue?.productname) 
+                                       ? productnameValue.productname 
+                                       : productnameValue;
+            console.log(`onPushToCart(): Row for product "${productNameDisplay}" has invalid values.`);
+            alert(`Item "${productNameDisplay}" has invalid values and will not be added to the cart.`);
+            itemGroup.markAllAsTouched();
+        }
+    }
+  
+    this.loading = false;
+    console.log('Finished processing all items.');
   }
-    
-  
-    // return -1 if it does not exist
-    checkIfExistInCart(ofItem:InventoryItem|null):Array<UTSWCartItem>|undefined{
-      if(null == ofItem) 
-        return [];
-                 
-        return this.cart?.invoicedatalist.filter((value, index)=> 
-          value.productCategory == ofItem.brand &&
-          value.productId == ofItem.barcode &&
-          value.id == ofItem.barcode.toString() &&
-          value.productName == ofItem.productname
-        );
-      
-      
-    }
-  
-    prepareCartItem(txId:number, ofItem:InventoryItem):UTSWCartItem{
-      var retVal:UTSWCartItem  = {
-        txId:txId,
-        id:ofItem.barcode.toString(),    
-        quantityProvider:new BehaviorSubject<number>(ofItem.quantity),
-        quantity:ofItem.quantity,
-        productCategory:ofItem.brand,    
-        productId:ofItem.barcode,
-        productName:ofItem.productname,
-        initialPrice:ofItem.mrp,
-        productPrice:(ofItem.mrp)*((100-ofItem.discount)/100), // initialprice - discount
-        discount:ofItem.discount,        
-        gst:ofItem.percentgst,      
-        hsn:ofItem.hsn,
-        unitTag:'Nos',
-        image:'',
-        labeldate:ofItem.labeleddate
-      };
-      return retVal;
-    }
-    addToCart(ofItem:InventoryItem|null){
-      var existingItem = this.checkIfExistInCart(ofItem!);
-      var txId = this.cart!.invoicedatalist.length == 0?
-                Math.floor(Math.random() * 1000000)
-                :this.cart!.invoicedatalist[0].txId;
-      this._cartService.currentCart!.invoicenumber = txId;
-      this._cartService.currentCart!.invoicedate = Date.now().toString();
-      if(existingItem!.length == 0) {
-        this.cart!.invoicedatalist.push(this.prepareCartItem(txId, ofItem!))
-      }else{
-        existingItem![0].quantityProvider .next(existingItem![0].quantityProvider.getValue()+1);
-        existingItem![0].quantity +=1;
-      }
-    }
 
-    getItemAmount(ofItem:InventoryItem|null){
-      let l = this.prepareCartItem(1, ofItem!);
-      return l.productPrice * l.quantity;
-    }
-
-    removeFromCart(ofItem:InventoryItem|null){
-      var existingItem = this.checkIfExistInCart(ofItem!);
-      var txId = this.cart!.invoicedatalist.length == 0?
-                Math.floor(Math.random() * 1000000)
-                :this.cart!.invoicedatalist[0].txId;
-      this._cartService.currentCart!.invoicenumber = txId;
-      if(existingItem!.length == 0) {
-      }else{
-        existingItem![0].quantityProvider .next(0);
-        existingItem![0].quantity =0;
-      }
-    }
-    clearCart():void{
-      this._cartService.currentCart!.invoicedatalist=[];
-    }
-
-    // Push single item to cart
-    onPushSingleItemToCart(itemIndex=0){
-      const items = this.invoice.get('items') as FormArray;
-      const itemGroup = items.at(itemIndex) as FormGroup;
-    
-      if (itemGroup) {
-          const productnameControlValue = itemGroup.get('productname')?.value;
-          const barcodeControl = itemGroup.get('barcode');
-    
-          // When a product is manually entered (not selected from autocomplete),
-          // productname is a string. If barcode is empty, generate a temporary one.
-          if (typeof productnameControlValue === 'string' && !barcodeControl?.value) {
-              const newBarcode = 'manual-' + Date.now();
-              barcodeControl?.setValue(newBarcode, { emitEvent: false });
-          }
-    
-          if (itemGroup.valid) {
-              const itemValues = this.prepare_json_from_formgroup(itemGroup);
-              console.log('onPushSingleItemToCart(): item = ' + JSON.stringify(itemValues));
-              this.addToCart(itemValues);
-          } else {
-              console.log('onPushSingleItemToCart() Item form has invalid values. Please check.');
-              alert('Item form has invalid values. Please check.');
-          }
-      }
-    }
-    //
-    // push all items to cart
-    //
-    onPushToCart(){
-      console.log('onPushToCart called');
-      console.log("onPushToCart component");
-      this.submitted = true;
-      this.loading = true;
-    
-      const items = this.invoice.get('items') as FormArray;
-      
-      for (let i = 0; i < items.length; i++) {
-          const itemGroup = items.at(i) as FormGroup;
-          const productnameValue = itemGroup.get('productname')?.value;
-    
-          // Ignore rows that are completely empty (e.g., newly added but not filled)
-          if (!productnameValue) {
-              continue; 
-          }
-    
-          // If productname is manually entered (is a string), and barcode is missing, generate one.
-          if (typeof productnameValue === 'string' && !itemGroup.get('barcode')?.value) {
-              const newBarcode = `manual-${Date.now()}-${i}`;
-              itemGroup.get('barcode')?.setValue(newBarcode, { emitEvent: false });
-          }
-    
-          if (itemGroup.valid) {
-              const itemValues = this.prepare_json_from_formgroup(itemGroup);
-              console.log(`onPushToCart(): adding item number ${i} ${JSON.stringify(itemValues)}`);
-              this.addToCart(itemValues);
-          } else {
-              const productNameDisplay = (typeof productnameValue === 'object' && productnameValue?.productname) 
-                                         ? productnameValue.productname 
-                                         : productnameValue;
-              console.log(`onPushToCart(): Row for product "${productNameDisplay}" has invalid values.`);
-              alert(`Item "${productNameDisplay}" has invalid values and will not be added to the cart.`);
-              itemGroup.markAllAsTouched();
-          }
-      }
-    
-      this.loading = false;
-      console.log('Finished processing all items.');
-    }
+  onPushSingleItemToCart(itemIndex=0){
+    const items = this.invoice.get('items') as FormArray;
+    const itemGroup = items.at(itemIndex) as FormGroup;
   
+    if (itemGroup) {
+        const productnameControlValue = itemGroup.get('productname')?.value;
+        const barcodeControl = itemGroup.get('barcode');
+  
+        if (typeof productnameControlValue === 'string' && !barcodeControl?.value) {
+            const newBarcode = 'manual-' + Date.now();
+            barcodeControl?.setValue(newBarcode, { emitEvent: false });
+        }
+  
+        if (itemGroup.valid) {
+            const itemValues = this.prepare_json_from_formgroup(itemGroup);
+            console.log('onPushSingleItemToCart(): item = ' + JSON.stringify(itemValues));
+            this._cartService.addToCart(itemValues);
+        } else {
+            console.log('onPushSingleItemToCart() Item form has invalid values. Please check.');
+            alert('Item form has invalid values. Please check.');
+        }
+    }
+  }
+
     onCalculateBillAmount(){
       console.log('onCalculateBillAmount called');
       console.log("onCalculateBillAmount component");
       this.submitted = true;
       this.currBasketAmt = 0.0;
       
-      if (this.invoice.invalid) {
-        console.log("inventory options form is invalid");
-          return;
-      }
+      const items = this.invoice.get('items') as FormArray;
   
       this.loading = true;
-      var formData:Array<any> = this.allInvoiceItems();
-      
       var amount = 0;
-      for(let indexItem = 0;indexItem<formData.length;indexItem++){
-        console.log("onCalculateBillAmount(): adding item number "+indexItem+" "+JSON.stringify(formData[indexItem]));
-        amount += this.getItemAmount(formData[indexItem]);
+  
+      for (const control of items.controls) {
+        if (control.valid) {
+          const itemValues = this.prepare_json_from_formgroup(control as FormGroup);
+          console.log("onCalculateBillAmount(): adding item " + JSON.stringify(itemValues));
+          amount += (itemValues.mrp * (100 - itemValues.discount) / 100) * itemValues.quantity;
+        }
       }
+      
       console.log('total Amount = '+amount);
       this.currBasketAmt = amount;
-      
+      this.loading = false;
     }
-
-    get currentCart():CartDetails|undefined|null{
-      return this._cartService.currentCart;
-    }
-
+  get currentCart():CartDetails|undefined|null{
+    return this._cartService.currentCart;
+  }
 
     checkoutpayu(custinfo:any) {
       

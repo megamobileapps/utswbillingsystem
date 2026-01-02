@@ -102,6 +102,7 @@ export class InventoryComponent implements OnInit {
         netcp: ['0'],
         calculatedmrp: ['0'],
         mrp: ['0'],
+        discount:['0'],
         fixedprofit: ['0'],
         percentprofit: ['0'],
         labeleddate: [this.todaydate],
@@ -135,24 +136,25 @@ export class InventoryComponent implements OnInit {
     };
   }
   get getInventoryFormData():InventoryItem{ // Explicitly type as InventoryItem
+    const rawValue = this.options.getRawValue();
     return {
-        productname: this.f2['productname'].value,   
-        hsn: Number(this.f2['hsn'].value),       // Fixed: Convert to Number
-        quantity: Number(this.f2['quantity'].value), // Ensure number type
-        unit: this.f2['unit'].value,
-        cp: Number(this.f2['cp'].value), // Ensure number type
-        percentgst: Number(this.f2['percentgst'].value), // Ensure number type
-        netcp: Number(this.f2['netcp'].value), // Ensure number type
-        calculatedmrp: Number(this.f2['calculatedmrp'].value), // Ensure number type
-        mrp: Number(this.f2['mrp'].value), // Ensure number type
-        discount: Number(this.f2['discount'].value), // Fixed: Add discount and convert to Number
-        fixedprofit: Number(this.f2['fixedprofit'].value), // Ensure number type
-        percentprofit: Number(this.f2['percentprofit'].value), // Ensure number type
-        labeleddate: this.f2['labeleddate'].value,
-        vendor: this.f2['vendor'].value,
-        brand: this.f2['brand'].value,
-        shippingcost: Number(this.f2['shippingcost'].value), // Ensure number type
-        barcode: this.f2['barcode'].value,
+        productname: rawValue.productname,   
+        hsn: Number(rawValue.hsn),
+        quantity: Number(rawValue.quantity),
+        unit: rawValue.unit,
+        cp: Number(rawValue.cp),
+        percentgst: Number(rawValue.percentgst),
+        netcp: Number(rawValue.netcp),
+        calculatedmrp: Number(rawValue.calculatedmrp),
+        mrp: Number(rawValue.mrp),
+        discount: Number(rawValue.discount),
+        fixedprofit: Number(rawValue.fixedprofit),
+        percentprofit: Number(rawValue.percentprofit),
+        labeleddate: rawValue.labeleddate,
+        vendor: rawValue.vendor,
+        brand: rawValue.brand,
+        shippingcost: Number(rawValue.shippingcost),
+        barcode: rawValue.barcode,
         qtyavailable: 0, // Assuming default values
         sold: 0, // Assuming default values
         netvalue: 0 // Assuming default values

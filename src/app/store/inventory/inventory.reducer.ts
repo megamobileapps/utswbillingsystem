@@ -68,9 +68,8 @@ export const inventoryReducer = createReducer(
     error: null,
     uploadStatus: [],
   })),
-  on(InventoryActions.uploadInventorySuccess, (state, { successfulUploads, failedUploads }): InventoryState => {
-    const successfulItems = successfulUploads.map(s => ({ ...s, ...state.entities[`${s.barcode}/${s.labeldate}`] }));
-    return inventoryAdapter.addMany(successfulItems as InventoryItem[], {
+  on(InventoryActions.uploadInventorySuccess, (state, { successfulUploads, failedUploads, successfulItems }): InventoryState => {
+    return inventoryAdapter.addMany(successfulItems, {
       ...state,
       status: 'success',
       error: null,

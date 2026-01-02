@@ -69,6 +69,26 @@ export class CatalogueComponent implements OnInit {
     // this.getCategories();
   }
 
+  filter_fun(item: InventoryItem, filter: String): boolean {
+
+        if (!item || !filter || item ==null || filter==null) {
+            return true;
+        }
+        filter=filter.toLowerCase();
+        // var searchStr = /filter/gi;
+        // console.log('searchStr'+searchStr);
+        // filter items array, items which match and return true will be
+        // kept, false will be filtered out
+        return (
+            item.brand != null && item.vendor != null && item.productname != null && item.mrp != null && item.barcode != null &&
+            (item.brand.toString().toLowerCase().indexOf(filter.toString()) != -1
+            ||item.vendor.toString().toLowerCase().indexOf(filter.toString()) != -1
+            ||item.productname.toString().toLowerCase().indexOf(filter.toString()) != -1
+            || item.mrp.toString().toLowerCase().indexOf(filter.toString()) != -1
+            || item.barcode.toString().toLowerCase().indexOf(filter.toString()) != -1)
+            );
+    
+  }
   subscribeToInventoryStore(): void {
     combineLatest([
       this.store.select(selectAllInventory),
@@ -86,15 +106,13 @@ export class CatalogueComponent implements OnInit {
           if (filterBarcode != null && item.barcode.toLowerCase() == filterBarcode.toLowerCase()) {
             return true;
           } else if (filterBarcode == null || filterBarcode === '') {
-            if (this.searchStr && item.productname.toLowerCase().includes(this.searchStr.toLowerCase())) {
-              return true;
-            }
-            return true;
+            
+            return this.filter_fun(item, this.searchStr);
           }
           return false;
         }).filter(item => {
             if(filterBarcode == null || filterBarcode === ''){
-              return item.productname.toLowerCase().includes(this.searchStr.toLowerCase());
+              return this.filter_fun(item, this.searchStr);
             }
             return true;
         });

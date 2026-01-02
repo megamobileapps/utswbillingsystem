@@ -56,6 +56,7 @@ export const uploadInventorySuccess = createAction(
   props<{
     successfulUploads: InventoryUploadStatus[];
     failedUploads: InventoryUploadStatus[];
+    successfulItems: InventoryItem[];
   }>()
 );
 

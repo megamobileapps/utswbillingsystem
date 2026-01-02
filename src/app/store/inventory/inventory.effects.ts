@@ -19,7 +19,15 @@ export class InventoryEffects {
         this.inventoryService.getAllInventory().pipe(
           map((data: any[]) => {
             // The service returns an array of {itemdetails: InventoryItem}, we need to map it
-            const inventory: InventoryItem[] = data.map(itemWrapper => itemWrapper.itemdetails as InventoryItem);
+            const inventory: InventoryItem[] = data.map(itemWrapper => {
+              const item = itemWrapper.itemdetails as InventoryItem;
+              return {
+                ...item,
+                lastupdatedby: 'System',
+                lastupdatedon: new Date(),
+                netvalue:item.mrp*( (100 - item.discount)/100 )
+              };
+            });
             return InventoryActions.loadInventorySuccess({ inventory });
           }),
           catchError((error) =>
@@ -48,12 +56,17 @@ export class InventoryEffects {
     this.actions$.pipe(
       ofType(InventoryActions.addInventory),
       mergeMap(({ item }) => {
+        const newItem = {
+          ...item,
+          lastupdatedby: 'System',
+          lastupdatedon: new Date()
+        };
         const data = {
-          "itemdetails": item,
-          "id": `${encodeURIComponent(item.barcode)}/${encodeURIComponent(item.labeleddate)}`
+          "itemdetails": newItem,
+          "id": `${encodeURIComponent(newItem.barcode)}/${encodeURIComponent(newItem.labeleddate)}`
         };
         return from(this.inventoryService.addInventory(data)).pipe(
-          map(() => InventoryActions.addInventorySuccess({ item })),
+          map(() => InventoryActions.addInventorySuccess({ item: newItem })),
           catchError((error) =>
             of(InventoryActions.addInventoryFailure({ error }))
           )
@@ -67,21 +80,36 @@ export class InventoryEffects {
       ofType(InventoryActions.uploadInventory),
       exhaustMap(({ items }) => {
         const uploadTasks = items.map(item => {
+          const newItem = {
+            ...item,
+            lastupdatedby: 'System',
+            lastupdatedon: new Date()
+          };
           const data = {
-            "itemdetails": item,
-            "id": `${encodeURIComponent(item.barcode)}/${encodeURIComponent(item.labeleddate)}`
+            "itemdetails": newItem,
+            "id": `${encodeURIComponent(newItem.barcode)}/${encodeURIComponent(newItem.labeleddate)}`
           };
           return from(this.inventoryService.addInventory(data)).pipe(
-            map(() => ({ barcode: item.barcode, labeldate: item.labeleddate, status: 'SUCCESS' } as InventoryUploadStatus)),
-            catchError((error) => of({ barcode: item.barcode, labeldate: item.labeleddate, status: 'FAILED', error: error.message } as InventoryUploadStatus))
+            map(() => ({ item: newItem, status: 'SUCCESS' as const })),
+            catchError((error) => of({ item: item, status: 'FAILED' as const, error: error.message }))
           );
         });
 
         return forkJoin(uploadTasks).pipe(
           map(results => {
-            const successfulUploads = results.filter(r => r.status === 'SUCCESS');
-            const failedUploads = results.filter(r => r.status === 'FAILED');
-            return InventoryActions.uploadInventorySuccess({ successfulUploads, failedUploads });
+            const successfulUploads: InventoryUploadStatus[] = [];
+            const failedUploads: InventoryUploadStatus[] = [];
+            const successfulItems: InventoryItem[] = [];
+
+            for (const r of results) {
+              if (r.status === 'SUCCESS') {
+                successfulUploads.push({ barcode: r.item.barcode, labeldate: r.item.labeleddate, status: 'SUCCESS' });
+                successfulItems.push(r.item);
+              } else if (r.status === 'FAILED') {
+                failedUploads.push({ barcode: r.item.barcode, labeldate: r.item.labeleddate, status: 'FAILED', error: r.error });
+              }
+            }
+            return InventoryActions.uploadInventorySuccess({ successfulUploads, failedUploads, successfulItems });
           }),
           catchError(error => of(InventoryActions.uploadInventoryFailure({ error })))
         );
