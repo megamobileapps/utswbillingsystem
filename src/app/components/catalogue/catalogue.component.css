@@ -1,16 +1,28 @@
-.ms-n5 {
-    margin-left: -40px;
+:host {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* Allow the component itself to grow */
 }
 
-zxing-scanner {
-    display: block;
-    width: 100%;
-    max-width: 200px;
-    margin: 0 auto;
-  }
-  p {
-    text-align: center;
-    font-size: 1.2em;
-    color: green;
-  }
-  
+/* Ensure parents of virtual-scroll-viewport are flex containers for height to propagate */
+.mat-elevation-z8, .table-container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* Allow these containers to grow */
+}
+
+/* Base styles for the virtual scroll viewport */
+.virtual-scroll-viewport {
+  flex-grow: 1; /* Allow it to grow in its container */
+  flex-shrink: 1; /* Allow it to shrink */
+  flex-basis: auto; /* Default basis */
+  min-height: 300px; /* A reasonable minimum height for standalone view */
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.card-body {
+  padding: 0;
+}

@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef, Renderer2, OnDestroy } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, filter, map as rxjsMap } from 'rxjs';
@@ -17,19 +17,22 @@ import { selectAllInventory, selectInventoryStatus } from 'src/app/store/invento
 import * as InventoryActions from 'src/app/store/inventory/inventory.actions';
 import * as InvoiceSoldItemsActions from 'src/app/store/invoice-sold-items/invoice-sold-items.actions';
 import { selectAllInvoiceSoldItems } from 'src/app/store/invoice-sold-items/invoice-sold-items.selectors';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatSort } from '@angular/material/sort';
 
 @Component({
   selector: 'app-catalogue',
   templateUrl: './catalogue.component.html',
-  styleUrls: ['./catalogue.component.css']
+  styleUrls: ['./catalogue.component.css', './catalogue.component.mobile.css']
 })
 
-export class CatalogueComponent implements OnInit {
+export class CatalogueComponent implements OnInit, AfterViewInit, OnDestroy {
+  selectedTab: string = 'manual';
   @ViewChild('videoElement') videoElement: ElementRef;
+  @ViewChild('virtualScrollViewport') virtualScrollViewport: ElementRef;
   catalogueItems:Array<InventoryItem>=[];
   categories:Array<InOfficeCat>=[];
   selectedCat:string='';
-  searchStr:string=''; // Corrected initialization
   isMobileScreen:boolean=false;
   oldinvoiceid:string="-1"
   allsoldItems:Record<string, number> = {}
@@ -38,13 +41,21 @@ export class CatalogueComponent implements OnInit {
   filterwithbarcode:string|null=null;
   private filterBarcodeSubject = new BehaviorSubject<string | null>(null);
 
+  dataSource = new MatTableDataSource<InventoryItem>([]);
+  displayedColumns: string[] = ['productname', 'mrp', 'qtyavailable', 'actions'];
+  @ViewChild(MatSort) sort: MatSort;
+  private resizeObserver: ResizeObserver;
+
   constructor(private _dataService:DataService,
     private route: ActivatedRoute,
     private router:Router,
     private _sanitizer: DomSanitizer,
     private datePipe:DatePipe,
     private _cartService:CartService, private screenSizeService:ScreenSizeService,
-    private store: Store
+    private store: Store,
+    private cdr: ChangeDetectorRef,
+    private renderer: Renderer2,
+    private elementRef: ElementRef,
     ) { 
       this._cartService.isEditing = false;
       this.isMobileScreen = this.screenSizeService.getIsMobileResolution;
@@ -66,61 +77,88 @@ export class CatalogueComponent implements OnInit {
     this.subscribeToInventoryStore();
     this.subscribeToInvoiceSoldItemsStore();
     this.getInvoiceSoldItemsFromServer();
+    this.dataSource.filter = JSON.stringify({search: '', category: ''});
+    this.dataSource.filterPredicate = (data: InventoryItem, filter: string) => {
+      if (!filter) {
+        return true;
+      }
+      try {
+        const filterObject = JSON.parse(filter);
+        const dataStr = data.productname.toLowerCase() + data.barcode.toLowerCase() + (data.brand ? data.brand.toLowerCase() : '');
+        const categoryMatch = filterObject.category ? data.brand.toLowerCase().includes(filterObject.category.toLowerCase()) : true;
+        const searchMatch = filterObject.search ? dataStr.includes(filterObject.search) : true;
+        return categoryMatch && searchMatch;
+      } catch (e) {
+        return true;
+      }
+    };
     // this.getCategories();
   }
 
-  filter_fun(item: InventoryItem, filter: String): boolean {
-
-        if (!item || !filter || item ==null || filter==null) {
-            return true;
-        }
-        filter=filter.toLowerCase();
-        // var searchStr = /filter/gi;
-        // console.log('searchStr'+searchStr);
-        // filter items array, items which match and return true will be
-        // kept, false will be filtered out
-        return (
-            item.brand != null && item.vendor != null && item.productname != null && item.mrp != null && item.barcode != null &&
-            (item.brand.toString().toLowerCase().indexOf(filter.toString()) != -1
-            ||item.vendor.toString().toLowerCase().indexOf(filter.toString()) != -1
-            ||item.productname.toString().toLowerCase().indexOf(filter.toString()) != -1
-            || item.mrp.toString().toLowerCase().indexOf(filter.toString()) != -1
-            || item.barcode.toString().toLowerCase().indexOf(filter.toString()) != -1)
-            );
-    
+  ngAfterViewInit() {
+    this.dataSource.sort = this.sort;
+    this.calculateTableHeight();
+    this.setupResizeObserver();
   }
+
+  ngOnDestroy(): void {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
+  }
+
+  private setupResizeObserver(): void {
+    this.resizeObserver = new ResizeObserver(entries => {
+      this.calculateTableHeight();
+    });
+    this.resizeObserver.observe(this.elementRef.nativeElement);
+  }
+
+  calculateTableHeight(): void {
+    if (!this.virtualScrollViewport) {
+      return;
+    }
+
+    const hostElement = this.elementRef.nativeElement;
+    const filterControlsContainer = hostElement.querySelector('.card-header');
+
+    let elementsAboveTableHeight = 0;
+    if (filterControlsContainer) {
+      elementsAboveTableHeight += filterControlsContainer.offsetHeight;
+    }
+
+    const availableHeightOfHost = hostElement.offsetHeight;
+    const finalHeight = availableHeightOfHost - elementsAboveTableHeight;
+    const minAllowedHeight = 300; 
+    
+    this.renderer.setStyle(this.virtualScrollViewport.nativeElement, 'height', `${Math.max(finalHeight, minAllowedHeight)}px`);
+  }
+
+  applyFilter(event: any) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = JSON.stringify({search: filterValue.trim().toLowerCase(), category: this.selectedCat});
+  }
+
   subscribeToInventoryStore(): void {
-    combineLatest([
-      this.store.select(selectAllInventory),
-      this.filterBarcodeSubject.asObservable()
-    ]).pipe(
-      rxjsMap(([inventory, filterBarcode]) => {
-        return inventory.map(itemdetails => {
-          let sold_key = `${itemdetails.barcode}` 
-                        + (typeof itemdetails.labeleddate != 'undefined' ? `::${itemdetails.labeleddate}` : '')
-                        + (typeof itemdetails.brand != 'undefined' ? `::${itemdetails.brand}` : '');
-          let sold_items = this.allsoldItems[sold_key]??0
-          let present_available_items = itemdetails.quantity - sold_items
-          return { ...itemdetails, sold:sold_items, qtyavailable: present_available_items };
-        }).filter(item => {
-          if (filterBarcode != null && item.barcode.toLowerCase() == filterBarcode.toLowerCase()) {
-            return true;
-          } else if (filterBarcode == null || filterBarcode === '') {
-            
-            return this.filter_fun(item, this.searchStr);
-          }
-          return false;
-        }).filter(item => {
-            if(filterBarcode == null || filterBarcode === ''){
-              return this.filter_fun(item, this.searchStr);
-            }
-            return true;
-        });
-      })
-    ).subscribe(filteredAndProcessedInventory => {
-      this.catalogueItems = filteredAndProcessedInventory;
+    this.store.select(selectAllInventory).subscribe(inventory => {
+      this.dataSource.data = inventory.map(itemdetails => {
+        let sold_key = `${itemdetails.barcode}` 
+                      + (typeof itemdetails.labeleddate != 'undefined' ? `::${itemdetails.labeleddate}` : '')
+                      + (typeof itemdetails.brand != 'undefined' ? `::${itemdetails.brand}` : '');
+        let sold_items = this.allsoldItems[sold_key]??0
+        let present_available_items = itemdetails.quantity - sold_items
+        return { ...itemdetails, sold:sold_items, qtyavailable: present_available_items };
+      });
+      console.log('dataSource.data', this.dataSource.data);
     });
   }
+
+  setCatSelection(cat:string){
+    this.selectedCat = cat;
+    const filterValue = (document.querySelector('#filter') as HTMLInputElement).value;
+    this.dataSource.filter = JSON.stringify({search: filterValue.trim().toLowerCase(), category: this.selectedCat});
+  }
+
 
   subscribeToInvoiceSoldItemsStore(): void {
     this.store.select(selectAllInvoiceSoldItems).subscribe(soldItems => {
@@ -174,22 +212,6 @@ export class CatalogueComponent implements OnInit {
     this.store.dispatch(InvoiceSoldItemsActions.loadInvoiceSoldItems({ startDate: tr_start_date, endDate: tr_end_date }));
    }
 
-  getCategories():void{
-    this._dataService.getInofficeCategories().subscribe((d) => { 
-      this.categories = d; 
-      console.log(d);       
-    });
-  }
-  setCatSelection(cat:string){
-    this.selectedCat = cat;
-  }
-
-  filterResults(flt:string){
-    this.searchStr = flt;
-    this.filterBarcodeSubject.next(null);
-    return false;
-  }
-
   get totalAmount ():number {
     return this._cartService.totalAmount;
   }
@@ -200,5 +222,9 @@ export class CatalogueComponent implements OnInit {
 
   get txId():number{
     return this._cartService.currentCart!.invoicenumber ;
+  }
+
+  selectTab(tabName: string) {
+    this.selectedTab = tabName;
   }
 }

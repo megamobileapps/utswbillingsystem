@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { UTSWCartItem } from 'src/app/models/cart-item';
 import { CartDetails } from 'src/app/providers/cart.details';
 import { CartService } from 'src/app/providers/cart.provider';
+import { CommonService } from 'src/app/services/common.service';
 import { DataService } from 'src/app/services/data.service';
 import { ScreenSizeService } from 'src/app/services/screen-size.service';
 
@@ -28,6 +29,7 @@ export class TopheaderComponent implements OnInit {
 
       this.isMobileScreen = this.screenSizeService.getIsMobileResolution;
     }
+
 
     get cart():Array<UTSWCartItem>{
       return this._cartService.currentCart!.invoicedatalist;

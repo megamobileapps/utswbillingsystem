@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, AfterViewInit, ViewChild, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, AfterViewInit, ViewChild, OnChanges, SimpleChanges, ElementRef, Renderer2, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, FormControl } from '@angular/forms';
 
 import { MatTableDataSource } from '@angular/material/table';
@@ -26,7 +26,7 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
   templateUrl: './list-inventory.component.html',
   styleUrls: ['./list-inventory.component.css'],
 })
-export class ListInventoryComponent implements OnInit, OnChanges {
+export class ListInventoryComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
   @Input() barcode: string | null = null;
   @Input() filterwithbarcode: string | null = null;
   @Input() isEmbeddedInFilteredContext: boolean = false; // New input for conditional filtering
@@ -34,7 +34,8 @@ export class ListInventoryComponent implements OnInit, OnChanges {
 
   
   @ViewChild(MatSort) sort!: MatSort;
-  @ViewChild(MatMenuTrigger) menuTrigger!: MatMenuTrigger;
+  @ViewChild(MatMenuTrigger) menuTrigger!: MatMenuTrigger; 
+  @ViewChild('virtualScrollViewport') virtualScrollViewport!: ElementRef; // Reference to the cdk-virtual-scroll-viewport
 
   isHandset$: Observable<boolean>; // Made public for use in template via async pipe
 
@@ -64,6 +65,9 @@ export class ListInventoryComponent implements OnInit, OnChanges {
     end: new FormControl<Date | null>(null),
   });
 
+  private resizeObserver: ResizeObserver;
+
+
   constructor(
     private formBuilder: FormBuilder,
     private _dataService: DataService,
@@ -71,7 +75,9 @@ export class ListInventoryComponent implements OnInit, OnChanges {
     private breakpointObserver: BreakpointObserver,
     private _liveAnnouncer: LiveAnnouncer, private dialog: MatDialog,
     private router: Router, // Inject Router
-    private store: Store
+    private store: Store,
+    private elementRef: ElementRef, // Inject ElementRef
+    private renderer: Renderer2 // Inject Renderer2
   ){
     this.dataSource.filterPredicate = (data: InventoryItem, filter: string) => {
       const dataStr = data.productname.toLowerCase() + data.barcode.toLowerCase() + (data.brand ? data.brand.toLowerCase() : '');
@@ -175,6 +181,8 @@ export class ListInventoryComponent implements OnInit, OnChanges {
     ).subscribe(filteredAndProcessedInventory => {
       this.dataSource.data = filteredAndProcessedInventory;
       this.dataSource.sort = this.sort;
+      // Recalculate height after data loads, might change scrollbars
+      this.calculateTableHeight();
     });
   }
   
@@ -203,8 +211,7 @@ export class ListInventoryComponent implements OnInit, OnChanges {
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
-
-    
+    this.calculateTableHeight(); // Recalculate height after filter applies
   }
 
   filter_clicked() {
@@ -217,10 +224,12 @@ export class ListInventoryComponent implements OnInit, OnChanges {
     
     this._dataService.getInvoiceSoldItemsFromServer(tr_start_date, tr_end_date).subscribe((d:any) => {       
       d.forEach((val:any)=>{
-        let sold_key = `${val["barcode"]}` + (typeof val["labeldate"] != 'undefined' ? `::${val["labeldate"]}` : '')
-                                            + (typeof val["brand"] != 'undefined' ? `::${val["brand"]}` : '');
+        let sold_key = `${val["barcode"]}` 
+                        + (typeof val["labeldate"] != 'undefined' ? `::${val["labeldate"]}` : '')
+                        + (typeof val["brand"] != 'undefined' ? `::${val["brand"]}` : '');
         this.allsoldItems[ sold_key ]= (this.allsoldItems[ sold_key ]??0) + val["quantity"];
       })
+      this.calculateTableHeight(); // Recalculate height after data loads
     });
   }
 
@@ -229,6 +238,76 @@ export class ListInventoryComponent implements OnInit, OnChanges {
       this._liveAnnouncer.announce(`Sorted ${sortState.direction}ending`);
     } else {
       this._liveAnnouncer.announce('Sorting cleared');
+    }
+    this.calculateTableHeight(); // Recalculate height after sort
+  }
+
+  // --- Dynamic Height Calculation Logic ---
+  ngAfterViewInit(): void {
+    // Only calculate height for standalone view and if customHeightClass is not set
+    if (!this.isEmbeddedInFilteredContext && !this.customHeightClass) {
+      this.calculateTableHeight(); // Calculate initial height
+      this.setupResizeObserver(); // Set up observer for dynamic height
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
+  }
+
+  private setupResizeObserver(): void {
+    this.resizeObserver = new ResizeObserver(entries => {
+      // For standalone view, recalculate height on resize
+      if (!this.isEmbeddedInFilteredContext && !this.customHeightClass) {
+        this.calculateTableHeight();
+      }
+    });
+    // Observe the host element for size changes
+    this.resizeObserver.observe(this.elementRef.nativeElement);
+  }
+
+  private calculateTableHeight(): void {
+    // Only apply this logic for standalone view and if customHeightClass is not set
+    if (!this.isEmbeddedInFilteredContext && !this.customHeightClass) {
+      // Ensure view is initialized
+      if (!this.virtualScrollViewport) {
+        return;
+      }
+
+      const hostElement = this.elementRef.nativeElement;
+      const filterControlsContainer = hostElement.querySelector('.filter-controls-container');
+      const paginatorElement = hostElement.querySelector('.mat-paginator'); // Assuming paginator exists
+
+      let elementsAboveTableHeight = 0;
+      if (filterControlsContainer) {
+        elementsAboveTableHeight += filterControlsContainer.offsetHeight;
+      }
+      if (paginatorElement) {
+        // Only count if paginator is present, which it will be
+        // Paginator's height is typically fixed
+        // For accurate height, use getBoundingClientRect().height
+        elementsAboveTableHeight += paginatorElement.offsetHeight;
+      }
+
+      // Get the available height of the host component
+      const availableHeightOfHost = hostElement.offsetHeight;
+
+      // Calculate the height that the virtual scroll viewport should take
+      const finalHeight = availableHeightOfHost - elementsAboveTableHeight;
+
+      // Ensure a minimum height to avoid collapsing too much
+      const minAllowedHeight = 300; // Display roughly 5-7 rows
+      
+      // Apply height to the virtual scroll viewport
+      this.renderer.setStyle(this.virtualScrollViewport.nativeElement, 'height', `${Math.max(finalHeight, minAllowedHeight)}px`);
+    } else {
+        // If embedded or has customHeightClass, ensure the style is reset or handled by CSS
+        // This prevents interference if calculateTableHeight is called incorrectly
+        if (this.virtualScrollViewport) {
+             this.renderer.removeStyle(this.virtualScrollViewport.nativeElement, 'height');
+        }
     }
   }
 }

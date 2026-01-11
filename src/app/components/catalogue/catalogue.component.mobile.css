@@ -1,0 +1,26 @@
+@media (max-width: 767px) {
+    .col-md-8, .col-md-4 {
+        flex: 1 0 100%;
+        max-width: 100%;
+    }
+
+    .card-body {
+        height: auto !important;
+        max-height: 300px; /* Adjust as needed */
+        overflow-y: auto;
+    }
+
+    .row {
+        flex-direction: column;
+    }
+
+    /* Add padding to Old Bills */
+    .col-12.d-flex.justify-content-between.align-items-center > div:nth-child(2) {
+        padding: 10px;
+    }
+    
+    /* Center accordion button text */
+    .accordion-button {
+        text-align: center;
+    }
+}

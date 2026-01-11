@@ -1,133 +1,94 @@
 <div class="container-fluid">
-    <div class="row">
-        <!-- <div class="col-12 d-flex justify-content-between align-items-center">
-            <div class="btn-group btn-group-lg" role="group">
-                <button type="button" (click)="createNewCart()" class="btn btn-primary active" aria-current="page">New Cart</button>
-                <button type="button" (click)="clearCart()"  class="btn btn-primary">Clear Cart</button>
-                <button type="button" (click)="holdCart()"   class="btn btn-primary">Hold Billing</button>
-                
-            </div>
-            <div>
-                Old Bills:<button *ngFor="let cart of oldTxList" (click)="populateCartFrom(cart)">{{cart.invoicenumber}}</button>
-            </div>
-            <div class="btn-group btn-group-lg" role="group">
-                <a [routerLink]="['/addinventory']" class="btn btn-info">Add Inventory</a>
-            </div>
-        </div> -->
-        <div class="col-md-8 col-sm-12">
-            <div class="row">
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link" [class.active]="selectedTab === 'scan'" (click)="selectTab('scan')">Scan</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" [class.active]="selectedTab === 'manual'" (click)="selectTab('manual')">Manual</a>
+        </li>
+    </ul>
+
+    <div class="d-flex flex-column flex-md-row">
+        <div class="col-12 col-md-8">
+            <div [hidden]="selectedTab !== 'scan'">
                 <div class="accordion" id="accordionExample">
                     <div class="accordion-item">
-                      <h2 class="accordion-header" id="headingOne">
+                        <h2 class="accordion-header" id="headingOne">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                          Scanned Invoice
+                            Scanned Invoice
                         </button>
-                      </h2>
-                      <div id="collapseOne" class="accordion-collapse collapse " aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
                         <div class="accordion-body">
-                            <div class="row">
-                            <div class="card col-md-6 col-sm-12" >
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <!-- <video #videoElement></video> -->
-                                      <!-- Camera feed will appear here -->
-                                    <!-- <div id="scanner" style="width: 20%; height: 50px; border: 1px solid black;">
-                                       
-                                      </div> -->
-                                      <!-- <div>
-                                        <h2>Barcode Reader</h2>
-                                        <zxing-scanner 
-                                          [formats]="allowedFormats" 
-                                          (scanSuccess)="onCodeResult($event)"
-                                          (scanError)="onError($event)">
-                                          >
-
-                                        </zxing-scanner>
-                                        <p *ngIf="scannedResult">Scanned Code: {{ scannedResult }}</p>
-                                      </div> -->
-                                      
+                            <div class="card">
+                                <div class="card-header">
                                     <form class="form-inline" >
-                
                                         <div class="input-group">
-                                            <input class="form-control border-end-0 border rounded-pill" 
-                                            (keydown.enter)="filterResults(filter.value)"
+                                            <input class="form-control" 
+                                            (keyup)="applyFilter($event)"
                                                 type="text" placeholder="Search" aria-label="Search" #filter>
                                             <span class="input-group-append">
-                                                <button class="btn btn-outline-success bg-white border-bottom-0 border rounded-pill" type="button" 
-                                                (click)="filterResults(filter.value)"><i class="bi bi-search"></i></button>
+                                                <button class="btn btn-outline-success" type="button" 
+                                                (click)="applyFilter({target: filter})"><i class="bi bi-search"></i></button>
                                             </span>
                                         </div>
-                                      </form>
-                                    
+                                    </form>
+                                    <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+                                        <div class="btn-group mr-2" role="group" aria-label="First group">
+                                        <button *ngFor="let cat of categories, let i=index" 
+                                        (click)="setCatSelection(cat.grade)"
+                                        type="button" class="btn btn-secondary">{{cat.grade}}</button>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="card-body  overflow-auto" style="height:400px;">
-                                    <p class="text text-center h5 bg-light">Filtered List</p>
-                                    <div class="list-group">
-                                        <div 
-                                        *ngFor="let ofItem of catalogueItems|searchstrfilter:searchStr"
-                                        href="#" class="list-group-item list-group-item-action " aria-current="true">
-                                        <app-displayitem [ofItem]="ofItem" [enableBuy]="true"></app-displayitem>
-                                          </div>
+                                <div class="card-body">
+                                    <div class="table-container">
+                                        <cdk-virtual-scroll-viewport itemSize="50" class="virtual-scroll-viewport" #virtualScrollViewport>
+                                            <table mat-table [dataSource]="dataSource" matSort>
+                                                <ng-container matColumnDef="productname">
+                                                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Product Name </th>
+                                                    <td mat-cell *matCellDef="let element"> {{element.productname}} </td>
+                                                </ng-container>
+                                                <ng-container matColumnDef="mrp">
+                                                    <th mat-header-cell *matHeaderCellDef mat-sort-header> MRP </th>
+                                                    <td mat-cell *matCellDef="let element"> {{element.mrp}} </td>
+                                                </ng-container>
+                                                <ng-container matColumnDef="qtyavailable">
+                                                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Available </th>
+                                                    <td mat-cell *matCellDef="let element"> {{element.qtyavailable}} </td>
+                                                </ng-container>
+                                                <ng-container matColumnDef="actions">
+                                                    <th mat-header-cell *matHeaderCellDef> Actions </th>
+                                                    <td mat-cell *matCellDef="let element">
+                                                        <app-displayitem [ofItem]="element" [enableBuy]="true"></app-displayitem>
+                                                    </td>
+                                                </ng-container>
+                                                <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+                                                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                                            </table>
+                                        </cdk-virtual-scroll-viewport>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card col-md-6 col-sm-12">
-                                <div class="h5 card-header text text-center">All Items(Quick Filter)</div>
-                                    <div class="card-body  overflow-auto" style="height:400px;">
-                                        <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
-                                            <div class="btn-group mr-2" role="group" aria-label="First group">
-                                            <button *ngFor="let cat of categories, let i=index" 
-                                            (click)="setCatSelection(cat.grade)"
-                                            type="button" class="btn btn-secondary">{{cat.grade}}</button>
-                                            
-                                            </div>
-                                        
-                                        </div>
-                                        <div>
-                                            <div class="list-group">
-                                                <div 
-                                                *ngFor="let ofItem of catalogueItems|categoryfilter:selectedCat"
-                                                 class="list-group-item list-group-item-action " 
-                                                aria-current="true">
-                                                    <app-displayitem [ofItem]="ofItem" [enableBuy]="true"></app-displayitem>
-                                                  </div>
-                                            </div>
-                                            
-                                        </div>
-                                    </div>
-                               </div>
-                               </div>
                         </div>
-                      </div>
-                    </div>
-                    <div class="accordion-item">
-                      <h2 class="accordion-header" id="headingTwo">
-                        <button class="accordion-button " type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                          Direct Invoice
-                        </button>
-                      </h2>
-                      <div id="collapseTwo" class="accordion-collapse collapse show" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
-                        <div class="accordion-body">
-                          <app-directinvoice-form [oldinvoiceid]="oldinvoiceid"></app-directinvoice-form>
                         </div>
-                      </div>
                     </div>
-                    
-                  </div>
+                </div>
             </div>
-            <div class="row">
-            
+            <div [hidden]="selectedTab !== 'manual'">
+                <app-directinvoice-form [oldinvoiceid]="oldinvoiceid"></app-directinvoice-form>
+            </div>
+        </div>
+        <div class="col-12 col-md-4" *ngIf="!isMobileScreen">
+            <app-cart></app-cart>
         </div>
     </div>
-    <div class="col-md-4 col-sm-12">
-        <app-cart></app-cart>
-    </div>
-        <div class="col-12">
-           <div class="card">
-            <div class="card-body">
-                <p class="text text-center">Sripank Software Solutions</p>
-            </div>
-           </div>
+
+    <div class="col-12">
+        <div class="card">
+        <div class="card-body">
+            <p class="text text-center">Sripank Software Solutions</p>
         </div>
-       
+        </div>
     </div>
 </div>

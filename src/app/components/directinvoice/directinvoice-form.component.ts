@@ -29,7 +29,7 @@ import { selectAllInventory, selectInventoryStatus } from 'src/app/store/invento
 @Component({
   selector: 'app-directinvoice-form',
   templateUrl: './directinvoice-form.component.html',
-  styleUrls: ['./directinvoice-form.component.css'],
+  styleUrls: ['./directinvoice-form.component.css', './directinvoice-form.component.mobile.css'],
   standalone: true,
   imports: [
     CommonModule,

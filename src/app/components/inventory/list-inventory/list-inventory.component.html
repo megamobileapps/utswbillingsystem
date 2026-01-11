@@ -29,7 +29,7 @@
 
 <div class="mat-elevation-z8">
   <div class="table-container">
-    <cdk-virtual-scroll-viewport itemSize="50" [class]="customHeightClass" class="virtual-scroll-viewport">
+    <cdk-virtual-scroll-viewport itemSize="50" [class]="customHeightClass" class="virtual-scroll-viewport" #virtualScrollViewport>
       <table mat-table [dataSource]="dataSource" matSort (matSortChange)="announceSortChange($event)">
 
         <ng-container *ngFor="let column of allColumns">
