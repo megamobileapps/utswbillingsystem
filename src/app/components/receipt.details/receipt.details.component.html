@@ -1,5 +1,6 @@
 <!-- Original content for saving a new receipt -->
 <ng-container *ngIf="!isPrintingExistingBill">
+  <div *ngIf="error" class="alert alert-danger" role="alert">{{error}}</div>
   <div class="card" *ngIf="printOnNormalPrinter">
     <div class="card-header">
         <p class="h2 text text-center">UpToSchoolWorksheets</p>
@@ -103,20 +104,20 @@
       <div>Co.  : Sripank Software Solutions</div>
       <div>GSTIN: 29AIPPG66702H1ZP</div>
       <div>Ph: 9611146074</div>
-      <div>-------------------------------</div>
+      <div>-----------------------------------------------</div>
       <div>          PAID BILL</div>
       <div>Customer Name :{{currentCart!.username}}</div>
       <div>Customer Phone:{{currentCart!.phonenumber}}</div>
       <div>Bill no       : {{txId}}</div>
       <div>Date:{{txDate| date:'fullDate'}}</div>
       <div></div>
-      <div>-------------------------------</div>
-      <div>S. Item          </div>
+      <div>-----------------------------------------------</div>
+      <div>Item          </div>
       <div>MRP Disc(%) Price Qty Total</div>
-      <div>-------------------------------</div>
+      <div>-----------------------------------------------</div>
       <div *ngFor="let cartItem of currentCart!.invoicedatalist, let i=index">
           <span *ngIf="cartItem.quantityProvider.value >0">
-              {{i+1}} 
+               
               {{cartItem.productName.toString() |slice:0:100}}
               <div> 
                   {{cartItem.initialPrice.toString() |slice:0:5}} 
@@ -127,10 +128,10 @@
               </div>
           </span>
       </div>
-      <div>-------------------------------</div>
+      <div>-----------------------------------------------</div>
       <div>Net Amount:{{totalAmount - customerDiscount}}</div>
-      <div>Total Items:{{totalQuantity}}</div>
-      <div>Saving:{{grossAmount - totalAmount - customerDiscount}}</div>
+      <div>Total Quantity:{{totalQuantity}}</div>
+      <div>Saving:{{(grossAmount - totalAmount - customerDiscount) | number:'1.2-2'}}</div>
      
       <div>       Thank You</div>
       <div>       Please Visit Again</div>
@@ -170,12 +171,12 @@
       <div>Date:{{printableBill.invoicedate | date:'fullDate'}}</div>
       <div></div>
       <div>-------------------------------</div>
-      <div>S. Item          </div>
+      <div>Item          </div>
       <div>MRP Disc(%) Price Qty Total</div>
       <div>-------------------------------</div>
       <div *ngFor="let cartItem of printableBillItems, let i=index">
           <span *ngIf="cartItem.quantity >0">
-              {{i+1}} 
+             
               {{cartItem.productName.toString() |slice:0:100}}
               <div> 
                   {{cartItem.initialPrice.toString() |slice:0:5}} 
@@ -189,7 +190,7 @@
       <div>-------------------------------</div>
       <div>Net Amount:{{printableTotalAmount}}</div>
       <div>Total Items:{{printableTotalQuantity}}</div>
-      <div>Saving:{{printableGrossAmount - printableTotalAmount}}</div>
+      <div *ngIf="printableGrossAmount > printableTotalAmount">Saving:{{(printableGrossAmount - printableTotalAmount) | number:'1.2-2'}}</div>
      
       <div>       Thank You</div>
       <div>       Please Visit Again</div>

@@ -1,18 +1,197 @@
-th.mat-sort-header-sorted {
-    color: black;
+.virtual-scroll-viewport {
+  height: 400px;
+}
+
+/* New class for reduced height when embedded */
+.minimized-height-viewport {
+  height: 120px;
+}
+
+.virtual-scroll-viewport-embedded {
+  height: 200px;
+}
+
+.card {
+  margin: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.actions-cell {
+  display: flex;
+  flex-direction: row;
+  align-items: center; /* Align items vertically in the center */
+  justify-content: center; /* Center horizontally if needed, though flex-direction: row might handle it */
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+@media (max-width: 600px) {
+  .mat-table {
+    font-size: 12px;
   }
-  .mat-column-productname{
-    width :150px;
-    max-width:150px;
-    word-wrap:break-word;
-   }
-   .mat-column-fixedprofit{
-    width :100px;
-    max-width:100px;
-    word-wrap:break-word;
-   }
-   .mat-column-quantity{
-    width :50px;
-    max-width:50px;
-    word-wrap:break-word;
-   }
+
+  .mat-column-productname {
+    flex: 0 0 25%;
+  }
+
+  .mat-column-labeleddate {
+    flex: 0 0 15%;
+  }
+
+  .mat-column-qtyavailable {
+    flex: 0 0 10%;
+  }
+
+  .mat-column-cp {
+    flex: 0 0 15%;
+  }
+
+  .mat-column-vendor {
+    flex: 0 0 20%;
+  }
+
+  .mat-column-actions {
+    flex: 0 0 15%;
+  }
+
+  /* New styles for filter controls container */
+  .filter-controls-container {
+    display: flex;
+    flex-wrap: nowrap; /* Prevent wrapping to force into one row */
+    gap: 8px; /* Spacing between items */
+    padding: 8px; /* Some padding around the group */
+    align-items: flex-end; /* Align items to the bottom to align text inputs */
+    overflow-x: auto; /* Allow horizontal scrolling of the container itself */
+    justify-content: flex-start; /* Align items to the start */
+    width: 100%; /* Ensure container takes full width */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  }
+
+  .filter-controls-container .mat-form-field {
+    /* Use flex-basis to suggest initial width, allow shrinking, prevent growing */
+    flex: 0 0 calc(33% - 8px); /* Try to fit 3 items, account for gap */
+    min-width: 120px; /* Minimum width to keep fields usable */
+    margin-bottom: 0; /* Remove extra margin if flex item */
+  }
+
+  /* Specific adjustment for date range input within mat-form-field */
+  .filter-controls-container .mat-date-range-input {
+    min-width: 100px; /* Ensure date range input itself has a min-width */
+  }
+
+  .filter-controls-container .mat-form-field-wrapper {
+    padding-bottom: 0; /* Reduce padding from mat-form-field default */
+  }
+
+  .filter-controls-container .mat-form-field-flex {
+    align-items: center; /* Vertically center content in the flex part */
+  }
+
+  .filter-controls-container button {
+    flex-shrink: 0; /* Buttons should not shrink */
+    height: 40px; /* Consistent height for buttons */
+    line-height: 40px;
+  }
+
+  .filter-controls-container .mat-fab {
+    width: 40px;
+    height: 40px;
+  }
+
+  .filter-controls-container .mat-fab .mat-icon {
+    font-size: 20px;
+  }
+
+  .filter-controls-container button.mat-button {
+    padding: 0 16px; /* Adjusted padding */
+    min-width: unset; /* Allow button to shrink */
+  }
+}
+
+@media (min-width: 601px) {
+  .mat-table {
+    table-layout: fixed;
+    width: 100%;
+  }
+
+  .mat-column-productname {
+    flex: 0 0 12%; /* Reduced */
+  }
+
+  .mat-column-labeleddate {
+    flex: 0 0 7%; /* Reduced */
+  }
+
+  .mat-column-qtyavailable {
+    flex: 0 0 3%; /* Reduced */
+  }
+
+  .mat-column-cp {
+    flex: 0 0 4%; /* Reduced */
+  }
+
+  .mat-column-vendor {
+    flex: 0 0 7%; /* Reduced */
+  }
+
+  .mat-column-barcode {
+    flex: 0 0 7%; /* Reduced */
+  }
+
+  .mat-column-hsn {
+    flex: 0 0 4%; /* Reduced */
+  }
+
+  .mat-column-quantity {
+    flex: 0 0 4%; /* Reduced */
+  }
+
+  .mat-column-sold {
+    flex: 0 0 4%; /* Reduced */
+  }
+
+  .mat-column-unit {
+    flex: 0 0 4%; /* Reduced */
+  }
+
+  .mat-column-shippingcost {
+    flex: 0 0 4%; /* Reduced */
+  }
+
+  .mat-column-percentgst {
+    flex: 0 0 4%; /* Reduced */
+  }
+
+  .mat-column-netcp {
+    flex: 0 0 4%; /* Reduced */
+  }
+
+  .mat-column-calculatedmrp {
+    flex: 0 0 4%; /* Reduced */
+  }
+
+  .mat-column-mrp {
+    flex: 0 0 5%; /* Keep reasonable width */
+  }
+
+  .mat-column-fixedprofit {
+    flex: 0 0 5%; /* Keep reasonable width */
+  }
+
+  .mat-column-percentprofit {
+    flex: 0 0 5%; /* Keep reasonable width */
+  }
+
+  .mat-column-brand {
+    flex: 0 0 6%; /* Reduced */
+  }
+
+  .mat-column-actions {
+    flex: 0 0 6%; /* Reduced */
+  }
+}
+

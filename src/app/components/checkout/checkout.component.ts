@@ -49,6 +49,12 @@ export class CheckoutComponent implements OnInit {
         return;
     }
 
+    if (!this.currentCart || this._cartService.totalQuantity <= 0) {
+      console.log('Checkout prevented: cart is empty');
+      alert('Cart is empty. Please add items before printing.');
+      return;
+    }
+
     this.loading = true;
     var data = this.getFormData;
 

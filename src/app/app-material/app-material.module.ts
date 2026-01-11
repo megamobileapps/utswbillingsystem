@@ -21,6 +21,22 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatAutocompleteModule } from '@angular/material/autocomplete'; // Added
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MAT_DATE_FORMATS, NativeDateAdapter, DateAdapter } from '@angular/material/core'; // Import MAT_DATE_FORMATS, NativeDateAdapter, DateAdapter
+
+export const MY_DATE_FORMATS = {
+    parse: {
+        dateInput: 'DD/MM/YYYY',
+    },
+    display: {
+        dateInput: 'DD/MM/YYYY',
+        monthYearLabel: 'MMM YYYY',
+        dateA11yLabel: 'LL',
+        monthYearA11yLabel: 'MMMM YYYY',
+    },
+};
 
 @NgModule({
   declarations: [],
@@ -35,7 +51,10 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
     MatTooltipModule,
     MatProgressSpinnerModule,
     MatAutocompleteModule, // Added
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatMenuModule,
+    MatCheckboxModule,
+    MatExpansionModule
   ],
   exports: [
     MatSlideToggleModule,
@@ -47,11 +66,16 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
     MatTooltipModule,
     MatProgressSpinnerModule,
     MatAutocompleteModule, // Added
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatMenuModule,
+    MatCheckboxModule,
+    MatExpansionModule
   ],
   providers: [
     { provide: MAT_DIALOG_DATA, useValue: {} },
-    { provide: MatDialogRef, useValue: {} }
+    { provide: MatDialogRef, useValue: {} },
+    { provide: DateAdapter, useClass: NativeDateAdapter }, // Explicitly provide NativeDateAdapter
+    { provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS } // Provide the custom date formats
   ]
 })
 export class AppMaterialModule { }

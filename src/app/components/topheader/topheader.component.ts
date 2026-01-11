@@ -43,7 +43,7 @@ export class TopheaderComponent implements OnInit {
   }
 
   clearCart():void{
-    this._cartService.currentCart!.invoicedatalist=[];
+    this._cartService.clearCart();
   }
 
   holdCart():void{

@@ -1,10 +1,14 @@
-import { NgModule } from '@angular/core';
+import { NgModule, LOCALE_ID } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { CommonModule } from '@angular/common'; // For structural directives, pipes etc.
+import { CommonModule, registerLocaleData } from '@angular/common'; // For structural directives, pipes etc.
+import localeEnGb from '@angular/common/locales/en-GB'; // Import en-GB locale data
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http'; // For HTTP calls
 import { FormsModule, ReactiveFormsModule } from '@angular/forms'; // For forms
+
+// Register the en-GB locale data
+registerLocaleData(localeEnGb);
 
 // Custom App Modules and Standalone Components
 import { AppRoutingModule } from './app-routing.module';
@@ -30,6 +34,7 @@ import { InventoryService } from './services/inventory.service';
 
 // Angular CDK and other third-party modules
 import { NgSelectModule } from '@ng-select/ng-select';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 import { NgxBarcode6Module } from 'ngx-barcode6';
 import { QRCodeModule } from 'angularx-qrcode';
 import { ZXingScannerModule } from '@zxing/ngx-scanner';
@@ -109,6 +114,7 @@ import { NotificationComponent } from './components/notification/notification.co
     QRCodeModule,
     ZXingScannerModule,
     DragDropModule, // For cdkDropList, cdkDrag in GenerateBarcodeComponent
+    ScrollingModule, // For virtual scrolling
     InventoryComponent, // Standalone component
     DirectinvoiceFormComponent, // Standalone component
 
@@ -130,6 +136,7 @@ import { NotificationComponent } from './components/notification/notification.co
     { provide: HTTP_INTERCEPTORS, useClass: BasicAuthInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
     { provide: APP_BASE_HREF, useValue: '/in/new-billing/' },
+    { provide: LOCALE_ID, useValue: 'en-GB' }, // Set global locale to en-GB for date formatting
     DatePipe,
     // Provide pipes if they are not standalone and used in templates not declared in this module directly
     SearchStrfilterPipe,

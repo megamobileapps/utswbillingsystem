@@ -43,8 +43,9 @@ export class ReceiptDetailsComponent implements OnInit {
       if (subQuantity !="") {
         subQuantity += "##";
       }
+      const qty = billItem.quantityProvider ? billItem.quantityProvider.getValue() : billItem.quantity;
       subQuantity +=
-          billItem.productId! + "::" + billItem.quantity.toString()+"::"+billItem.labeldate.toString()+"::"+billItem.productCategory.toString();
+          billItem.productId! + "::" + qty.toString()+"::"+billItem.labeldate.toString()+"::"+billItem.productCategory.toString();
     });
     return subQuantity;
   }
@@ -78,6 +79,22 @@ export class ReceiptDetailsComponent implements OnInit {
     } else {
       // Original logic for saving a new bill
       const currentCart = this.currentCart!;
+
+      if (!currentCart || !currentCart.invoicedatalist || currentCart.invoicedatalist.length <= 0) {
+        this.error = 'Cart is empty. Please add items before printing.';
+        console.log('ReceiptDetailsComponent: prevented saving invoice because cart is empty');
+        return;
+      }
+
+      const cartItemsForSave = currentCart.invoicedatalist.map(item => {
+        const qty = item.quantityProvider ? item.quantityProvider.getValue() : item.quantity;
+        const { quantityProvider, ...serializable } = item as any;
+        return {
+          ...serializable,
+          quantity: qty,
+        };
+      });
+
       let invoiceToSave: InvoiceDataItem = {
         invoicenumber: currentCart.invoicenumber.toString(),
         invoicedate: this.datePipe.transform(currentCart.invoicedateNum,'yyyy-MM-dd') || '',
@@ -87,7 +104,7 @@ export class ReceiptDetailsComponent implements OnInit {
         amount: (this._cartService.totalAmount - this.customerDiscount).toFixed(2), // Convert to string
         discount: Number(this.customerDiscount).toFixed(2), // Convert to string
         payment_method: currentCart.payment_method.toString(),
-        invoicedata: JSON.stringify(JSON.stringify(currentCart.invoicedatalist)), // Correctly stringify the list
+        invoicedata: JSON.stringify(JSON.stringify(cartItemsForSave)), // Correctly stringify the list
         salepoint: 'office',
         soldsubjects: this.soldItemForBackend().toString(),
         posoperation: this.isCartEditOperation == false ? "addinvoice" : "editinvoice",

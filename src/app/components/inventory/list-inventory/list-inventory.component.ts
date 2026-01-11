@@ -1,98 +1,147 @@
-import { Component, Input, OnInit, AfterViewInit, ViewChild, OnChanges, SimpleChanges} from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms'; // Added ReactiveFormsModule
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { DataService } from 'src/app/services/data.service';
-import {MatSort, Sort, MatSortModule} from '@angular/material/sort';
-import {LiveAnnouncer} from '@angular/cdk/a11y';
-import { ConfirmationDialogComponent } from '../../confirmation-dialog/confirmation-dialog.component';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatDatepicker, MatDatepickerModule } from '@angular/material/datepicker'; 
-import { DatePipe, CommonModule } from '@angular/common';
-import { InvoiceSoldItems } from 'src/app/models/invoice-data-item';
-import { Router } from '@angular/router';
-import { Store } from '@ngrx/store';
-import * as InventoryActions from 'src/app/store/inventory/inventory.actions';
-import { selectAllInventory, selectInventoryStatus, selectInventoryError } from 'src/app/store/inventory/inventory.selectors';
-import { InventoryItem } from 'src/app/models/inoffice';
-import { BehaviorSubject, combineLatest, map as rxjsMap } from 'rxjs';
-import { MatNativeDateModule } from '@angular/material/core';
-import { MatFormFieldModule } from '@angular/material/form-field'; // Added MatFormFieldModule
-import { MatInputModule } from '@angular/material/input'; // Added MatInputModule
-import { MatButtonModule } from '@angular/material/button'; // Added MatButtonModule
-import { MatIconModule } from '@angular/material/icon'; // Added MatIconModule
+import { Component, Input, OnInit, AfterViewInit, ViewChild, OnChanges, SimpleChanges } from '@angular/core';
+import { FormBuilder, FormGroup, FormControl } from '@angular/forms';
 
+import { MatTableDataSource } from '@angular/material/table';
+import { MatSort, Sort } from '@angular/material/sort';
+import { MatMenuTrigger } from '@angular/material/menu';
+import { MatDialog } from '@angular/material/dialog';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
+import { Router } from '@angular/router';
+import { DatePipe } from '@angular/common';
+import { Store } from '@ngrx/store';
+import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
+import { map, shareReplay, first } from 'rxjs/operators';
+
+import { DataService } from 'src/app/services/data.service';
+import { ConfirmationDialogComponent } from '../../confirmation-dialog/confirmation-dialog.component';
+import { InventoryItem } from 'src/app/models/inoffice';
+import * as InventoryActions from 'src/app/store/inventory/inventory.actions';
+import { selectAllInventory, selectInventoryStatus } from 'src/app/store/inventory/inventory.selectors';
+
+// For mobile responsive design
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 
 @Component({
   selector: 'app-list-inventory',
   templateUrl: './list-inventory.component.html',
   styleUrls: ['./list-inventory.component.css'],
-  // No standalone: true here as it's declared in AppModule
-  // Imports for non-standalone components go into their declaring NgModule (AppModule in this case)
 })
-export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
+export class ListInventoryComponent implements OnInit, OnChanges {
+  @Input() barcode: string | null = null;
+  @Input() filterwithbarcode: string | null = null;
+  @Input() isEmbeddedInFilteredContext: boolean = false; // New input for conditional filtering
+  @Input() customHeightClass: string | null = null; // New input for custom height class
 
   
-  @Input() barcode:string|null=null
-  @Input() filterwithbarcode:string|null=null
+  @ViewChild(MatSort) sort!: MatSort;
+  @ViewChild(MatMenuTrigger) menuTrigger!: MatMenuTrigger;
 
-  @ViewChild(MatPaginator) private paginator: MatPaginator;
-  @ViewChild(MatSort) sort: MatSort;
+  isHandset$: Observable<boolean>; // Made public for use in template via async pipe
 
-  inventoryList:any=[]
-  dataSource = new MatTableDataSource<InventoryItem>([]); // Changed to InventoryItem
-  allsoldItems:Record<string, number> = {}
+  // Table data
+  inventoryList: InventoryItem[] = [];
+  dataSource = new MatTableDataSource<InventoryItem>([]);
+  
+  allColumns: string[] = ['productname', 'labeleddate', 'qtyavailable', 'cp', 'vendor', 'barcode', 'hsn', 'quantity', 'sold', 'unit', 'shippingcost', 'percentgst', 'netcp', 'calculatedmrp', 'mrp', 'fixedprofit', 'percentprofit', 'brand'];
+  optionalColumns: string[] = ['barcode', 'hsn', 'quantity', 'sold', 'unit', 'shippingcost', 'percentgst', 'netcp', 'calculatedmrp', 'mrp', 'fixedprofit', 'percentprofit', 'brand'];
+
+  // This will hold the columns selected by the user (for desktop view initially)
+  _displayedColumns: string[] = ['productname', 'labeleddate', 'qtyavailable', 'cp', 'vendor', 'actions'];
+
+  // This will hold the columns specific to mobile view (a subset)
+  _mobileDisplayedColumns: string[] = ['productname','cp', 'vendor', 'labeleddate', 'qtyavailable',  'actions'];
+
+  // This is the array that the mat-table will actually bind to
+  currentDisplayedColumns: string[] = []; 
+
+  allsoldItems: Record<string, number> = {};
   isLoading = true;
-  private filterBarcodeSubject = new BehaviorSubject<string | null>(null); // New BehaviorSubject
+  private filterBarcodeSubject = new BehaviorSubject<string | null>(null);
+  
+  // Date range form
+  range = new FormGroup({
+    start: new FormControl<Date | null>(null),
+    end: new FormControl<Date | null>(null),
+  });
 
-  constructor(private formBuilder: FormBuilder,
-    private _dataService:DataService,
-    private datePipe:DatePipe,
+  constructor(
+    private formBuilder: FormBuilder,
+    private _dataService: DataService,
+    private datePipe: DatePipe,
+    private breakpointObserver: BreakpointObserver,
     private _liveAnnouncer: LiveAnnouncer, private dialog: MatDialog,
     private router: Router, // Inject Router
     private store: Store
   ){
     this.dataSource.filterPredicate = (data: InventoryItem, filter: string) => {
-      return data.productname.toLowerCase().includes(filter) || 
-             data.barcode.toLowerCase().includes(filter) ||
-             data.brand.toLowerCase().includes(filter);
+      const dataStr = data.productname.toLowerCase() + data.barcode.toLowerCase() + (data.brand ? data.brand.toLowerCase() : '');
+      return dataStr.includes(filter);
     };
+
+    // Initialize isHandset$
+    this.isHandset$ = this.breakpointObserver.observe([
+      Breakpoints.Handset,
+      Breakpoints.TabletPortrait,
+      Breakpoints.Small
+    ]).pipe(
+      map(result => result.matches),
+      shareReplay()
+    );
   }
 
-  ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
-  }    
-
-  displayedColumns: string[] = [
-    'productname',
-    'barcode',
-    'labeleddate',
-    'hsn',
-  'quantity',
-  'sold',
-  'qtyavailable',
-  'unit',
-  'cp', 
-  'shippingcost',   
-  'percentgst',
-  'netcp',  
-  'calculatedmrp', 
-  'mrp',
-  'fixedprofit',
-  'percentprofit',  
-  'vendor',
-  'brand',  
-  
-  'delete',
-  'edit', // Added for edit functionality
-  ];
-  
-
   ngOnInit(): void {
-    this.store.dispatch(InventoryActions.loadInventory());
     this.subscribeToInventoryStore();
     this.getInvoiceSoldItemsFromServer();
+
+    // Subscribe to handset changes to update displayed columns
+    this.isHandset$.subscribe((isHandset: boolean) => {
+      this.updateCurrentDisplayedColumns(isHandset);
+    });
+  }
+
+  
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['barcode'] && changes['barcode'].currentValue) {
+      this.filterBarcodeSubject.next(changes['barcode'].currentValue);
+    }
+  }
+
+  updateCurrentDisplayedColumns(isHandset: boolean): void {
+    // Always use the user's selected columns for currentDisplayedColumns.
+    // The responsive CSS and horizontal scrolling will handle the layout on mobile.
+    const userColumns = this._displayedColumns.filter(col => col !== 'actions'); // Ensure 'actions' is not duplicated
+    this.currentDisplayedColumns = [...userColumns, 'actions'];
+  }
+
+  toggleColumn(column: string) {
+    const index = this._displayedColumns.indexOf(column);
+    if (index > -1) {
+      this._displayedColumns.splice(index, 1);
+    } else {
+      this._displayedColumns.push(column);
+    }
+    // Re-evaluate currentDisplayedColumns after user selection
+    this.isHandset$.pipe(first()).subscribe((isHandset: boolean) => {
+      this.updateCurrentDisplayedColumns(isHandset);
+    });
+  }
+
+  toggleAllColumns() {
+    if (this.areAllColumnsSelected()) {
+      this._displayedColumns = ['productname', 'labeleddate', 'qtyavailable', 'cp', 'vendor', 'actions'];
+    } else {
+      this._displayedColumns = [...this.allColumns, 'actions'];
+    }
+    // Re-evaluate currentDisplayedColumns after user selection
+    this.isHandset$.pipe(first()).subscribe((isHandset: boolean) => {
+      this.updateCurrentDisplayedColumns(isHandset);
+    });
+  }
+
+  areAllColumnsSelected() {
+    // This should check against _displayedColumns
+    return this.optionalColumns.every(column => this._displayedColumns.includes(column));
   }
 
   subscribeToInventoryStore(): void {
@@ -104,27 +153,27 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
       this.store.select(selectAllInventory),
       this.filterBarcodeSubject.asObservable()
     ]).pipe(
-      rxjsMap(([inventory, filterBarcode]) => {
-        // Apply barcode filter if present and combine with sold items data
+      map(([inventory, filterBarcode]) => {
         return inventory.map(itemdetails => {
           let sold_key = `${itemdetails.barcode}` 
                         + (typeof itemdetails.labeleddate != 'undefined' ? `::${itemdetails.labeleddate}` : '')
                         + (typeof itemdetails.brand != 'undefined' ? `::${itemdetails.brand}` : '');
-          let sold_items = this.allsoldItems[sold_key]??0
-          let present_available_items = itemdetails.quantity - sold_items
+          let sold_items = this.allsoldItems[sold_key] ?? 0;
+          let present_available_items = itemdetails.quantity - sold_items;
           return { ...itemdetails, sold:sold_items, qtyavailable: present_available_items };
         }).filter(item => {
-          if (filterBarcode != null && item.barcode == filterBarcode) {
-            return true;
-          } else if (filterBarcode == null) {
+          if (this.isEmbeddedInFilteredContext) {
+            // If embedded in a filtered context, filter by barcode.
+            // If filterBarcode is null, no items should be displayed.
+            return filterBarcode !== null && item.barcode === filterBarcode;
+          } else {
+            // For standalone page, display all items by default.
             return true;
           }
-          return false;
         });
       })
     ).subscribe(filteredAndProcessedInventory => {
-      this.dataSource = new MatTableDataSource(filteredAndProcessedInventory);
-      this.dataSource.paginator = this.paginator;
+      this.dataSource.data = filteredAndProcessedInventory;
       this.dataSource.sort = this.sort;
     });
   }
@@ -133,7 +182,7 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
     this.router.navigate(['/addinventory'], { queryParams: { data: JSON.stringify(item) } });
   }
 
-   openDialogForDeleteConfirmation(event:any, item:InventoryItem) {
+  openDialogForDeleteConfirmation(event:any, item:InventoryItem) {
     const dialogRef = this.dialog.open(ConfirmationDialogComponent,{
       data:{
         message: 'Are you sure want to delete this Inventory Data?',
@@ -144,7 +193,6 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
       }
     });
     
-
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {  
         this.store.dispatch(InventoryActions.deleteInventory({ barcode: item.barcode, labeldate: item.labeleddate }));
@@ -152,53 +200,35 @@ export class ListInventoryComponent implements OnInit,AfterViewInit,OnChanges  {
     });
   }
 
-   
-   ngOnChanges(changes: SimpleChanges) {
-    if (changes['filterwithbarcode']) {
-      this.filterBarcodeSubject.next(changes['filterwithbarcode'].currentValue);
-    }
-  }
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
 
-  readonly range = new FormGroup({
-    start: new FormControl<Date | null>(new Date()),
-    end: new FormControl<Date | null>(new Date()),
-  });
-  
-  // convenience getter for easy access to form fields
-  get fdaterange() { return this.range.controls; }
+    
+  }
 
   filter_clicked() {
-    this.getInvoiceSoldItemsFromServer(this.fdaterange['start'].value, this.fdaterange['end'].value)
+    this.getInvoiceSoldItemsFromServer(this.range.controls['start'].value, this.range.controls['end'].value)
   }
+
   getInvoiceSoldItemsFromServer(startDate:Date|null=new Date(), endDate:Date|null=new Date()){
     let tr_start_date:string = this.datePipe.transform(startDate,'yyyy-MM-dd')??'2024-01-13';
     let tr_end_date:string = this.datePipe.transform(endDate,'yyyy-MM-dd')??'2099-01-13';
     
-    console.log('getInvoiceSoldItemsFromServer() date of invoice sold items '+tr_start_date);
-    this._dataService.getInvoiceSoldItemsFromServer(tr_start_date, tr_end_date).subscribe((d) => {       
-      console.log('getInvoiceSoldItemsFromServer(): '+JSON.stringify(d));        
-      d.forEach(val=>{
+    this._dataService.getInvoiceSoldItemsFromServer(tr_start_date, tr_end_date).subscribe((d:any) => {       
+      d.forEach((val:any)=>{
         let sold_key = `${val["barcode"]}` + (typeof val["labeldate"] != 'undefined' ? `::${val["labeldate"]}` : '')
                                             + (typeof val["brand"] != 'undefined' ? `::${val["brand"]}` : '');
         this.allsoldItems[ sold_key ]= (this.allsoldItems[ sold_key ]??0) + val["quantity"];
-    })
+      })
     });
-   }
-   /** Announce the change in sort state for assistive technology. */
+  }
+
   announceSortChange(sortState: Sort) {
     if (sortState.direction) {
       this._liveAnnouncer.announce(`Sorted ${sortState.direction}ending`);
     } else {
       this._liveAnnouncer.announce('Sorting cleared');
-    }
-  }
-
-  applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
-
-    if (this.dataSource.paginator) {
-      this.dataSource.paginator.firstPage();
     }
   }
 }

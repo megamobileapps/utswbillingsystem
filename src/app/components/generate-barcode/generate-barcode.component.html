@@ -18,7 +18,7 @@
         </div>
         <div class="col-10  d-print-none">
             <p>Existing Inventory of Product</p>
-            <app-list-inventory [filterwithbarcode]="getSelectedLabel()"></app-list-inventory>
+            <app-list-inventory [filterwithbarcode]="getSelectedLabel()" [isEmbeddedInFilteredContext]="true" customHeightClass="minimized-height-viewport"></app-list-inventory>
         </div>
     </div>
 </div>

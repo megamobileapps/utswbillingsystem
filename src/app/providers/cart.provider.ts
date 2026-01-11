@@ -26,6 +26,13 @@ export class CartService{
         this._cartDetails = new CartDetails();
         this.cartClearedSource.next();
       }
+
+      clearCart():void{
+        if (this._cartDetails) {
+          this._cartDetails.invoicedatalist = [];
+        }
+        this.cartClearedSource.next();
+      }
       populateCartFrom(cartDtls:CartDetails):void{
         this._cartDetails = cartDtls;
         this.cartUpdatedSource.next();

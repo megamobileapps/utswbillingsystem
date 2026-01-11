@@ -80,3 +80,8 @@
     max-height: 400px;
     overflow: auto;
   }
+
+  /* Specific styling for app-list-inventory when embedded in app-generate-barcode */
+  app-generate-barcode app-list-inventory .virtual-scroll-viewport {
+    height: 120px; /* Reduced height for this specific context */
+  }

@@ -4,9 +4,16 @@ mat-form-field {
 }
 
 .product-name-field {
-    width: 30%;
+    width: 25%;
 }
-
+.product-barcode-field {
+    width: 15%;
+    margin-left: 8px;
+}
+.product-other-field {
+    width: 12%;
+    margin-left: 8px;
+}
 ::ng-deep .mat-option {
     font-size: 0.8em;
 }

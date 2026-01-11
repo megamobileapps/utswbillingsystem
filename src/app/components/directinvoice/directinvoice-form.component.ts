@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UTSWCartItem } from 'src/app/models/cart-item';
@@ -54,8 +54,11 @@ export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
 
   allInventoryItems: InventoryItem[] = []; // Store all inventory items
   filteredOptions: Observable<InventoryItem[]>[] = []; // Observable for filtered suggestions per item
+  @ViewChildren('barcodeInput', { read: ElementRef }) barcodeInputs!: QueryList<ElementRef<HTMLInputElement>>;
   private fuse: Fuse<InventoryItem>; // Declare fuse property
   private amountCalculationSubscription: Subscription;
+  private cartClearedSubscription: Subscription;
+  private suppressFormClearOnCartReset:boolean = false;
 
   constructor(private formBuilder: FormBuilder,
     private _dataService:DataService, 
@@ -94,6 +97,15 @@ export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
       this.store.dispatch(InventoryActions.loadInventory());
       this.subscribeToInventory();
 
+      this.cartClearedSubscription = this._cartService.cartCleared$.subscribe(() => {
+        if (this.suppressFormClearOnCartReset) {
+          return;
+        }
+        this.clearInvoiceForm();
+        this.currBasketAmt = 0;
+        this.submitted = false;
+      });
+
       if (this.oldinvoiceid != null && this.oldinvoiceid != "-1"){
         this.load_old_invoice_data(this.oldinvoiceid) // Then load old invoice data if applicable
       }
@@ -108,6 +120,10 @@ export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
     ngOnDestroy(): void {
       if (this.amountCalculationSubscription) {
         this.amountCalculationSubscription.unsubscribe();
+      }
+
+      if (this.cartClearedSubscription) {
+        this.cartClearedSubscription.unsubscribe();
       }
     }
 
@@ -141,6 +157,7 @@ export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
 
     createItemFormGroup(): FormGroup {
       return this.formBuilder.group({
+        selectedItem: [null],
         productname:[null, Validators.required], // Initialize with null to hold InventoryItem object
         hsn: ['49011010'],
         quantity: ['1', Validators.required],
@@ -195,23 +212,35 @@ export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
     }
 
     displayFn(item: InventoryItem | string): string {
-      if (typeof item === 'string') {
-        return item;
+      if (typeof item === 'object' && item !== null) {
+        return item.productname;
       }
-      return item && item.productname ? item.productname : '';
+      return item;
     }
 
     onProductSelected(event: MatAutocompleteSelectedEvent, itemIndex: number): void {
       const selectedItem: InventoryItem = event.option.value;
       this.patchItemForm(selectedItem, itemIndex);
-      this.addItem(); // Automatically add a new row
+      this.addItem()
+    }
+
+    onBarcodeScanned(event: any, itemIndex: number): void {
+      const barcode = event.target.value;
+      if (barcode && barcode.length > 0) {
+        const foundItem = this.allInventoryItems.find(item => item.barcode === barcode);
+        if (foundItem) {
+          this.patchItemForm(foundItem, itemIndex);
+          this.addItem()
+        }
+      }
     }
     
     // Helper to patch form group with selected item data
     patchItemForm(item: InventoryItem, itemIndex: number): void {
       const itemFormGroup = this.itemControls.at(itemIndex) as FormGroup;
       itemFormGroup.patchValue({
-        productname: item, // Patch the whole object into the form control
+        selectedItem: item,
+        productname: item.productname, // Patch the name string
         hsn: item.hsn,
         unit: item.unit,
         cp: item.cp,
@@ -235,58 +264,22 @@ export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
       return this.invoice.get('items') as FormArray;
     }
 
-    prepare_json_from_formgroup(fg:FormGroup):InventoryItem {
-      let allControls = fg.controls;
-      const productnameControlValue = allControls['productname'].value;
-      
-      // Helper to safely convert to number, defaulting to 0 if NaN
+    prepare_json_from_formgroup(fg: FormGroup): InventoryItem {
+      const allControls = fg.controls;
+      const selectedItem = allControls['selectedItem'].value;
+  
       const safeNumber = (value: any) => {
-        const num = Number(value);
-        return isNaN(num) ? 0 : num;
+          const num = Number(value);
+          return isNaN(num) ? 0 : num;
       };
-
-      let item: InventoryItem;
-
-      if (typeof productnameControlValue === 'object' && productnameControlValue !== null) {
-        // If productname control holds the entire InventoryItem object
-        // Use properties from the object as base, then override with form control values for editable fields
-        const currentMrp = safeNumber(allControls['mrp'].value);
-        const currentDiscount = safeNumber(allControls['discount'].value);
-        const calculatedNetvalue = currentMrp * (100 - currentDiscount) / 100;
-
-        item = {
-          ...productnameControlValue, // Start with all properties from the selected InventoryItem
-          productname: productnameControlValue.productname || '', // Ensure productname is string
-          hsn: productnameControlValue.hsn || '',
-          unit: productnameControlValue.unit || '',
-          vendor: productnameControlValue.vendor || '',
-          brand: productnameControlValue.brand || '',
-          barcode: productnameControlValue.barcode || '',
-          labeleddate: productnameControlValue.labeleddate || '',
-
-          // Override numerical fields with values from form controls, ensuring they are numbers
-          quantity: safeNumber(allControls['quantity'].value),
-          cp: safeNumber(allControls['cp'].value),
-          percentgst: safeNumber(allControls['percentgst'].value),
-          netcp: safeNumber(allControls['netcp'].value),
-          calculatedmrp: safeNumber(allControls['calculatedmrp'].value),
-          mrp: currentMrp, // Use the potentially overridden MRP
-          discount: currentDiscount, // Use the potentially overridden discount
-          fixedprofit: safeNumber(allControls['fixedprofit'].value),
-          percentprofit: safeNumber(allControls['percentprofit'].value),
-          shippingcost: safeNumber(allControls['shippingcost'].value),
-          netvalue: calculatedNetvalue, // Include netvalue directly in the object literal
-        };
-        
-      } else {
-        // If productname control holds a string (manual entry) or is null/undefined
-        const currentMrp = safeNumber(allControls['mrp'].value);
-        const currentDiscount = safeNumber(allControls['discount'].value);
-        const calculatedNetvalue = currentMrp * (100 - currentDiscount) / 100;
-
-        item = {
-          productname: productnameControlValue || '',   
-          hsn: allControls['hsn'].value || '',       
+  
+      const currentMrp = safeNumber(allControls['mrp'].value);
+      const currentDiscount = safeNumber(allControls['discount'].value);
+      const calculatedNetvalue = currentMrp * (100 - currentDiscount) / 100;
+  
+      const item: InventoryItem = {
+          productname: allControls['productname'].value || '',
+          hsn: allControls['hsn'].value || '',
           quantity: safeNumber(allControls['quantity'].value),
           unit: allControls['unit'].value || '',
           cp: safeNumber(allControls['cp'].value),
@@ -301,12 +294,12 @@ export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
           vendor: allControls['vendor'].value || '',
           brand: allControls['brand'].value || '',
           shippingcost: safeNumber(allControls['shippingcost'].value),
-          barcode:allControls['barcode'].value || '',
-          qtyavailable:0,
-          sold:1,
-          netvalue: calculatedNetvalue, // Include netvalue directly in the object literal
-        };
-      }
+          barcode: allControls['barcode'].value || '',
+          netvalue: calculatedNetvalue,
+          qtyavailable: (selectedItem && selectedItem.qtyavailable) ? selectedItem.qtyavailable : 0,
+          sold: (selectedItem && selectedItem.sold) ? selectedItem.sold : 1,
+      };
+  
       return item;
     }
 
@@ -339,6 +332,11 @@ export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
         distinctUntilChanged(),
         map(value => this._filter(value || ''))
       );
+
+      setTimeout(() => {
+        const barcodeEls = this.barcodeInputs?.toArray() ?? [];
+        barcodeEls[newIndex]?.nativeElement?.focus();
+      });
     }
 
   load_old_invoice_data(invoiceid:any){
@@ -407,7 +405,7 @@ export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
   }
 
   clearCart():void{
-    this._cartService.currentCart!.invoicedatalist=[];
+    this._cartService.clearCart();
   }
 
   onPushToCart(){
@@ -415,6 +413,9 @@ export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
     console.log("onPushToCart component");
     this.submitted = true;
     this.loading = true;
+    this.suppressFormClearOnCartReset = true;
+    this._cartService.createNewCart();
+    this.suppressFormClearOnCartReset = false;
   
     const items = this.invoice.get('items') as FormArray;
     
@@ -440,6 +441,12 @@ export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
                                        ? productnameValue.productname 
                                        : productnameValue;
             console.log(`onPushToCart(): Row for product "${productNameDisplay}" has invalid values.`);
+            Object.keys(itemGroup.controls).forEach(key => {
+              const controlErrors = itemGroup.get(key)!.errors;
+              if (controlErrors != null) {
+                console.log('Key control: ' + key + ', errors: ' + JSON.stringify(controlErrors));
+              }
+            });
             alert(`Item "${productNameDisplay}" has invalid values and will not be added to the cart.`);
             itemGroup.markAllAsTouched();
         }
@@ -468,6 +475,12 @@ export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
             this._cartService.addToCart(itemValues);
         } else {
             console.log('onPushSingleItemToCart() Item form has invalid values. Please check.');
+            Object.keys(itemGroup.controls).forEach(key => {
+              const controlErrors = itemGroup.get(key)!.errors;
+              if (controlErrors != null) {
+                console.log('Key control: ' + key + ', errors: ' + JSON.stringify(controlErrors));
+              }
+            });
             alert('Item form has invalid values. Please check.');
         }
     }
