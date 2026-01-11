@@ -43,13 +43,13 @@ export class ListInventoryComponent implements OnInit, OnChanges {
   dataSource = new MatTableDataSource<InventoryItem>([]);
   
   allColumns: string[] = ['productname', 'labeleddate', 'qtyavailable', 'cp', 'vendor', 'barcode', 'hsn', 'quantity', 'sold', 'unit', 'shippingcost', 'percentgst', 'netcp', 'calculatedmrp', 'mrp', 'fixedprofit', 'percentprofit', 'brand'];
-  optionalColumns: string[] = ['barcode', 'hsn', 'quantity', 'sold', 'unit', 'shippingcost', 'percentgst', 'netcp', 'calculatedmrp', 'mrp', 'fixedprofit', 'percentprofit', 'brand'];
+  optionalColumns: string[] = ['barcode', 'vendor','labeleddate','hsn', 'quantity', 'sold', 'unit', 'shippingcost', 'percentgst', 'netcp', 'calculatedmrp', 'mrp', 'fixedprofit', 'percentprofit', 'brand'];
 
   // This will hold the columns selected by the user (for desktop view initially)
-  _displayedColumns: string[] = ['productname', 'labeleddate', 'qtyavailable', 'cp', 'vendor', 'actions'];
+  _displayedColumns: string[] = ['productname', 'cp', 'qtyavailable',   'actions'];
 
   // This will hold the columns specific to mobile view (a subset)
-  _mobileDisplayedColumns: string[] = ['productname','cp', 'vendor', 'labeleddate', 'qtyavailable',  'actions'];
+  _mobileDisplayedColumns: string[] = ['productname', 'cp', 'qtyavailable',   'actions'];
 
   // This is the array that the mat-table will actually bind to
   currentDisplayedColumns: string[] = []; 

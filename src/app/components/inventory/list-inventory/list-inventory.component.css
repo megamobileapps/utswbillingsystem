@@ -32,30 +32,59 @@
 @media (max-width: 600px) {
   .mat-table {
     font-size: 12px;
+    display: block; /* Ensure table can scroll horizontally */
+    width: 100%; /* Important for display:block to work with scroll */
   }
 
-  .mat-column-productname {
-    flex: 0 0 25%;
+  .mat-row, .mat-header-row {
+    display: flex; /* Ensure rows are flex containers on mobile */
+    width: fit-content; /* Allow rows to be wider than the table if necessary */
   }
 
-  .mat-column-labeleddate {
-    flex: 0 0 15%;
-  }
+  .mat-column-productname .mat-header-cell,
+  .mat-column-productname .mat-cell { min-width: 140px; flex-shrink: 0; }
+  .mat-column-labeleddate .mat-header-cell,
+  .mat-column-labeleddate .mat-cell { min-width: 70px; flex-shrink: 0; }
+  .mat-column-qtyavailable .mat-header-cell,
+  .mat-column-qtyavailable .mat-cell { min-width: 20px; flex-shrink: 0; }
+  .mat-column-cp .mat-header-cell,
+  .mat-column-cp .mat-cell { min-width: 30px; flex-shrink: 0; }
+  .mat-column-vendor .mat-header-cell,
+  .mat-column-vendor .mat-cell { min-width: 30px; flex-shrink: 0; }
+  .mat-column-barcode .mat-header-cell,
+  .mat-column-barcode .mat-cell { min-width: 80px; flex-shrink: 0; }
+  .mat-column-hsn .mat-header-cell,
+  .mat-column-hsn .mat-cell { min-width: 70px; flex-shrink: 0; }
+  .mat-column-quantity .mat-header-cell,
+  .mat-column-quantity .mat-cell { min-width: 60px; flex-shrink: 0; }
+  .mat-column-sold .mat-header-cell,
+  .mat-column-sold .mat-cell { min-width: 50px; flex-shrink: 0; }
+  .mat-column-unit .mat-header-cell,
+  .mat-column-unit .mat-cell { min-width: 40px; flex-shrink: 0; }
+  .mat-column-shippingcost .mat-header-cell,
+  .mat-column-shippingcost .mat-cell { min-width: 70px; flex-shrink: 0; }
+  .mat-column-percentgst .mat-header-cell,
+  .mat-column-percentgst .mat-cell { min-width: 60px; flex-shrink: 0; }
+  .mat-column-netcp .mat-header-cell,
+  .mat-column-netcp .mat-cell { min-width: 70px; flex-shrink: 0; }
+  .mat-column-calculatedmrp .mat-header-cell,
+  .mat-column-calculatedmrp .mat-cell { min-width: 80px; flex-shrink: 0; }
+  .mat-column-mrp .mat-header-cell,
+  .mat-column-mrp .mat-cell { min-width: 70px; flex-shrink: 0; }
+  .mat-column-fixedprofit .mat-header-cell,
+  .mat-column-fixedprofit .mat-cell { min-width: 70px; flex-shrink: 0; }
+  .mat-column-percentprofit .mat-header-cell,
+  .mat-column-percentprofit .mat-cell { min-width: 80px; flex-shrink: 0; }
+  .mat-column-brand .mat-header-cell,
+  .mat-column-brand .mat-cell { min-width: 70px; flex-shrink: 0; }
+  .mat-column-actions .mat-header-cell,
+  .mat-column-actions .mat-cell { min-width: 80px; flex-shrink: 0; }
 
-  .mat-column-qtyavailable {
-    flex: 0 0 10%;
-  }
-
-  .mat-column-cp {
-    flex: 0 0 15%;
-  }
-
-  .mat-column-vendor {
-    flex: 0 0 20%;
-  }
-
-  .mat-column-actions {
-    flex: 0 0 15%;
+  /* Default min-width for any other cells that might not have a specific column definition */
+  .mat-cell, .mat-header-cell {
+    min-width: 60px; /* Further reduced default min-width */
+    flex-shrink: 0;
+    padding: 0 4px; /* Further reduce padding */
   }
 
   /* New styles for filter controls container */
