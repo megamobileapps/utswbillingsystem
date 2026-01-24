@@ -1,19 +1,140 @@
-mat-form-field {
-    width: 16%;
-    margin-left: 8px;
+/* Viewport Locking Strategy (Flexbox) */
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    overflow: hidden; /* Prevent parent scrollbar from activating */
 }
 
-.product-name-field {
-    width: 25%;
+.billing-viewport {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    flex: 1;
+    min-height: 0; /* Critical for nested flex scrolling */
+    width: 100%;
+    overflow: hidden;
+    background-color: white;
 }
-.product-barcode-field {
-    width: 15%;
-    margin-left: 8px;
+
+/* 1. Toolbar */
+.toolbar-section {
+    flex: 0 0 auto;
+    z-index: 20;
+    position: relative;
+    background-color: var(--secondary-bg) !important;
+    border-bottom: 1px solid var(--border-color) !important;
 }
-.product-other-field {
-    width: 12%;
-    margin-left: 8px;
+
+/* 2. Scroll Area */
+.table-scroll-area {
+    flex: 1 1 auto;
+    overflow: auto; /* Handles BOTH X and Y scrolling */
+    position: relative;
+    overscroll-behavior: contain;
+    min-height: 0; /* Critical */
 }
-::ng-deep .mat-option {
-    font-size: 0.8em;
+
+/* Sticky Header inside Scroll Area */
+.spreadsheet-header {
+    position: sticky;
+    top: 0;
+    left: 0;
+    z-index: 100; /* Stays above rows */
+    width: max-content; /* Force width to match content */
+    min-width: 100%;
+    height: 32px;
+    background-color: #f1f3f4;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #5f6368;
+    border-bottom: 2px solid #dcdcdc;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Visual separation when scrolling */
 }
+
+/* Data Rows */
+.spreadsheet-body {
+    width: max-content;
+    min-width: 100%;
+}
+
+.data-row {
+    height: 32px;
+    width: max-content;
+    min-width: 100%;
+    font-family: 'Roboto', sans-serif;
+}
+
+.data-row:nth-child(even) {
+    background-color: #f8f9fa !important;
+}
+
+/* 3. Footer */
+.footer-section {
+    flex: 0 0 auto;
+    z-index: 30;
+    position: relative;
+    background-color: var(--secondary-bg) !important;
+    border-top: 1px solid var(--border-color) !important;
+}
+
+/* Column Definitions (Strict Widths) */
+.col-index { min-width: 30px; width: 30px; }
+.col-barcode { min-width: 110px; width: 110px; }
+.col-name { min-width: 180px; width: 180px; }
+.col-mrp { min-width: 60px; width: 60px; }
+.col-disc { min-width: 40px; width: 40px; }
+.col-qty { min-width: 50px; width: 50px; }
+.col-action { min-width: 60px; width: 60px; border-right: none !important; }
+
+/* Shared Column Styles */
+.col-index, .col-barcode, .col-name, .col-mrp, .col-disc, .col-qty, .col-action {
+    box-sizing: border-box;
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 1px solid #e0e0e0;
+    padding: 0 4px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+/* Inputs & Buttons */
+.spreadsheet-input {
+    height: 24px !important;
+    font-size: 12px !important;
+    padding: 0 4px !important;
+    border-radius: 0 !important;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #333;
+    font-weight: 500;
+}
+
+.spreadsheet-input:focus {
+    border-color: #86b7fe;
+    background: #fff;
+    box-shadow: none !important;
+}
+
+.bg-light-blue {
+    background-color: rgba(227, 242, 253, 0.5) !important;
+}
+
+.tiny-icon {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+    line-height: 18px !important;
+}
+
+.compact-mat-btn {
+    line-height: 32px !important;
+    height: 32px !important;
+    padding: 0 12px !important;
+    border-radius: 4px !important;
+}
+
+/* Naked Field Overrides (Removed - Replaced with Native Input) */

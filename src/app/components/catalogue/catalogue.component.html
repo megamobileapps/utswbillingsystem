@@ -1,5 +1,6 @@
-<div class="container-fluid">
-    <ul class="nav nav-tabs">
+<div class="container-fluid h-100 d-flex flex-column">
+    <!-- 1. Tabs (Fixed Height) -->
+    <ul class="nav nav-tabs flex-shrink-0">
         <li class="nav-item">
             <a class="nav-link" [class.active]="selectedTab === 'scan'" (click)="selectTab('scan')">Scan</a>
         </li>
@@ -8,10 +9,15 @@
         </li>
     </ul>
 
-    <div class="d-flex flex-column flex-md-row">
-        <div class="col-12 col-md-8">
-            <div [hidden]="selectedTab !== 'scan'">
-                <div class="accordion" id="accordionExample">
+    <!-- 2. Main Content Area (Fills remaining height) -->
+    <div class="d-flex flex-column flex-md-row flex-grow-1 overflow-hidden" style="min-height: 0;">
+        
+        <!-- Left Panel: Scanner / Manual Invoice -->
+        <div class="col-12 col-md-8 d-flex flex-column h-100">
+            
+            <!-- Scan Tab -->
+            <div *ngIf="selectedTab === 'scan'" class="h-100 d-flex flex-column">
+                <div class="accordion flex-grow-1 overflow-auto" id="accordionExample">
                     <div class="accordion-item">
                         <h2 class="accordion-header" id="headingOne">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
@@ -92,19 +98,26 @@
                     </div>
                 </div>
             </div>
-            <div [hidden]="selectedTab !== 'manual'">
-                <app-directinvoice-form [oldinvoiceid]="oldinvoiceid"></app-directinvoice-form>
+
+            <!-- Manual Tab (Direct Invoice) -->
+            <div *ngIf="selectedTab === 'manual'" class="h-100">
+                <app-directinvoice-form [oldinvoiceid]="oldinvoiceid" class="d-block h-100"></app-directinvoice-form>
             </div>
         </div>
-        <div class="col-12 col-md-4" *ngIf="!isMobileScreen">
-            <app-cart></app-cart>
+
+        <!-- Right Panel: Cart (Desktop Only) -->
+        <div class="col-12 col-md-4 d-flex flex-column h-100 border-start" *ngIf="!isMobileScreen">
+            <div class="h-100 overflow-auto">
+                <app-cart></app-cart>
+            </div>
         </div>
     </div>
 
-    <div class="col-12">
-        <div class="card">
-        <div class="card-body">
-            <p class="text text-center">Sripank Software Solutions</p>
+    <!-- Footer -->
+    <div class="col-12 flex-shrink-0">
+        <div class="card border-top-0 rounded-0">
+        <div class="card-body py-1">
+            <p class="text text-center m-0 small text-muted">Sripank Software Solutions</p>
         </div>
         </div>
     </div>

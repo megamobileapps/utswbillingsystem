@@ -1,42 +1,37 @@
-<div class="row">
-    <div class="card">
-        <div class="card-header text text-center h5">
-            Transaction Details
+<div class="h-100 d-flex flex-column bg-white border-start">
+    
+    <!-- 1. Unified Header & Transaction Info -->
+    <div class="cart-header p-3 bg-light border-bottom">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="m-0 text-primary fw-bold">Current Cart</h5>
+            <span class="badge bg-secondary">#{{txId}}</span>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-6">
-                    <strong>Transaction Id:</strong>   {{txId}}
-                </div>
-                <div class="col-6">
-                    <strong>Date:</strong>  {{today| date:'fullDate'}}
-                </div>
-            </div>
-            
+        <div class="d-flex justify-content-between small text-muted">
+            <span>{{today | date:'mediumDate'}}</span>
+            <span>{{today | date:'shortTime'}}</span>
         </div>
     </div>
-    <div class="card">
-        <div class="card-header">
-            Total
+
+    <!-- 2. Financial Summary (Compact) -->
+    <div class="cart-summary p-3 bg-white border-bottom shadow-sm" style="z-index: 5;">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="text-secondary">Items</span>
+            <span class="fw-bold">{{totalQuantity}}</span>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-3">Item count</div>
-                <div class="col-3">{{totalQuantity}}</div>
-                <div class="col-3 text h5">Amount</div>
-                <div class="col-3  text h5">{{totalAmount - customerDiscount}}</div>
-                <div class="col-12">
-                    <app-checkout></app-checkout>
-                </div>
-            </div>
+        <div class="d-flex justify-content-between align-items-center">
+            <span class="text-secondary">Total</span>
+            <span class="h4 m-0 text-success fw-bold">{{totalAmount - customerDiscount | currency:'INR'}}</span>
         </div>
     </div>
-   
-    <div class="card">
-        <div class="card-header">
-            Purchased Items
-        </div>
+
+    <!-- 3. Scrollable Cart Items -->
+    <div class="cart-items flex-grow-1 overflow-auto p-0">
         <app-displaycart></app-displaycart>
     </div>
-    
+
+    <!-- 4. Checkout Action (Footer) -->
+    <div class="cart-footer p-3 border-top bg-light">
+        <app-checkout class="d-block w-100"></app-checkout>
+    </div>
+
 </div>

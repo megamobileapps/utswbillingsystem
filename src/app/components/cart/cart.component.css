@@ -1,0 +1,24 @@
+:host {
+    display: block;
+    height: 100%;
+}
+
+.cart-header {
+    background-color: var(--secondary-bg);
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+.h-100.d-flex.flex-column.bg-white.border-start {
+    border-left: 1px solid var(--border-color) !important;
+    box-shadow: none;
+    height: 100% !important;
+    margin: 0;
+}
+
+/* Ensure app-checkout button stretches */
+::ng-deep app-checkout button {
+    width: 100%;
+    margin-top: 0 !important;
+    background-color: var(--success-color) !important;
+    border-radius: 4px !important;
+}

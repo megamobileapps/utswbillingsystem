@@ -1,0 +1,115 @@
+.app-header {
+    height: 54px; /* Slightly taller than var(--header-height) for better touch targets */
+    background-color: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: relative;
+    z-index: 1000;
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 500;
+    margin-right: 24px;
+}
+
+.nav-brand mat-icon {
+    margin-right: 8px;
+}
+
+.nav-actions {
+    display: flex;
+    gap: 8px;
+    flex: 1; /* Pushes right side items to the end */
+}
+
+.nav-btn {
+    color: white !important;
+    font-weight: 400;
+    opacity: 0.9;
+}
+
+.nav-btn:hover {
+    background-color: rgba(255,255,255,0.1);
+    opacity: 1;
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.cart-link {
+    position: relative;
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.cart-link:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+.badge-count {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background-color: var(--warning-color);
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 5px;
+    border-radius: 10px;
+    line-height: 1;
+}
+
+.profile-btn {
+    color: white;
+}
+
+/* Sub Header for Old Bills */
+.sub-header {
+    background-color: var(--secondary-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: 4px 16px;
+    display: flex;
+    align-items: center;
+    overflow-x: auto;
+    white-space: nowrap;
+    height: 40px;
+}
+
+.mini-bill-btn {
+    font-size: 11px;
+    height: 24px;
+    line-height: 24px;
+    padding: 0 8px;
+    margin-right: 8px;
+    border-color: var(--border-color);
+    color: var(--secondary-color);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .nav-btn span {
+        display: none; /* Hide text on mobile, show only icons */
+    }
+    
+    .nav-brand span {
+        display: none; /* Hide brand name on very small screens */
+    }
+}

@@ -1,6 +1,106 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global Design System - Enterprise Theme */
+:root {
+  /* Color Palette - Modern Enterprise Blue Theme */
+  --primary-color: #1976d2; /* Main Brand Color */
+  --primary-dark: #1565c0;
+  --primary-light: #e3f2fd;
+  
+  --secondary-color: #5f6368; /* Text/Icons */
+  --secondary-bg: #f8f9fa; /* Page Backgrounds */
+  
+  --success-color: #2e7d32;
+  --danger-color: #d32f2f;
+  --warning-color: #ed6c02;
+  
+  --border-color: #e0e0e0;
+  --card-bg: #ffffff;
 
+  /* Typography */
+  --font-family-base: 'Roboto', 'Segoe UI', sans-serif;
+  --font-size-base: 14px;
+  --font-size-sm: 12px;
+  --font-size-lg: 16px;
+  
+  /* Spacing & Layout */
+  --header-height: 50px;
+  --border-radius: 4px;
+  --box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+
+/* Reset & Base */
+html, body { 
+  height: 100%; 
+  background-color: var(--secondary-bg);
+}
+
+body { 
+  margin: 0; 
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  color: #333;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Global Utility Classes */
+
+/* 1. Unified Card Style */
+.app-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  overflow: hidden;
+}
+
+.app-card-header {
+  padding: 10px 16px;
+  background-color: var(--primary-light); /* Subtle header bg */
+  border-bottom: 1px solid var(--border-color);
+  color: var(--primary-dark);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-card-body {
+  padding: 0; /* Default to 0 for lists/tables */
+}
+
+/* 2. Unified Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1; 
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8; 
+}
+
+/* 3. Angular Material Overrides for Theme Consistency */
+.mat-mdc-raised-button.mat-primary {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+.mat-mdc-fab.mat-primary, .mat-mdc-mini-fab.mat-primary {
+  background-color: var(--primary-color) !important;
+}
+
+/* Form Controls - Standard */
+.form-control {
+    border-radius: 4px !important;
+}
+
+/* Import original themes */
 @import "~@ng-select/ng-select/themes/material.theme.css";
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 @import "~@ng-select/ng-select/themes/default.theme.css";
