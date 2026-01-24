@@ -1,0 +1,19 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.container-fluid {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0; /* Optional: reset padding if needed */
+}
+
+.main-content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: auto; /* Allow scrolling for pages that need it */
+  position: relative; /* Context for children */
+}

@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef, Renderer2, OnDestroy } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, filter, map as rxjsMap } from 'rxjs';
@@ -19,6 +19,7 @@ import * as InvoiceSoldItemsActions from 'src/app/store/invoice-sold-items/invoi
 import { selectAllInvoiceSoldItems } from 'src/app/store/invoice-sold-items/invoice-sold-items.selectors';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
+import { UserPreferenceService } from 'src/app/services/user-preference.service';
 
 @Component({
   selector: 'app-catalogue',
@@ -29,7 +30,8 @@ import { MatSort } from '@angular/material/sort';
 export class CatalogueComponent implements OnInit, AfterViewInit, OnDestroy {
   selectedTab: string = 'manual';
   @ViewChild('videoElement') videoElement: ElementRef;
-  @ViewChild('virtualScrollViewport') virtualScrollViewport: ElementRef;
+  @ViewChild(DirectinvoiceFormComponent) directInvoiceComponent!: DirectinvoiceFormComponent;
+  
   catalogueItems:Array<InventoryItem>=[];
   categories:Array<InOfficeCat>=[];
   selectedCat:string='';
@@ -39,10 +41,12 @@ export class CatalogueComponent implements OnInit, AfterViewInit, OnDestroy {
  
   today: number = Date.now();
   filterwithbarcode:string|null=null;
+  viewportHeight: string = '';
   private filterBarcodeSubject = new BehaviorSubject<string | null>(null);
 
   dataSource = new MatTableDataSource<InventoryItem>([]);
   displayedColumns: string[] = ['productname', 'mrp', 'qtyavailable', 'actions'];
+  displayedColumns_mobile: string[] = ['actions'];
   @ViewChild(MatSort) sort: MatSort;
   private resizeObserver: ResizeObserver;
 
@@ -54,8 +58,8 @@ export class CatalogueComponent implements OnInit, AfterViewInit, OnDestroy {
     private _cartService:CartService, private screenSizeService:ScreenSizeService,
     private store: Store,
     private cdr: ChangeDetectorRef,
-    private renderer: Renderer2,
     private elementRef: ElementRef,
+    private userPreferenceService: UserPreferenceService
     ) { 
       this._cartService.isEditing = false;
       this.isMobileScreen = this.screenSizeService.getIsMobileResolution;
@@ -73,6 +77,11 @@ export class CatalogueComponent implements OnInit, AfterViewInit, OnDestroy {
       return this._cartService.currentCart!.invoicedatalist;
     }
   ngOnInit(): void {
+    const savedTab = this.userPreferenceService.getCatalogueTab();
+    if (savedTab) {
+      this.selectedTab = savedTab;
+    }
+    
     this.store.dispatch(InventoryActions.loadInventory());
     this.subscribeToInventoryStore();
     this.subscribeToInvoiceSoldItemsStore();
@@ -115,10 +124,6 @@ export class CatalogueComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   calculateTableHeight(): void {
-    if (!this.virtualScrollViewport) {
-      return;
-    }
-
     const hostElement = this.elementRef.nativeElement;
     const filterControlsContainer = hostElement.querySelector('.card-header');
 
@@ -131,7 +136,8 @@ export class CatalogueComponent implements OnInit, AfterViewInit, OnDestroy {
     const finalHeight = availableHeightOfHost - elementsAboveTableHeight;
     const minAllowedHeight = 300; 
     
-    this.renderer.setStyle(this.virtualScrollViewport.nativeElement, 'height', `${Math.max(finalHeight, minAllowedHeight)}px`);
+    this.viewportHeight = `${Math.max(finalHeight, minAllowedHeight)}px`;
+    this.cdr.detectChanges(); // Force change detection to avoid NG0100
   }
 
   applyFilter(event: any) {
@@ -226,5 +232,10 @@ export class CatalogueComponent implements OnInit, AfterViewInit, OnDestroy {
 
   selectTab(tabName: string) {
     this.selectedTab = tabName;
+    this.userPreferenceService.setCatalogueTab(tabName);
+    
+    if (tabName === 'manual' && this.directInvoiceComponent && this._cartService.currentCart) {
+      this.directInvoiceComponent.loadFromCart(this._cartService.currentCart);
+    }
   }
 }

@@ -108,6 +108,11 @@ export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
 
       if (this.oldinvoiceid != null && this.oldinvoiceid != "-1"){
         this.load_old_invoice_data(this.oldinvoiceid) // Then load old invoice data if applicable
+      } else {
+        // Check if there is an active cart session and load it
+        if (this._cartService.currentCart && this._cartService.currentCart.invoicedatalist.length > 0) {
+            this.loadFromCart(this._cartService.currentCart);
+        }
       }
 
       this.amountCalculationSubscription = this.invoice.get('items')!.valueChanges.pipe(
@@ -338,6 +343,44 @@ export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
         barcodeEls[newIndex]?.nativeElement?.focus();
       });
     }
+
+  loadFromCart(cartDetails: CartDetails) {
+    console.log('loadFromCart() called');
+    const items = this.invoice.get('items') as FormArray;
+    items.clear();
+
+    cartDetails.invoicedatalist.forEach(element => {
+      // Find the original item in inventory to populate other fields if possible, or use cart data
+      // Cart item has limited fields, but enough for the invoice form
+      items.push(
+        this.formBuilder.group({
+          productname: [element.productName],
+          hsn: [element.hsn],
+          quantity: [element.quantity],
+          unit: [element.unitTag],
+          cp: [element.initialPrice], // approximation if original CP not in cart
+          percentgst: [element.gst],
+          netcp: [element.initialPrice], // approximation
+          calculatedmrp: [element.productPrice], // approximation
+          mrp: [element.initialPrice],
+          discount: [element.discount],
+          fixedprofit: ['0'],
+          percentprofit: ['0'],
+          labeleddate: [element.labeldate || this.todaydate],
+          vendor: ['utsw'], // Default or retrieved
+          brand: [element.productCategory],
+          shippingcost: ['0'],
+          barcode: [element.id],
+          selectedItem: [null] // We might not have the full object, or we can try to find it in allInventoryItems later if needed
+        })
+      );
+    });
+    
+    // Add an empty row at the end for new entry
+    this.addItem();
+    this.setupFormArrayControls();
+    this.onCalculateBillAmount();
+  }
 
   load_old_invoice_data(invoiceid:any){
     

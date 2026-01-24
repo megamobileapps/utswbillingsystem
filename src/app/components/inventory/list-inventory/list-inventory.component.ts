@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, AfterViewInit, ViewChild, OnChanges, SimpleChanges, ElementRef, Renderer2, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, AfterViewInit, ViewChild, OnChanges, SimpleChanges, ElementRef, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormControl } from '@angular/forms';
 
 import { MatTableDataSource } from '@angular/material/table';
@@ -17,6 +17,7 @@ import { ConfirmationDialogComponent } from '../../confirmation-dialog/confirmat
 import { InventoryItem } from 'src/app/models/inoffice';
 import * as InventoryActions from 'src/app/store/inventory/inventory.actions';
 import { selectAllInventory, selectInventoryStatus } from 'src/app/store/inventory/inventory.selectors';
+import { UserPreferenceService } from 'src/app/services/user-preference.service';
 
 // For mobile responsive design
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
@@ -35,8 +36,7 @@ export class ListInventoryComponent implements OnInit, OnChanges, AfterViewInit,
   
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatMenuTrigger) menuTrigger!: MatMenuTrigger; 
-  @ViewChild('virtualScrollViewport') virtualScrollViewport!: ElementRef; // Reference to the cdk-virtual-scroll-viewport
-
+  
   isHandset$: Observable<boolean>; // Made public for use in template via async pipe
 
   // Table data
@@ -57,6 +57,7 @@ export class ListInventoryComponent implements OnInit, OnChanges, AfterViewInit,
 
   allsoldItems: Record<string, number> = {};
   isLoading = true;
+  viewportHeight: string = ''; // Bound to [style.height] of the viewport
   private filterBarcodeSubject = new BehaviorSubject<string | null>(null);
   
   // Date range form
@@ -77,7 +78,8 @@ export class ListInventoryComponent implements OnInit, OnChanges, AfterViewInit,
     private router: Router, // Inject Router
     private store: Store,
     private elementRef: ElementRef, // Inject ElementRef
-    private renderer: Renderer2 // Inject Renderer2
+    private cdr: ChangeDetectorRef, // Inject ChangeDetectorRef
+    private userPreferenceService: UserPreferenceService // Inject UserPreferenceService
   ){
     this.dataSource.filterPredicate = (data: InventoryItem, filter: string) => {
       const dataStr = data.productname.toLowerCase() + data.barcode.toLowerCase() + (data.brand ? data.brand.toLowerCase() : '');
@@ -96,8 +98,22 @@ export class ListInventoryComponent implements OnInit, OnChanges, AfterViewInit,
   }
 
   ngOnInit(): void {
+    // Load saved date range preference
+    const savedRange = this.userPreferenceService.getInventoryDateRange();
+    if (savedRange) {
+      const start = savedRange.start ? new Date(savedRange.start) : null;
+      const end = savedRange.end ? new Date(savedRange.end) : null;
+      this.range.setValue({ start, end });
+      // Optionally trigger the filter immediately if desired, but user might want to check first
+      // this.getInvoiceSoldItemsFromServer(start, end); 
+    }
+
     this.subscribeToInventoryStore();
-    this.getInvoiceSoldItemsFromServer();
+    // If range was loaded, use it, otherwise default (handled in method)
+    this.getInvoiceSoldItemsFromServer(
+        this.range.controls['start'].value, 
+        this.range.controls['end'].value
+    );
 
     // Subscribe to handset changes to update displayed columns
     this.isHandset$.subscribe((isHandset: boolean) => {
@@ -215,6 +231,10 @@ export class ListInventoryComponent implements OnInit, OnChanges, AfterViewInit,
   }
 
   filter_clicked() {
+    this.userPreferenceService.setInventoryDateRange({
+      start: this.range.controls['start'].value, 
+      end: this.range.controls['end'].value
+    });
     this.getInvoiceSoldItemsFromServer(this.range.controls['start'].value, this.range.controls['end'].value)
   }
 
@@ -271,11 +291,6 @@ export class ListInventoryComponent implements OnInit, OnChanges, AfterViewInit,
   private calculateTableHeight(): void {
     // Only apply this logic for standalone view and if customHeightClass is not set
     if (!this.isEmbeddedInFilteredContext && !this.customHeightClass) {
-      // Ensure view is initialized
-      if (!this.virtualScrollViewport) {
-        return;
-      }
-
       const hostElement = this.elementRef.nativeElement;
       const filterControlsContainer = hostElement.querySelector('.filter-controls-container');
       const paginatorElement = hostElement.querySelector('.mat-paginator'); // Assuming paginator exists
@@ -301,13 +316,11 @@ export class ListInventoryComponent implements OnInit, OnChanges, AfterViewInit,
       const minAllowedHeight = 300; // Display roughly 5-7 rows
       
       // Apply height to the virtual scroll viewport
-      this.renderer.setStyle(this.virtualScrollViewport.nativeElement, 'height', `${Math.max(finalHeight, minAllowedHeight)}px`);
+      this.viewportHeight = `${Math.max(finalHeight, minAllowedHeight)}px`;
+      this.cdr.detectChanges(); // Force change detection to avoid NG0100
     } else {
-        // If embedded or has customHeightClass, ensure the style is reset or handled by CSS
-        // This prevents interference if calculateTableHeight is called incorrectly
-        if (this.virtualScrollViewport) {
-             this.renderer.removeStyle(this.virtualScrollViewport.nativeElement, 'height');
-        }
+        // If embedded or has customHeightClass, ensure the style is reset
+        this.viewportHeight = '';
     }
   }
 }

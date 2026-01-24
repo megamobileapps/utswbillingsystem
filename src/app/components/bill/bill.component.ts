@@ -17,6 +17,7 @@ import * as XLSX from 'xlsx';
 import { Store } from '@ngrx/store';
 import * as BillActions from 'src/app/store/bill/bill.actions';
 import { selectAllBills, selectBillStatus } from 'src/app/store/bill/bill.selectors';
+import { UserPreferenceService } from 'src/app/services/user-preference.service';
 
 @Component({
   selector: 'app-bill',
@@ -43,7 +44,8 @@ export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
     private _liveAnnouncer: LiveAnnouncer, private dialog: MatDialog,
     private datePipe:DatePipe,
     private router:Router,
-    private store: Store
+    private store: Store,
+    private userPreferenceService: UserPreferenceService
   ){
     
   }
@@ -68,8 +70,15 @@ export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
   ;
   
   ngOnInit(): void {
+    const savedRange = this.userPreferenceService.getBillsDateRange();
+    if (savedRange) {
+      const start = savedRange.start ? new Date(savedRange.start) : new Date();
+      const end = savedRange.end ? new Date(savedRange.end) : new Date();
+      this.range.setValue({ start, end });
+    }
+    
     this.subscribeToBillStore();
-    this.getInvoiceDataFromServer();
+    this.getInvoiceDataFromServer(this.range.controls['start'].value, this.range.controls['end'].value);
   }
 
   subscribeToBillStore(): void {
@@ -94,6 +103,10 @@ export class BillComponent implements OnInit,AfterViewInit,OnChanges  {
   get fdaterange() { return this.range.controls; }
 
   filter_clicked() {
+    this.userPreferenceService.setBillsDateRange({
+      start: this.fdaterange['start'].value, 
+      end: this.fdaterange['end'].value
+    });
     this.getInvoiceDataFromServer(this.fdaterange['start'].value, this.fdaterange['end'].value)
   }
   

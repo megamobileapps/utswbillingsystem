@@ -41,9 +41,9 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="card-body">
+                                <div class="card-body" *ngIf="!isMobileScreen">
                                     <div class="table-container">
-                                        <cdk-virtual-scroll-viewport itemSize="50" class="virtual-scroll-viewport" #virtualScrollViewport>
+                                        <cdk-virtual-scroll-viewport itemSize="50" [style.height]="viewportHeight" class="virtual-scroll-viewport" #virtualScrollViewport>
                                             <table mat-table [dataSource]="dataSource" matSort>
                                                 <ng-container matColumnDef="productname">
                                                     <th mat-header-cell *matHeaderCellDef mat-sort-header> Product Name </th>
@@ -65,6 +65,23 @@
                                                 </ng-container>
                                                 <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
                                                 <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                                            </table>
+                                        </cdk-virtual-scroll-viewport>
+                                    </div>
+                                </div>
+                                <div class="card-body" *ngIf="isMobileScreen">
+                                    <div class="table-container">
+                                        <cdk-virtual-scroll-viewport itemSize="50" [style.height]="viewportHeight" class="virtual-scroll-viewport" #virtualScrollViewport>
+                                            <table mat-table [dataSource]="dataSource" matSort>
+                                                
+                                                <ng-container matColumnDef="actions">
+                                                    <th mat-header-cell *matHeaderCellDef> Actions </th>
+                                                    <td mat-cell *matCellDef="let element">
+                                                        <app-displayitem [ofItem]="element" [enableBuy]="true"></app-displayitem>
+                                                    </td>
+                                                </ng-container>
+                                                <tr mat-header-row *matHeaderRowDef="displayedColumns_mobile; sticky: true"></tr>
+                                                <tr mat-row *matRowDef="let row; columns: displayedColumns_mobile;"></tr>
                                             </table>
                                         </cdk-virtual-scroll-viewport>
                                     </div>
