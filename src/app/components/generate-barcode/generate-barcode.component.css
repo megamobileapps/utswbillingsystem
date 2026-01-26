@@ -22,7 +22,7 @@
   
   .example-list {
     border: solid 1px #ccc;
-    min-height: 60px;
+    min-height: 32px;
     background: white;
     border-radius: 4px;
     overflow: hidden;
@@ -30,7 +30,7 @@
   }
   
   .example-box {
-    padding: 20px 10px;
+    padding: 4px 8px;
     border-bottom: solid 1px #ccc;
     color: rgba(0, 0, 0, 0.87);
     display: flex;
@@ -40,7 +40,7 @@
     box-sizing: border-box;
     cursor: move;
     background: white;
-    font-size: 14px;
+    font-size: 12px;
   }
   
   .cdk-drag-preview {
@@ -76,9 +76,157 @@
     width: 100%;
   }
 
-  mat-selection-list {
-    max-height: 400px;
+  /* Robust styling for compact form fields to prevent label clipping */
+  mat-form-field {
+    margin-top: 18px !important; /* Space for floating label */
+    overflow: visible !important;
+  }
+
+  ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+    display: none; /* Hide hints/errors to save space */
+  }
+
+  ::ng-deep .mat-mdc-text-field-wrapper {
+    height: 32px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    overflow: visible !important; /* Allow label to float out */
+  }
+
+  ::ng-deep .mat-mdc-form-field-infix {
+    min-height: 32px !important;
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+    border-top: 0 !important;
+  }
+
+  ::ng-deep .mat-mdc-form-field-flex {
+    align-items: center !important;
+  }
+
+  /* Ensure floating label wrapper doesn't clip */
+  ::ng-deep .mat-mdc-form-field-label-wrapper {
+    top: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Resting label centered */
+  ::ng-deep .mat-mdc-floating-label:not(.mdc-floating-label--float-above) {
+    top: 16px !important; 
+  }
+
+  /* Floating label position */
+  ::ng-deep .mdc-floating-label--float-above {
+    top: 4px !important; 
+  }
+
+  ::ng-deep .mdc-notched-outline__notch {
+    border-top: none !important;
+  }
+
+  /* Compact labels for barcode levels */
+  .level-label {
+    display: block;
+    font-size: 11px;
+    font-weight: bold;
+    color: #666;
+    margin-top: 4px;
+    margin-bottom: 2px;
+  }
+
+  /* Compact chips */
+  ::ng-deep .mat-mdc-chip.mat-mdc-standard-chip {
+    min-height: 24px !important;
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+    font-size: 11px !important;
+  }
+
+  ::ng-deep .mat-mdc-chip-remove {
+    width: 16px !important;
+    height: 16px !important;
+    margin-left: 4px !important;
+  }
+
+  ::ng-deep .mat-mdc-chip-remove mat-icon {
+    font-size: 14px !important;
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  mat-selection-list.filtered-labels-list {
+    flex: 0 1 auto;
+    max-height: 30%; /* Limit to 30% of height */
     overflow: auto;
+    min-height: 50px;
+  }
+
+  mat-selection-list.all-labels-list {
+    flex: 1;
+    overflow: auto;
+    min-height: 0;
+  }
+
+  :host {
+    display: block;
+    height: 100%;
+  }
+
+  .container-fluid {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Target the first row which contains the panels */
+  .container-fluid > .row:first-of-type {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden; /* manage scroll in columns */
+  }
+
+  .col-3.bg-info {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 10px;
+  }
+
+  .col-9 {
+    height: 100%;
+    overflow-y: auto;
+  }
+
+  ::ng-deep .mat-mdc-list-item.mat-mdc-list-option {
+    height: 32px !important;
+    min-height: 32px !important;
+    font-size: 12px !important;
+  }
+
+  ::ng-deep .mat-mdc-list-item.mat-mdc-list-option .mat-mdc-list-item-icon {
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 20px !important;
+  }
+
+  /* Compact list options in the left panel */
+  .bg-info mat-list-option {
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+
+  /* Smaller delete buttons in the list */
+  .bg-info .mat-mdc-icon-button {
+    width: 28px !important;
+    height: 28px !important;
+    padding: 2px !important;
+    flex-shrink: 0;
+  }
+
+  .bg-info .mat-mdc-icon-button mat-icon {
+    font-size: 16px !important;
+    width: 16px !important;
+    height: 16px !important;
   }
 
   /* Specific styling for app-list-inventory when embedded in app-generate-barcode */

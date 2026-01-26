@@ -12,6 +12,8 @@ export class CartService{
     cartCleared$ = this.cartClearedSource.asObservable();
     private cartUpdatedSource = new Subject<void>();
     cartUpdated$ = this.cartUpdatedSource.asObservable();
+    private cartRestoredSource = new Subject<void>();
+    cartRestored$ = this.cartRestoredSource.asObservable();
     
     _oldCartDetails:Array<CartDetails>=[];
 
@@ -39,6 +41,7 @@ export class CartService{
       populateCartFrom(cartDtls:CartDetails):void{
         this._cartDetails = cartDtls;
         this.cartUpdatedSource.next();
+        this.cartRestoredSource.next();
       }
 
       checkIfExistInCart(ofItem:InventoryItem|null):Array<UTSWCartItem>|undefined{

@@ -28,3 +28,66 @@
 .card-body {
   padding: 0;
 }
+
+/* Scanner Viewfinder Overlay */
+.scanner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+}
+
+.scanner-region {
+    position: relative;
+    width: 260px;
+    height: 260px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.5); /* Create the "cutout" effect */
+    border-radius: 8px;
+}
+
+/* Viewfinder Corners */
+.scanner-region::before,
+.scanner-region::after,
+.scanner-region .corner-tl,
+.scanner-region .corner-tr,
+.scanner-region .corner-bl,
+.scanner-region .corner-br {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-color: var(--secondary-color); /* Cyan/Teal from theme */
+    border-style: solid;
+    z-index: 11;
+}
+
+.corner-tl { top: -2px; left: -2px; border-width: 4px 0 0 4px; border-top-left-radius: 8px; }
+.corner-tr { top: -2px; right: -2px; border-width: 4px 4px 0 0; border-top-right-radius: 8px; }
+.corner-bl { bottom: -2px; left: -2px; border-width: 0 0 4px 4px; border-bottom-left-radius: 8px; }
+.corner-br { bottom: -2px; right: -2px; border-width: 0 4px 4px 0; border-bottom-right-radius: 8px; }
+
+/* Laser Scanning Line Animation */
+.scanner-laser {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--secondary-color);
+    box-shadow: 0 0 8px var(--secondary-color);
+    animation: scan 2s linear infinite;
+    z-index: 12;
+}
+
+@keyframes scan {
+    0% { top: 0%; }
+    50% { top: 100%; }
+    100% { top: 0%; }
+}
+

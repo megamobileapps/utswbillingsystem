@@ -7,13 +7,16 @@
         <li class="nav-item">
             <a class="nav-link" [class.active]="selectedTab === 'manual'" (click)="selectTab('manual')">Manual</a>
         </li>
+        <li class="nav-item" *ngIf="isMobileScreen">
+            <a class="nav-link" [class.active]="selectedTab === 'camera'" (click)="selectTab('camera')">Camera</a>
+        </li>
     </ul>
 
     <!-- 2. Main Content Area (Fills remaining height) -->
     <div class="d-flex flex-column flex-md-row flex-grow-1 overflow-hidden" style="min-height: 0;">
         
         <!-- Left Panel: Scanner / Manual Invoice -->
-        <div class="col-12 col-md-8 d-flex flex-column h-100">
+        <div class="col-12 col-md-7 d-flex flex-column h-100">
             
             <!-- Scan Tab -->
             <div *ngIf="selectedTab === 'scan'" class="h-100 d-flex flex-column">
@@ -103,10 +106,56 @@
             <div *ngIf="selectedTab === 'manual'" class="h-100">
                 <app-directinvoice-form [oldinvoiceid]="oldinvoiceid" class="d-block h-100"></app-directinvoice-form>
             </div>
+
+            <!-- Camera Tab -->
+            <div *ngIf="selectedTab === 'camera'" class="h-100 d-flex flex-column align-items-center justify-content-center bg-dark">
+                 <div class="scanner-container w-100 h-100 position-relative">
+                    
+                    <zxing-scanner *ngIf="isScanning"
+                        [enable]="isScanning"
+                        [formats]="allowedFormats"
+                        (scanSuccess)="onCodeResult($event)"
+                        (camerasFound)="onCamerasFound($event)"
+                        (permissionResponse)="onHasPermission($event)"
+                        class="w-100 h-100 d-block object-fit-cover">
+                    </zxing-scanner>
+
+                    <!-- Viewfinder Overlay -->
+                    <div class="scanner-overlay d-flex align-items-center justify-content-center" *ngIf="isScanning">
+                        <div class="scanner-region">
+                            <div class="corner-tl"></div>
+                            <div class="corner-tr"></div>
+                            <div class="corner-bl"></div>
+                            <div class="corner-br"></div>
+                            <div class="scanner-laser"></div>
+                        </div>
+                        <p class="text-white small mt-3 fw-bold" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Align Barcode/QR within the square</p>
+                    </div>
+
+                    <!-- Debug Overlay -->
+                    <div style="position: absolute; top: 10px; left: 10px; z-index: 20; background: rgba(0,0,0,0.7); color: lime; padding: 5px; font-size: 10px; pointer-events: none; max-width: 80%;">
+                        <div *ngFor="let log of scanLogs">{{log}}</div>
+                    </div>
+
+                    <!-- Manual Start/Stop (If permission issues or explicit user control needed) -->
+                    <div class="position-absolute bottom-0 w-100 p-3 d-flex justify-content-center" style="z-index: 30; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">
+                        <button class="btn btn-light rounded-pill fw-bold" (click)="toggleCamera()">
+                            {{ isScanning ? 'Stop Camera' : 'Start Camera' }}
+                        </button>
+                    </div>
+
+                    <!-- Placeholder when stopped -->
+                    <div *ngIf="!isScanning" class="position-absolute top-50 start-50 translate-middle text-white text-center">
+                        <mat-icon style="font-size: 64px; width: 64px; height: 64px;">videocam_off</mat-icon>
+                        <p class="mt-2">Camera Paused</p>
+                    </div>
+
+                </div>
+            </div>
         </div>
 
         <!-- Right Panel: Cart (Desktop Only) -->
-        <div class="col-12 col-md-4 d-flex flex-column h-100 border-start" *ngIf="!isMobileScreen">
+        <div class="col-12 col-md-5 d-flex flex-column h-100 border-start" *ngIf="!isMobileScreen">
             <div class="h-100 overflow-auto">
                 <app-cart></app-cart>
             </div>

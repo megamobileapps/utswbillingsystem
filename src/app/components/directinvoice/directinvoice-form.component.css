@@ -46,7 +46,7 @@
     min-width: 100%;
     height: 32px;
     background-color: #f1f3f4;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     text-transform: uppercase;
     color: #5f6368;
@@ -61,10 +61,11 @@
 }
 
 .data-row {
-    height: 32px;
+    height: 36px;
     width: max-content;
     min-width: 100%;
     font-family: 'Roboto', sans-serif;
+    font-size: 14px;
 }
 
 .data-row:nth-child(even) {
@@ -82,11 +83,11 @@
 
 /* Column Definitions (Strict Widths) */
 .col-index { min-width: 30px; width: 30px; }
-.col-barcode { min-width: 110px; width: 110px; }
-.col-name { min-width: 180px; width: 180px; }
-.col-mrp { min-width: 60px; width: 60px; }
-.col-disc { min-width: 40px; width: 40px; }
-.col-qty { min-width: 50px; width: 50px; }
+.col-barcode { min-width: 130px; width: 130px; }
+.col-name { min-width: 300px; width: 300px; flex-grow: 1; }
+.col-mrp { min-width: 80px; width: 80px; }
+.col-disc { min-width: 60px; width: 60px; }
+.col-qty { min-width: 70px; width: 70px; }
 .col-action { min-width: 60px; width: 60px; border-right: none !important; }
 
 /* Shared Column Styles */
@@ -101,10 +102,30 @@
     align-items: center;
 }
 
+/* Autocomplete styling */
+.small-option {
+    font-size: 14px !important;
+    line-height: 28px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+}
+
+.small-option .d-flex {
+    width: 100%;
+    overflow: hidden;
+}
+
+.small-option span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
 /* Inputs & Buttons */
 .spreadsheet-input {
-    height: 24px !important;
-    font-size: 12px !important;
+    height: 28px !important;
+    font-size: 14px !important;
     padding: 0 4px !important;
     border-radius: 0 !important;
     border: 1px solid transparent;

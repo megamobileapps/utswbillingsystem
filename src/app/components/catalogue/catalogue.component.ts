@@ -3,15 +3,14 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, filter, map as rxjsMap } from 'rxjs';
 import { UTSWCartItem } from 'src/app/models/cart-item';
-import { InOfficeCat, InventoryItem } from 'src/app/models/inoffice'; // Removed InOfficePrice from here, not used
+import { InOfficeCat, InventoryItem } from 'src/app/models/inoffice'; 
 import { CartDetails } from 'src/app/providers/cart.details';
 import { CartService } from 'src/app/providers/cart.provider';
 import { DataService } from 'src/app/services/data.service';
 import { ScreenSizeService } from 'src/app/services/screen-size.service';
-import Quagga from 'quagga';
 import { BarcodeFormat } from '@zxing/library';
 import { DatePipe } from '@angular/common';
-import { DirectinvoiceFormComponent } from '../directinvoice/directinvoice-form.component'; // Keep consistent if used
+import { DirectinvoiceFormComponent } from '../directinvoice/directinvoice-form.component'; 
 import { Store } from '@ngrx/store';
 import { selectAllInventory, selectInventoryStatus } from 'src/app/store/inventory/inventory.selectors';
 import * as InventoryActions from 'src/app/store/inventory/inventory.actions';
@@ -50,6 +49,18 @@ export class CatalogueComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild(MatSort) sort: MatSort;
   private resizeObserver: ResizeObserver;
 
+  // Scanner Properties
+  isScanning: boolean = false;
+  scanLogs: string[] = [];
+  allowedFormats = [
+    BarcodeFormat.QR_CODE,
+    BarcodeFormat.EAN_13,
+    BarcodeFormat.CODE_128,
+    BarcodeFormat.DATA_MATRIX,
+    BarcodeFormat.CODE_39,
+    BarcodeFormat.UPC_A
+  ];
+
   constructor(private _dataService:DataService,
     private route: ActivatedRoute,
     private router:Router,
@@ -77,11 +88,9 @@ export class CatalogueComponent implements OnInit, AfterViewInit, OnDestroy {
       return this._cartService.currentCart!.invoicedatalist;
     }
   ngOnInit(): void {
-    const savedTab = this.userPreferenceService.getCatalogueTab();
-    if (savedTab) {
-      this.selectedTab = savedTab;
-    }
-    
+    // Default to 'manual' tab as requested, ignoring saved preferences for initial state
+    this.selectedTab = 'manual';
+
     this.store.dispatch(InventoryActions.loadInventory());
     this.subscribeToInventoryStore();
     this.subscribeToInvoiceSoldItemsStore();
@@ -114,6 +123,7 @@ export class CatalogueComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
     }
+    this.isScanning = false; // Ensure scan loop stops
   }
 
   private setupResizeObserver(): void {
@@ -179,35 +189,71 @@ export class CatalogueComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  quagga_init() {
-    // Check if Quagga is defined before using it
-    if (typeof Quagga !== 'undefined') {
-      Quagga.init({
-        inputStream: {
-          type: 'LiveStream',
-          constraints: {
-            width: { min: 640 },
-            height: { min: 480 },
-            facingMode: 'environment',
-            focusMode: 'continuous',
-          },
-          target: document.querySelector('#scanner'),
-        },
-        decoder: {
-          readers: ['code_128_reader']
-        }
-      }, (error:any) => {
-        if (error) {
-          console.error(error);
-          return;
-        }
-        Quagga.start();
-      });
-      Quagga.onDetected((data: any) => {
-        console.log('Barcode detected and processed:', data.codeResult.code);
-      });
+  // --- ZXing Scanner Methods ---
+
+  toggleCamera() {
+    this.isScanning = !this.isScanning;
+    if (this.isScanning) {
+        this.addScanLog('Starting camera...');
     } else {
-      console.warn('Quagga is not loaded. Barcode scanning functionality will be limited.');
+        this.addScanLog('Camera stopped.');
+    }
+  }
+
+  addScanLog(msg: string) {
+    this.scanLogs.unshift(new Date().toLocaleTimeString() + ': ' + msg);
+    if (this.scanLogs.length > 5) this.scanLogs.pop(); // Keep last 5 logs
+    this.cdr.detectChanges();
+  }
+
+  onCamerasFound(devices: MediaDeviceInfo[]): void {
+    this.addScanLog(`Found ${devices.length} cameras.`);
+  }
+
+  onHasPermission(has: boolean): void {
+    this.addScanLog(`Camera Permission: ${has ? 'Granted' : 'Denied'}`);
+  }
+
+  onCodeResult(resultString: string): void {
+    this.addScanLog(`Detected: ${resultString}`);
+    this.playBeep();
+    
+    // Pause scanning briefly to avoid duplicate reads of the same frame
+    this.isScanning = false; 
+    
+    // Confirm Action
+    if (confirm(`Detected: ${resultString}\nAdd to cart?`)) {
+       // Future: Logic to auto-add to cart
+       // For now, re-enable scanning after action
+       setTimeout(() => this.isScanning = true, 1000); 
+    } else {
+       setTimeout(() => this.isScanning = true, 1000);
+    }
+  }
+
+  playBeep() {
+    try {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContext) return;
+      
+      const ctx = new AudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(1500, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(500, ctx.currentTime + 0.1);
+      
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+      
+      osc.start();
+      osc.stop(ctx.currentTime + 0.1);
+    } catch (e) {
+      console.error('Audio play failed', e);
     }
   }
 
@@ -231,11 +277,22 @@ export class CatalogueComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   selectTab(tabName: string) {
+    // Stop scanning if leaving camera tab
+    if (this.selectedTab === 'camera' && tabName !== 'camera') {
+      this.isScanning = false;
+    }
+
     this.selectedTab = tabName;
     this.userPreferenceService.setCatalogueTab(tabName);
     
     if (tabName === 'manual' && this.directInvoiceComponent && this._cartService.currentCart) {
       this.directInvoiceComponent.loadFromCart(this._cartService.currentCart);
+    }
+
+    // Start scanning if entering camera tab
+    if (tabName === 'camera') {
+      this.isScanning = true;
+      this.addScanLog('Entering Camera Mode...');
     }
   }
 }

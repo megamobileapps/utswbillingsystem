@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, OnInit, QueryList, ViewChildren, AfterViewInit } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UTSWCartItem } from 'src/app/models/cart-item';
@@ -43,7 +43,7 @@ import { selectAllInventory, selectInventoryStatus } from 'src/app/store/invento
     MatNativeDateModule
   ]
 })
-export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
+export class DirectinvoiceFormComponent implements OnInit, AfterViewInit, OnDestroy {
   invoice: FormGroup;
   submitted:boolean=false;
   loading:boolean=false;
@@ -58,6 +58,7 @@ export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
   private fuse: Fuse<InventoryItem>; // Declare fuse property
   private amountCalculationSubscription: Subscription;
   private cartClearedSubscription: Subscription;
+  private cartRestoredSubscription: Subscription;
   private suppressFormClearOnCartReset:boolean = false;
 
   constructor(private formBuilder: FormBuilder,
@@ -106,6 +107,12 @@ export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
         this.submitted = false;
       });
 
+      this.cartRestoredSubscription = this._cartService.cartRestored$.subscribe(() => {
+        if (this._cartService.currentCart && this._cartService.currentCart.invoicedatalist.length > 0) {
+          this.loadFromCart(this._cartService.currentCart);
+        }
+      });
+
       if (this.oldinvoiceid != null && this.oldinvoiceid != "-1"){
         this.load_old_invoice_data(this.oldinvoiceid) // Then load old invoice data if applicable
       } else {
@@ -122,6 +129,11 @@ export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
       });
     }
 
+    ngAfterViewInit(): void {
+      // Focus on the first barcode input field after initialization
+      this.focusBarcodeAt(0);
+    }
+
     ngOnDestroy(): void {
       if (this.amountCalculationSubscription) {
         this.amountCalculationSubscription.unsubscribe();
@@ -130,6 +142,10 @@ export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
       if (this.cartClearedSubscription) {
         this.cartClearedSubscription.unsubscribe();
       }
+
+      if (this.cartRestoredSubscription) {
+        this.cartRestoredSubscription.unsubscribe();
+      }
     }
 
     clearInvoiceForm(): void {
@@ -137,6 +153,7 @@ export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
       items.clear();
       items.push(this.createItemFormGroup());
       this.setupFormArrayControls();
+      this.focusBarcodeAt(0);
     }
 
     subscribeToInventory(): void {
@@ -338,10 +355,20 @@ export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
         map(value => this._filter(value || ''))
       );
 
+      this.focusBarcodeAt(newIndex);
+    }
+
+    /**
+     * Helper to focus the barcode input at a specific index
+     * @param index Row index to focus
+     */
+    focusBarcodeAt(index: number): void {
       setTimeout(() => {
         const barcodeEls = this.barcodeInputs?.toArray() ?? [];
-        barcodeEls[newIndex]?.nativeElement?.focus();
-      });
+        if (barcodeEls[index]) {
+          barcodeEls[index].nativeElement.focus();
+        }
+      }, 300); // Small delay to ensure DOM is updated
     }
 
   loadFromCart(cartDetails: CartDetails) {
@@ -430,6 +457,10 @@ export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
               })
             );
           });
+
+          // Add an empty row at the end for new entry and focus it
+          this.addItem();
+          this.setupFormArrayControls();
         }
       });
     }
@@ -457,7 +488,13 @@ export class DirectinvoiceFormComponent implements OnInit, OnDestroy {
     this.submitted = true;
     this.loading = true;
     this.suppressFormClearOnCartReset = true;
-    this._cartService.createNewCart();
+    
+    if (this._cartService.currentCart) {
+      this._cartService.clearCart();
+    } else {
+      this._cartService.createNewCart();
+    }
+
     this.suppressFormClearOnCartReset = false;
   
     const items = this.invoice.get('items') as FormArray;
