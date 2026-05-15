@@ -156,15 +156,32 @@ export class CatalogueComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   subscribeToInventoryStore(): void {
-    this.store.select(selectAllInventory).subscribe(inventory => {
-      this.dataSource.data = inventory.map(itemdetails => {
-        let sold_key = `${itemdetails.barcode}` 
-                      + (typeof itemdetails.labeleddate != 'undefined' ? `::${itemdetails.labeleddate}` : '')
-                      + (typeof itemdetails.brand != 'undefined' ? `::${itemdetails.brand}` : '');
-        let sold_items = this.allsoldItems[sold_key]??0
-        let present_available_items = itemdetails.quantity - sold_items
-        return { ...itemdetails, sold:sold_items, qtyavailable: present_available_items };
-      });
+    combineLatest([
+      this.store.select(selectAllInventory),
+      this.store.select(selectAllInvoiceSoldItems)
+    ]).pipe(
+      rxjsMap(([inventory, soldItems]) => {
+        // Aggregate sold items by key
+        const aggregatedSoldItems: Record<string, number> = {};
+        soldItems.forEach(val => {
+          let sold_key = `${val.barcode}` 
+                          + (typeof val.labeldate != 'undefined' ? `::${val.labeldate}` : '')
+                          + (typeof val.brand != 'undefined' ? `::${val.brand}` : '');
+          aggregatedSoldItems[sold_key] = (aggregatedSoldItems[sold_key] ?? 0) + val.quantity;
+        });
+
+        // Map inventory with sold data
+        return inventory.map(itemdetails => {
+          let sold_key = `${itemdetails.barcode}` 
+                        + (typeof itemdetails.labeleddate != 'undefined' ? `::${itemdetails.labeleddate}` : '')
+                        + (typeof itemdetails.brand != 'undefined' ? `::${itemdetails.brand}` : '');
+          let sold_items = aggregatedSoldItems[sold_key] ?? 0;
+          let present_available_items = itemdetails.quantity - sold_items;
+          return { ...itemdetails, sold: sold_items, qtyavailable: present_available_items };
+        });
+      })
+    ).subscribe(processedInventory => {
+      this.dataSource.data = processedInventory;
       console.log('dataSource.data', this.dataSource.data);
     });
   }
@@ -177,15 +194,11 @@ export class CatalogueComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
   subscribeToInvoiceSoldItemsStore(): void {
+    // This is now handled within subscribeToInventoryStore via combineLatest.
+    // We can keep this empty or remove calls to it if we want to be cleaner, 
+    // but for now, we'll just trigger the filter subject if needed.
     this.store.select(selectAllInvoiceSoldItems).subscribe(soldItems => {
-      this.allsoldItems = {};
-      soldItems.forEach(val => {
-        let sold_key = `${val.barcode}` 
-                        + (typeof val.labeldate != 'undefined' ? `::${val.labeldate}` : '')
-                        + (typeof val.brand != 'undefined' ? `::${val.brand}` : '');
-        this.allsoldItems[sold_key] = (this.allsoldItems[sold_key]??0) + val.quantity;
-      });
-      this.filterBarcodeSubject.next(this.filterwithbarcode);
+        this.filterBarcodeSubject.next(this.filterwithbarcode);
     });
   }
 

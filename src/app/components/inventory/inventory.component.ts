@@ -6,8 +6,9 @@ import { CartDetails } from 'src/app/providers/cart.details';
 import { CartService } from 'src/app/providers/cart.provider';
 import { DataService } from 'src/app/services/data.service';
 import * as XLSX from "xlsx";
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { SoldItemSummary } from '../sold-items-summary/sold-items-summary.component';
+import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation-dialog.component';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -55,7 +56,8 @@ export class InventoryComponent implements OnInit {
     private _cartService:CartService,private router: Router, private route: ActivatedRoute,
     @Optional() public dialogRef: MatDialogRef<InventoryComponent>,
     @Optional() @Inject(MAT_DIALOG_DATA) public data: SoldItemSummary,
-    private store: Store // Inject Store
+    private store: Store, // Inject Store
+    private dialog: MatDialog // Inject MatDialog
     ) {
       let date1 = new Date();
       const year = date1.getFullYear();
@@ -206,12 +208,26 @@ export class InventoryComponent implements OnInit {
 
     this.route.queryParams.subscribe(params => {
       if (params['data']) {
-        this.isEditMode = true;
         const inventoryItem = JSON.parse(params['data']);
         this.options.patchValue(inventoryItem);
-        // Disable barcode and labeleddate fields if in edit mode, as they are part of the URL key
-        this.f2['barcode'].disable();
-        this.f2['labeleddate'].disable();
+        
+        if (params['copy'] === 'true') {
+          this.isEditMode = false;
+          // When copying, we might want to update the labeleddate to today to make it a new entry
+          this.options.patchValue({ labeleddate: this.todaydate });
+          this.f2['barcode'].enable();
+          this.f2['labeleddate'].enable();
+        } else {
+          this.isEditMode = true;
+          // Disable barcode and labeleddate fields if in edit mode, as they are part of the URL key
+          this.f2['barcode'].disable();
+          this.f2['labeleddate'].disable();
+        }
+      } else {
+        // Reset for new entry if no data is provided
+        this.isEditMode = false;
+        this.f2['barcode'].enable();
+        this.f2['labeleddate'].enable();
       }
     });
   }
@@ -277,21 +293,45 @@ export class InventoryComponent implements OnInit {
         return;
     }
 
+    if (this.isEditMode) {
+      const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+        data: {
+          message: 'Are you sure you want to update this inventory item? This will overwrite the existing quantity and details.',
+          buttonText: {
+            ok: 'Update',
+            cancel: 'Cancel'
+          }
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(confirmed => {
+        if (confirmed) {
+          this.performSubmit();
+        }
+      });
+    } else {
+      this.performSubmit();
+    }
+  }
+
+  private performSubmit() {
     this.loading = true;
     var formData: InventoryItem = this.getInventoryFormData; // Fixed: Call getter without ()
     this.store.dispatch(InventoryActions.addInventory({ item: formData }));
 
-    // Removed direct service call and alert logic, as NgRx effects handle this
-    // and the component reacts to store state changes.
-
-    if (this.dialogRef) {
+    if (this.dialogRef && typeof this.dialogRef.close === 'function') {
       this.dialogRef.close();
+    } else {
+      // If not in a dialog, navigate back to the inventory list
+      this.router.navigate(['/showinventory']);
     }
   }
 
   onClose(): void {
-    if (this.dialogRef) {
+    if (this.dialogRef && typeof this.dialogRef.close === 'function') {
       this.dialogRef.close();
+    } else {
+      this.router.navigate(['/showinventory']);
     }
   }
 

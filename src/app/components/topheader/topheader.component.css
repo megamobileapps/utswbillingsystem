@@ -24,6 +24,58 @@
     margin-right: 8px;
 }
 
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+
+.brand-name {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.store-badge {
+    font-size: 10px;
+    font-weight: 400;
+    opacity: 0.8;
+    background: rgba(255,255,255,0.15);
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-top: 2px;
+}
+
+.store-switcher {
+    margin-left: 12px;
+    margin-top: -5px;
+    margin-bottom: -12px;
+}
+
+.store-select-field {
+    font-size: 11px;
+    width: 140px;
+}
+
+::ng-deep .store-select-field .mat-form-field-wrapper {
+    padding-bottom: 0;
+}
+
+::ng-deep .store-select-field .mat-form-field-flex {
+    padding-top: 0 !important;
+}
+
+::ng-deep .store-select-field .mat-select-value {
+    color: rgba(255,255,255,0.9) !important;
+}
+
+::ng-deep .store-select-field .mat-select-arrow {
+    color: rgba(255,255,255,0.7) !important;
+}
+
+::ng-deep .store-select-field .mat-form-field-underline {
+    display: none;
+}
+
 .nav-actions {
     display: flex;
     gap: 8px;
@@ -109,7 +161,12 @@
         display: none; /* Hide text on mobile, show only icons */
     }
     
-    .nav-brand span {
+    .brand-name {
         display: none; /* Hide brand name on very small screens */
+    }
+    
+    .store-badge {
+        font-size: 11px;
+        margin-top: 0;
     }
 }

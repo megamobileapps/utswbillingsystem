@@ -6,6 +6,7 @@ import { MessageService } from "./message.service";
 import { environment } from "src/environments/environment";
 import { param } from "jquery";
 import { InvoiceDataItem, InvoiceSoldItems } from "../models/invoice-data-item";
+import { Store } from "../models/store";
 
 @Injectable({
     providedIn: 'root'
@@ -18,6 +19,7 @@ import { InvoiceDataItem, InvoiceSoldItems } from "../models/invoice-data-item";
     getBillUrl='/in/ci/Posinvoice'; //TODO v1 url
     addItemUrl='/in/ci/Inofficerates/additem/';//add item in inofficerate
     getsoldinventoryitemsbackend='/in/ci/analyze/get_all_inventory_sold_items/';//add item in inofficerate
+    getStoresUrl = '/in/ci/stores/';
     private readonly valid_user = "9999";
 
     private invoiceListCache = new Map<string, InvoiceDataItem[]>();
@@ -28,6 +30,7 @@ import { InvoiceDataItem, InvoiceSoldItems } from "../models/invoice-data-item";
       };
       constructor(private _http:HttpClient,
         private messageService: MessageService) { }
+
       /**
      * Handle Http operation that failed.
      * Let the app continue.
@@ -80,14 +83,11 @@ import { InvoiceDataItem, InvoiceSoldItems } from "../models/invoice-data-item";
           params = params.append('invoicedate', invoicestartdate);
           params = params.append('invoiceenddate', invoiceenddate);
 
-        let params_string = params.toString();
-        console.log('Service getInvoiceDataFromServer() ' + params_string);
-
         let options = {
             headers: new HttpHeaders().set('Content-Type', 'application/x-www-form-urlencoded'),
-            
+            params: params
         };
-        return this._http.get<InvoiceDataItem[]>(environment.apiBackend+this.getBillUrl+'?'+params_string, options).pipe(
+        return this._http.get<InvoiceDataItem[]>(environment.apiBackend+this.getBillUrl, options).pipe(
           tap(data => {
             this.invoiceListCache.set(cacheKey, data);
             data.forEach(invoice => this.individualInvoiceCache.set(invoice.invoicenumber, invoice));
@@ -117,14 +117,11 @@ import { InvoiceDataItem, InvoiceSoldItems } from "../models/invoice-data-item";
           params = params.append('invoiceid', invoiceid);
           
 
-        let params_string = params.toString();
-        console.log('Service getInvoiceDataFromServer_with_invoiceid() ' + params_string);
-
         let options = {
             headers: new HttpHeaders().set('Content-Type', 'application/x-www-form-urlencoded'),
-            
+            params: params
         };
-        return this._http.get<InvoiceDataItem[]>(environment.apiBackend+this.getBillUrl+'?'+params_string, options).pipe(
+        return this._http.get<InvoiceDataItem[]>(environment.apiBackend+this.getBillUrl, options).pipe(
           tap(invoices => {
             if (invoices && invoices.length > 0) {
               this.individualInvoiceCache.set(invoiceid, invoices[0]);
@@ -169,17 +166,21 @@ import { InvoiceDataItem, InvoiceSoldItems } from "../models/invoice-data-item";
        params = params.append('invoicestartdate', invoicestartdate);
        params = params.append('invoiceenddate', invoiceenddate);
 
-    let params_string = params.toString();
-    console.log('Service getInvoiceSoldItemsFromServer() ' + params_string);
-
     let options = {
         headers: new HttpHeaders().set('Content-Type', 'application/x-www-form-urlencoded'),
-        
+        params: params
     };
-    return this._http.get<InvoiceSoldItems[]>(environment.apiBackend+this.getsoldinventoryitemsbackend+'?'+params_string, options).pipe(
+    return this._http.get<InvoiceSoldItems[]>(environment.apiBackend+this.getsoldinventoryitemsbackend, options).pipe(
       tap(_ => this.log('fetched getInvoiceSoldItemsFromServer')),
       catchError(this.handleError<InvoiceSoldItems[]>('getInvoiceSoldItemsFromServer', []))
     );
 
+  }
+
+  getStores(): Observable<Store[]> {
+    return this._http.get<Store[]>(environment.apiBackend + this.getStoresUrl).pipe(
+      tap(_ => this.log('fetched stores')),
+      catchError(this.handleError<Store[]>('getStores', []))
+    );
   }
 }

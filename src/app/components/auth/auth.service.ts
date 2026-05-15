@@ -6,72 +6,73 @@ import { catchError, map, tap } from 'rxjs/operators';
 
 import { environment } from '../../../environments/environment';
 import { User } from '../../models/utswuser';
-import { getAuth, signInWithCustomToken } from "firebase/auth";
-import { initializeApp } from 'firebase/app';
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
     loginUrl = '/in/ci/Login/posoperator/';
- 
+    public redirectUrl: string | null = null;
   
-    private userSubject: BehaviorSubject<User>|null=null;
-    public user: Observable<User>|null = null;
-    redirectUrl:string|null=null;
+    private userSubject: BehaviorSubject<User>|null;
+    public user: Observable<User>|null;
+    private selectedStoreIdSubject: BehaviorSubject<number | null> = new BehaviorSubject<number | null>(null);
+    public selectedStoreId$: Observable<number | null> = this.selectedStoreIdSubject.asObservable();
 
     constructor(
         private router: Router,
         private http: HttpClient
     ) {
-      let x = localStorage.getItem('user');
-        if(x){
-          this.userSubject = new BehaviorSubject<User>(JSON.parse(x));
-          this.user = this.userSubject.asObservable();
-      }
+        let x = localStorage.getItem('user');
+        const initialUser = x ? JSON.parse(x) : { id: -1, username: '' };
+        this.userSubject = new BehaviorSubject<User>(initialUser);
+        this.user = this.userSubject.asObservable();
+
+        // Initialize selected store from localStorage or user profile
+        const savedStoreId = localStorage.getItem('selectedStoreId');
+        if (savedStoreId) {
+            this.selectedStoreIdSubject.next(parseInt(savedStoreId, 10));
+        } else if (initialUser && initialUser.store_id) {
+            this.selectedStoreIdSubject.next(initialUser.store_id);
+        }
     }
 
-    public get userValue(): User|null {
-        return this.userSubject?this.userSubject.value:null;
+    public get userValue(): User | null {
+        return this.userSubject ? this.userSubject.value : null;
+    }
+
+    public get selectedStoreId(): number | null {
+        return this.selectedStoreIdSubject.value;
+    }
+
+    public setStoreContext(storeId: number | null) {
+        if (storeId) {
+            localStorage.setItem('selectedStoreId', storeId.toString());
+        } else {
+            localStorage.removeItem('selectedStoreId');
+        }
+        this.selectedStoreIdSubject.next(storeId);
     }
 
     login(username: string, password: string) {
-      //${environment.apiUrl}/users/authenticate
-      //C:\xampp\htdocs\in\usershopaccount\printedSchoolRates.json.php
-        return this.http.post<any>(environment.apiBackend+this.loginUrl, { username, password })
-        // return this.http.post<any>(`http://localhost/in/usershopaccount/printedSchoolRates.json.php`, { username, password })
+        return this.http.post<any>(environment.apiBackend + this.loginUrl, { username, password })
             .pipe(map(user => {
-                // store user details and basic auth credentials in local storage to keep user logged in between page refreshes
-                // user.authdata = window.btoa(username + ':' + password);
                 localStorage.setItem('user', JSON.stringify(user));
-                if(this.userSubject == null){
-                  this.userSubject = new BehaviorSubject<User>(user);
-                  this.user = this.userSubject.asObservable();
-                }else{
-                  this.userSubject!.next(user);
-                }
-                // const app = initializeApp(environment.firebase);
-                // const auth = getAuth(app);
-                // signInWithCustomToken(auth, user["authdata"])
-                //   .then((userCredential) => {
-                //     // Signed in
-                //     const user2 = userCredential.user;
-                //     console.log('firebase authentication successful : '+JSON.stringify(userCredential))
-                //     // ...
-                //   })
-                //   .catch((error) => {
-                //     const errorCode = error.code;
-                //     const errorMessage = error.message;
-                //     console.log('firebase authentication failed with '+errorCode+ ' '+errorMessage)
-                //     // ...
-                //   });
-                return user;
+                this.userSubject!.next(user);
 
+                // Default context to user's assigned store on login
+                if (user.store_id) {
+                    localStorage.setItem('selectedStoreId', user.store_id.toString());
+                    this.selectedStoreIdSubject.next(user.store_id);
+                }
+
+                return user;
             }));
     }
-    
 
     logout(redirectUrl:string='') {
         // remove user from local storage to log user out
         console.log('logout called in auth service');
         localStorage.removeItem('user');
+        localStorage.removeItem('selectedStoreId');
         let emptyUser:User = {id: -1,
           username: '',
           password: '',
@@ -97,6 +98,4 @@ export class AuthService {
       // Return an observable with a user-facing error message.
       return throwError(() => new Error('While registration Something bad happened; please try again later.'));
     }
-    
-    
 }

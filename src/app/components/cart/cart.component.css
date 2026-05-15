@@ -19,6 +19,5 @@
 ::ng-deep app-checkout button {
     width: 100%;
     margin-top: 0 !important;
-    background-color: var(--success-color) !important;
     border-radius: 4px !important;
 }

@@ -1,8 +1,27 @@
 <nav class="app-header d-print-none">
   <!-- Brand / Home Link -->
   <a class="nav-brand" [routerLink]="['/catalogue']">
-    <mat-icon>storefront</mat-icon> <span>UTSW Retail</span>
+    <mat-icon>storefront</mat-icon> 
+    <div class="brand-text">
+      <span class="brand-name">UTSW Retail</span>
+      
+      <!-- Standard User Badge -->
+      <span class="store-badge" *ngIf="currentStore && !isSuperUser">
+        {{currentStore.name}} (ID: {{currentStore.id}})
+      </span>
+    </div>
   </a>
+
+  <!-- Super User Switcher (Moved outside anchor to prevent navigation) -->
+  <div class="store-switcher" *ngIf="isSuperUser && allStores.length > 0">
+    <mat-form-field appearance="fill" class="store-select-field">
+      <mat-select [value]="currentStore?.id" (selectionChange)="onStoreChange($event.value)" placeholder="Select Store">
+        <mat-option *ngFor="let store of allStores" [value]="store.id">
+          {{store.name}} ({{store.id}})
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
 
   <!-- Main Navigation Actions -->
   <div class="nav-actions">

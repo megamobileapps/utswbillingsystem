@@ -17,6 +17,8 @@ export interface User {
     lastName: string;
     email:string;
     phone:string;
+    store_id?:number;
+    is_superuser?:boolean;
     country?:string;
     authdata?: string;
     preferredClasses?:Array<string>;

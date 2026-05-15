@@ -13,6 +13,7 @@ export class Outwardsaletype {
         paymentsource = ['swipe', Validators.required];
         message = [''];
         salequantity=[0];
+        store_id = [1];
         gstarray: FormArray = new FormArray<any>([]);//any;//GstAmountPercentage[];
 
         constructor() {
@@ -34,3 +35,4 @@ export interface OutwardsaletypeJson {
         salequantity:string;
         gstarray: Array<GstAmountPercentageJson>;
 }
+

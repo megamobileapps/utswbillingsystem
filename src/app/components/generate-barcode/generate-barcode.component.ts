@@ -826,7 +826,7 @@ export class GenerateBarcodeComponent {
         if (i==indexOfSelectBox) {
           fltr.fieldValue = term;
         }else {
-          fltr.fieldValue = this.selectedCategories[i][this.levelWiseFieldName[i] as keyof InOfficePrice]?.toString()
+          fltr.fieldValue = this.selectedCategories[i][this.levelWiseFieldName[i] as keyof InOfficePrice]?.toString() ?? ''
         }
         console.log(`getData index=${i} filter=${JSON.stringify(fltr)} totalSpaceToSearch = ${JSON.stringify(totalSpaceToSearch)}`)
         totalSpaceToSearch = this.searchstrfltr.transform(totalSpaceToSearch, fltr) 

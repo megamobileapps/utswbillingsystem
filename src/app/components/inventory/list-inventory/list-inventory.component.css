@@ -246,3 +246,33 @@
   }
 }
 
+.filter-controls-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.filter-controls-container mat-form-field {
+  margin-bottom: -1.25em; /* Compensate for material form field bottom padding */
+}
+
+.upload-container input[type='file'] { display: none; }
+.upload-container label { 
+  cursor: pointer; 
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 8px; 
+  margin-bottom: 0px; 
+  padding: 0 16px; 
+  height: 36px; 
+  border-radius: 4px; 
+  line-height: 36px; 
+  vertical-align: middle;
+  font-size: 14px;
+  font-weight: 500;
+}

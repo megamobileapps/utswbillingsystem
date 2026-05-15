@@ -182,7 +182,7 @@ export class DirectinvoiceFormComponent implements OnInit, AfterViewInit, OnDest
         selectedItem: [null],
         productname:[null, Validators.required], // Initialize with null to hold InventoryItem object
         hsn: ['49011010'],
-        quantity: ['1', Validators.required],
+        quantity: ['1', [Validators.required, Validators.min(0)]],
         unit: ['Nos'],
         cp: ['0'],
         percentgst: ['0'],
@@ -288,7 +288,7 @@ export class DirectinvoiceFormComponent implements OnInit, AfterViewInit, OnDest
 
     prepare_json_from_formgroup(fg: FormGroup): InventoryItem {
       const allControls = fg.controls;
-      const selectedItem = allControls['selectedItem'].value;
+      const selectedItem = allControls['selectedItem'] ? allControls['selectedItem'].value : null;
   
       const safeNumber = (value: any) => {
           const num = Number(value);
@@ -454,6 +454,7 @@ export class DirectinvoiceFormComponent implements OnInit, AfterViewInit, OnDest
                 brand: ['utsw'],
                 shippingcost: ['0'],
                 barcode:[element["id"]],
+                selectedItem: [null]
               })
             );
           });

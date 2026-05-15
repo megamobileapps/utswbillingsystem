@@ -21,6 +21,7 @@ import { DirectinvoiceFormComponent } from './components/directinvoice/directinv
 // Interceptors
 import { BasicAuthInterceptor } from './interceptors/basic-auth.interceptor';
 import { ErrorInterceptor } from './interceptors/error.interceptor';
+import { StoreIdInterceptor } from './interceptors/store-id.interceptor';
 
 // Pipes
 import { CategoryfilterPipe } from './pipes/utswtopicfilter';
@@ -134,6 +135,7 @@ import { NotificationComponent } from './components/notification/notification.co
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: BasicAuthInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: StoreIdInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
     { provide: APP_BASE_HREF, useValue: '/in/new-billing/' },
     { provide: LOCALE_ID, useValue: 'en-GB' }, // Set global locale to en-GB for date formatting

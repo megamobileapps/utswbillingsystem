@@ -79,11 +79,19 @@ export class CartService{
 
       addToCart(ofItem:InventoryItem|null){
         var existingItem = this.checkIfExistInCart(ofItem!);
-        var txId = this.currentCart!.invoicedatalist.length == 0?
-                  Math.floor(Math.random() * 1000000)
-                  :this.currentCart!.invoicedatalist[0].txId;
+        var txId = 0;
+        
+        if (this.currentCart!.invoicedatalist.length > 0) {
+             txId = this.currentCart!.invoicedatalist[0].txId;
+        } else if (this.currentCart!.invoicenumber > 0) {
+             txId = this.currentCart!.invoicenumber;
+        } else {
+             txId = Math.floor(Math.random() * 1000000);
+             this.currentCart!.invoicedate = Date.now().toString();
+        }
+
         this.currentCart!.invoicenumber = txId;
-        this.currentCart!.invoicedate = Date.now().toString();
+        
         if(existingItem!.length == 0) {
           this.currentCart!.invoicedatalist.push(this.prepareCartItem(txId, ofItem!))
         }else{

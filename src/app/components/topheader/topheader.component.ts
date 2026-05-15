@@ -7,6 +7,8 @@ import { CartService } from 'src/app/providers/cart.provider';
 import { CommonService } from 'src/app/services/common.service';
 import { DataService } from 'src/app/services/data.service';
 import { ScreenSizeService } from 'src/app/services/screen-size.service';
+import { Store } from 'src/app/models/store';
+import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: 'app-topheader',
@@ -15,6 +17,9 @@ import { ScreenSizeService } from 'src/app/services/screen-size.service';
 })
 export class TopheaderComponent implements OnInit {
   isMobileScreen: boolean=false;
+  currentStore: Store | null = null;
+  allStores: Store[] = [];
+  isSuperUser: boolean = false;
 
   get oldTxList():Array<CartDetails>{
     return this._cartService.oldTxList
@@ -25,7 +30,9 @@ export class TopheaderComponent implements OnInit {
     private route: ActivatedRoute,
     private router:Router,
     private _sanitizer: DomSanitizer,
-    private _cartService:CartService, private screenSizeService:ScreenSizeService) { 
+    private _cartService:CartService, 
+    private screenSizeService:ScreenSizeService,
+    private authService: AuthService) { 
 
       this.isMobileScreen = this.screenSizeService.getIsMobileResolution;
     }
@@ -35,6 +42,44 @@ export class TopheaderComponent implements OnInit {
       return this._cartService.currentCart!.invoicedatalist;
     }
   ngOnInit(): void {
+    // Listen for user changes to update superuser status and store info
+    this.authService.user?.subscribe(user => {
+      console.log("TopheaderComponent: Received user update:", user);
+      if (user && user.id !== -1) {
+        this.isSuperUser = user.is_superuser ?? false;
+        console.log("TopheaderComponent: Updated isSuperUser:", this.isSuperUser);
+        this.loadStoreInfo();
+      } else {
+        this.isSuperUser = false;
+        this.allStores = [];
+        this.currentStore = null;
+      }
+    });
+    
+    // Listen for store context changes
+    this.authService.selectedStoreId$.subscribe(storeId => {
+      if (storeId && this.allStores.length > 0) {
+        this.currentStore = this.allStores.find(s => s.id === storeId) || null;
+      }
+    });
+  }
+
+  loadStoreInfo() {
+    const user = this.authService.userValue;
+    if (user) {
+      this._dataService.getStores().subscribe(stores => {
+        this.allStores = stores;
+        const selectedId = this.authService.selectedStoreId || user.store_id;
+        this.currentStore = stores.find(s => s.id === selectedId) || { id: selectedId!, name: `Store ${selectedId}` };
+      });
+    }
+  }
+
+  onStoreChange(storeId: number) {
+    console.log("Switching to store:", storeId);
+    this.authService.setStoreContext(storeId);
+    // Optionally reload current route or show notification
+    window.location.reload(); // Quickest way to ensure all services refresh data
   }
 
   createNewCart():void{

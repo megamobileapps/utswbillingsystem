@@ -22,7 +22,7 @@ export class CheckoutComponent implements OnInit {
         cPayMobile: ['', [Validators.required,Validators.pattern("[1-9]{1}[0-9]{9}$")]],
         cPayEmail: [''],
         cDiscount: ['0'],
-        payment_method:['SBIQR'],        
+        payment_method:['Gpay'],        
       });
      }
   get f() { return this.deliveryForm.controls; }

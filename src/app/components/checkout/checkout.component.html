@@ -1,86 +1,73 @@
-<div class="container">
-    <div class="row pt-4">
+<div class="container px-2">
+    <div class="row pt-1">
 
 
-        <form [formGroup]="deliveryForm" (ngSubmit)="onSubmit()" class="bg-light" name="deliveryForm" id="deliveryForm"
+        <form [formGroup]="deliveryForm" (ngSubmit)="onSubmit()" class="bg-light p-2" name="deliveryForm" id="deliveryForm"
             action="">
 
-            <div class="row">
-                <div class="form-group col-md-12">
+            <div class="row g-2 mb-2">
+                <div class="form-group col-6">
                     <!-- <label for="cPayname" class="control-label">Name:*</label> -->
 
-                    <input id="cPayname" name="cPayname" class="input form-control" type="text"
-                        placeholder="Customer Name" formControlName="cPayname"
+                    <input id="cPayname" name="cPayname" class="input form-control form-control-sm" type="text"
+                        placeholder="Name" formControlName="cPayname"
                         [(ngModel)]="currentCart!.username"
                         [ngClass]="{ 'is-invalid': submitted && f['cPayname'].errors }" required="">
                     <div *ngIf="submitted && f['cPayname'].errors" class="invalid-feedback">
-                        <div *ngIf="f['cPayname'].errors['required']">Customer Name is required</div>
+                        <div *ngIf="f['cPayname'].errors['required']">Name required</div>
                     </div>
 
                 </div>
-            </div>
 
-            <div class="row">
-
-                <div class="form-group col-md-12">
-                    <!-- <label for="cPayMobile" class="control-label">Ph.<span style="color:red;"></span>:*</label> -->
-
-                    <input name="cPayMobile" formControlName="cPayMobile" id="cPayMobile" pattern="[1-9]{1}[0-9]{9}"
-                    [(ngModel)]="currentCart!.phonenumber"
-                        maxlength="10" class="input form-control" type="text"
-                        title="Please enter exactly 10 digits. Do not start with 91 or 0"
-                        [ngClass]="{ 'is-invalid': submitted && f['cPayMobile'].errors }" placeholder="Mobile No"
-                        value="" required="">
-
-                </div>
-            </div>
-            <div class="row">
-                <div class="form-group  col-md-12">
+                <div class="form-group col-6">
                     <!-- <label for="cPayEmail" class="control-label"> Email:</label> -->
 
                     <input name="cPayEmail" formControlName="cPayEmail" id="cPayEmail"
                     [(ngModel)]="currentCart!.emailid"
-                        [ngClass]="{ 'is-invalid': submitted && f['cPayEmail'].errors }" class="input form-control"
+                        [ngClass]="{ 'is-invalid': submitted && f['cPayEmail'].errors }" class="input form-control form-control-sm"
                         type="text" placeholder="Email" value="">
 
                 </div>
-
             </div>
-            <div class="row">
-                <div class="form-group  col-md-12">
+
+            <div class="row g-2 mb-2">
+                <div class="form-group col-6">
+                    <!-- <label for="cPayMobile" class="control-label">Ph.<span style="color:red;"></span>:*</label> -->
+
+                    <input name="cPayMobile" formControlName="cPayMobile" id="cPayMobile" pattern="[1-9]{1}[0-9]{9}"
+                    [(ngModel)]="currentCart!.phonenumber"
+                        maxlength="10" class="input form-control form-control-sm" type="text"
+                        title="Please enter exactly 10 digits"
+                        [ngClass]="{ 'is-invalid': submitted && f['cPayMobile'].errors }" placeholder="Mobile"
+                        value="" required="">
+
+                </div>
+
+                <div class="form-group col-6">
                     <input name="cDiscount" formControlName="cDiscount" id="cDiscount"
                     [(ngModel)]="currentCart!.discount"
-                        [ngClass]="{ 'is-invalid': submitted && f['cDiscount'].errors }" class="input form-control"
-                        type="text" placeholder="Disc Value" value="">
+                        [ngClass]="{ 'is-invalid': submitted && f['cDiscount'].errors }" class="input form-control form-control-sm"
+                        type="text" placeholder="Disc" value="">
                 </div>
             </div>
-            <!-- <div class="row">
-                <div class="form-group  col-md-12">
-                    <input name="payment_method" formControlName="payment_method" id="payment_method"
-                    [(ngModel)]="currentCart!.payment_method"
-                        [ngClass]="{ 'is-invalid': submitted && f['payment_method'].errors }" class="input form-control"
-                        type="text" placeholder="Payment Method" value="">
 
-                </div>
-
-            </div> -->
-            <div class="row">
-                <div class="form-group  col-md-12">                   
-                    <label>
+            <div class="row mb-1">
+                <div class="form-group col-12 d-flex flex-wrap gap-2 align-items-center">                   
+                    <label class="d-flex align-items-center small m-0">
                         <input type="radio" value="Gpay" formControlName="payment_method">
-                          <span style="padding-left:8px;margin-right: 16px;">Gpay</span>
+                          <span class="ps-1">Gpay</span>
                     </label>
-                    <label>
+                    <label class="d-flex align-items-center small m-0">
                         <input type="radio" value="SBIQR" formControlName="payment_method">
-                          <span style="padding-left:8px;margin-right: 16px;">SBIQR</span>
+                          <span class="ps-1">SBIQR</span>
                     </label>
-                    <label>
+                    <label class="d-flex align-items-center small m-0">
                         <input type="radio" value="Cash" formControlName="payment_method">
-                          <span style="padding-left:8px;margin-right: 16px;">Cash</span>
+                          <span class="ps-1">Cash</span>
                     </label>
-                    <label>
+                    <label class="d-flex align-items-center small m-0">
                         <input type="radio" value="Phonepe" formControlName="payment_method">
-                          <span style="padding-left:8px;">Phone Pe</span>
+                          <span class="ps-1">PhonePe</span>
                     </label>
                 </div>
 
@@ -89,9 +76,9 @@
 
         </form>
 
-        <div class="row m-4">
+        <div class="row my-2 px-3">
 
-            <button class="btn  btn-warning col-md-12 " (click)="onSubmit()" value="Click to Pay">Click to
+            <button type="button" class="btn btn-primary col-12 btn-sm py-1 fw-bold" (click)="onSubmit()" value="Click to Pay">Click to
                 Print
 
             </button>

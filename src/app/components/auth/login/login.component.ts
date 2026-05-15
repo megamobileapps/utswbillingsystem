@@ -37,8 +37,7 @@ export class LoginComponent implements OnInit {
       });
       
         if (this.authService.userValue && this.authService.userValue.id != -1) { 
-            // this.router.navigate(['/printed']);
-            this.router.navigate([this.authService.redirectUrl||'/printed']);
+            this.router.navigate([this.authService.redirectUrl||'/catalogue']);
         }
     }
     localunescape(htmlInput:string|null|undefined) { 
@@ -52,7 +51,7 @@ export class LoginComponent implements OnInit {
         
 
         // get return url from route parameters or default to '/'
-        this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/printed';
+        this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/catalogue';
         this.returnUrl = this.localunescape(this.returnUrl);
         // console.log('login component ngOninit(): returnurl', this.returnUrl);
     }
@@ -93,16 +92,16 @@ export class LoginComponent implements OnInit {
             .pipe(first())
             .subscribe(
                 data => {
-                //   console.log("login component:logged in data received:", data);
-                  let link = this.returnUrl?.split('?')[0];
-                  let queryParams = this.getQueryParams(this.returnUrl);
+                  console.log("login component:logged in data received:", data);
                   this.loading = false;
-                // this.router.navigate([link],{queryParams:{}});
-                this.location.back();
+                  
+                  // Check for explicit redirect URL or use default
+                  const redirect = this.authService.redirectUrl || '/catalogue';
+                  console.log("login component: navigating to:", redirect);
+                  this.router.navigateByUrl(redirect);
                 },
                 error => {
                     this.error = error;
-                    // console.log("Error in submitting to service ", error);
                     this.loading = false;
                 });
     }

@@ -83,11 +83,11 @@
 
 /* Column Definitions (Strict Widths) */
 .col-index { min-width: 30px; width: 30px; }
-.col-barcode { min-width: 130px; width: 130px; }
-.col-name { min-width: 300px; width: 300px; flex-grow: 1; }
-.col-mrp { min-width: 80px; width: 80px; }
-.col-disc { min-width: 60px; width: 60px; }
-.col-qty { min-width: 70px; width: 70px; }
+.col-barcode { min-width: 100px; width: 100px; }
+.col-name { min-width: 150px; width: 150px; flex-grow: 1; }
+.col-mrp { min-width: 70px; width: 70px; }
+.col-disc { min-width: 50px; width: 50px; }
+.col-qty { min-width: 60px; width: 60px; }
 .col-action { min-width: 60px; width: 60px; border-right: none !important; }
 
 /* Shared Column Styles */

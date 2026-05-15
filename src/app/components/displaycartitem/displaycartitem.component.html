@@ -1,34 +1,30 @@
-<div class="row">
-<div class="col-1 py-0">{{indexI}}</div>
+<div class="row border-bottom py-1 align-items-center bg-white" style="font-size: 0.9rem;">
+<div class="col-1 py-0 text-center text-muted small">{{indexI}}</div>
 <div class="col-5 py-0"> 
-    <p>{{item!.productName}}<br/>
-        <small class="text-primary">{{item!.initialPrice}}- {{item!.discount}}%={{item!.productPrice}}
-        <span class="text-secondary"> HSN:{{item!.hsn}} GST:{{item!.gst}}%</span>
-        </small>
-    </p>
+    <p class="mb-0 text-truncate" title="{{item!.productName}}">{{item!.productName}}</p>
+    <small class="text-muted d-block" style="font-size: 0.75rem; line-height: 1.1;">
+        <span class="text-primary">{{item!.initialPrice}}-{{item!.discount}}%={{item!.productPrice}}</span>
+        <span class="ms-1">HSN:{{item!.hsn}} GST:{{item!.gst}}%</span>
+    </small>
 </div>
-<div  class="col-3 py-0">
-    <div class="d-flex w-100 justify-content-between">
-        <div >
-            <div cass="input-group ">
-                <span  class="input-group-btn">
-                    <button class="btn btn-danger value-control btn-sm" 
-                    (click)="reduceQuantity(item)" data-action="minus" data-min="0"  
-                    data-target="font-size"><i class="bi bi-dash"></i></button>
-                </span>
-                <span  style="width: 20px;" >
-                    {{item!.quantityProvider.getValue()}}
-                </span>
-                <span  class="input-group-btn">
-                    <button 
-                        (click)="addQuantity(item)" class="btn btn-danger btn-sm value-control" 
-                        data-action="plus" data-max="99" data-target="font-size"><i class="bi bi-plus"></i>
-                    </button>
-                </span>
-            </div>
+<div class="col-3 py-0">
+    <div class="d-flex w-100 justify-content-between align-items-center">
+        <div class="input-group input-group-sm flex-nowrap">
+            <button class="btn btn-outline-danger py-0 px-1" type="button" 
+                (click)="reduceQuantity(item)" title="Decrease">
+                <i class="bi bi-dash"></i>
+            </button>
+            <span class="input-group-text py-0 px-1 bg-white border-0" style="min-width: 24px; justify-content: center;">
+                {{item!.quantityProvider.getValue()}}
+            </span>
+            <button class="btn btn-outline-success py-0 px-1" type="button" 
+                (click)="addQuantity(item)" title="Increase">
+                <i class="bi bi-plus"></i>
+            </button>
+        </div>
     </div>
-    </div>
-
 </div>
-<div class="col-3 py-0">{{item!.quantityProvider.value * item!.productPrice}}</div>
+<div class="col-3 py-0 text-end text-dark small">
+    {{item!.quantityProvider.value * item!.productPrice | number:'1.2-2'}}
+</div>
 </div>

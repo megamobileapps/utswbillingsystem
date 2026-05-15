@@ -9,14 +9,17 @@ import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { Store } from '@ngrx/store';
+import * as XLSX from "xlsx";
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
-import { map, shareReplay, first } from 'rxjs/operators';
+import { map, shareReplay, first, startWith } from 'rxjs/operators';
 
 import { DataService } from 'src/app/services/data.service';
 import { ConfirmationDialogComponent } from '../../confirmation-dialog/confirmation-dialog.component';
 import { InventoryItem } from 'src/app/models/inoffice';
 import * as InventoryActions from 'src/app/store/inventory/inventory.actions';
 import { selectAllInventory, selectInventoryStatus } from 'src/app/store/inventory/inventory.selectors';
+import * as InvoiceSoldItemsActions from 'src/app/store/invoice-sold-items/invoice-sold-items.actions';
+import { selectAllInvoiceSoldItems } from 'src/app/store/invoice-sold-items/invoice-sold-items.selectors';
 import { UserPreferenceService } from 'src/app/services/user-preference.service';
 
 // For mobile responsive design
@@ -55,7 +58,6 @@ export class ListInventoryComponent implements OnInit, OnChanges, AfterViewInit,
   // This is the array that the mat-table will actually bind to
   currentDisplayedColumns: string[] = []; 
 
-  allsoldItems: Record<string, number> = {};
   isLoading = true;
   viewportHeight: string = ''; // Bound to [style.height] of the viewport
   private filterBarcodeSubject = new BehaviorSubject<string | null>(null);
@@ -65,6 +67,8 @@ export class ListInventoryComponent implements OnInit, OnChanges, AfterViewInit,
     start: new FormControl<Date | null>(null),
     end: new FormControl<Date | null>(null),
   });
+
+  onlyAvailable = new FormControl(false);
 
   private resizeObserver: ResizeObserver;
 
@@ -104,11 +108,11 @@ export class ListInventoryComponent implements OnInit, OnChanges, AfterViewInit,
       const start = savedRange.start ? new Date(savedRange.start) : null;
       const end = savedRange.end ? new Date(savedRange.end) : null;
       this.range.setValue({ start, end });
-      // Optionally trigger the filter immediately if desired, but user might want to check first
-      // this.getInvoiceSoldItemsFromServer(start, end); 
     }
 
+    this.store.dispatch(InventoryActions.loadInventory());
     this.subscribeToInventoryStore();
+    
     // If range was loaded, use it, otherwise default (handled in method)
     this.getInvoiceSoldItemsFromServer(
         this.range.controls['start'].value, 
@@ -173,17 +177,33 @@ export class ListInventoryComponent implements OnInit, OnChanges, AfterViewInit,
 
     combineLatest([
       this.store.select(selectAllInventory),
-      this.filterBarcodeSubject.asObservable()
+      this.store.select(selectAllInvoiceSoldItems),
+      this.filterBarcodeSubject.asObservable(),
+      this.onlyAvailable.valueChanges.pipe(startWith(this.onlyAvailable.value))
     ]).pipe(
-      map(([inventory, filterBarcode]) => {
+      map(([inventory, soldItems, filterBarcode, onlyAvail]) => {
+        // First, aggregate sold items by key
+        const aggregatedSoldItems: Record<string, number> = {};
+        soldItems.forEach(val => {
+          let sold_key = `${val.barcode}` 
+                          + (typeof val.labeldate != 'undefined' ? `::${val.labeldate}` : '')
+                          + (typeof val.brand != 'undefined' ? `::${val.brand}` : '');
+          aggregatedSoldItems[sold_key] = (aggregatedSoldItems[sold_key] ?? 0) + val.quantity;
+        });
+
+        // Then map inventory with sold data
         return inventory.map(itemdetails => {
           let sold_key = `${itemdetails.barcode}` 
                         + (typeof itemdetails.labeleddate != 'undefined' ? `::${itemdetails.labeleddate}` : '')
                         + (typeof itemdetails.brand != 'undefined' ? `::${itemdetails.brand}` : '');
-          let sold_items = this.allsoldItems[sold_key] ?? 0;
+          let sold_items = aggregatedSoldItems[sold_key] ?? 0;
           let present_available_items = itemdetails.quantity - sold_items;
           return { ...itemdetails, sold:sold_items, qtyavailable: present_available_items };
         }).filter(item => {
+          if (onlyAvail && item.qtyavailable <= 0) {
+            return false;
+          }
+
           if (this.isEmbeddedInFilteredContext) {
             // If embedded in a filtered context, filter by barcode.
             // If filterBarcode is null, no items should be displayed.
@@ -204,6 +224,14 @@ export class ListInventoryComponent implements OnInit, OnChanges, AfterViewInit,
   
   onEditInventory(item: any) {
     this.router.navigate(['/addinventory'], { queryParams: { data: JSON.stringify(item) } });
+  }
+
+  onAddInventory() {
+    this.router.navigate(['/addinventory']);
+  }
+
+  onCopyInventory(item: any) {
+    this.router.navigate(['/addinventory'], { queryParams: { data: JSON.stringify(item), copy: 'true' } });
   }
 
   openDialogForDeleteConfirmation(event:any, item:InventoryItem) {
@@ -230,6 +258,150 @@ export class ListInventoryComponent implements OnInit, OnChanges, AfterViewInit,
     this.calculateTableHeight(); // Recalculate height after filter applies
   }
 
+  onToggleAvailable() {
+    this.calculateTableHeight();
+  }
+
+  prepare_inventory_row_from_excel(row1:Array<string>, rowtoinsert:Array<string>):any{
+    var retVal:Record<string, string> = {}
+    for(let i=0;i<row1.length;i++){
+      retVal[row1 [ i ] ] = rowtoinsert[i]
+    }
+    return retVal;
+  }
+
+  onxlsxFileChange(evt: any) {
+    const target: DataTransfer = <DataTransfer>(evt.target);
+    let date1 = new Date();
+    const year = date1.getFullYear();
+    let month = date1.getMonth()+1;
+    const day = date1.getDate();
+    let formattedmonth = month < 10 ? `0${month}` : `${month}`;
+    let formattedday = day < 10 ? `0${day}` : `${day}`;
+    let todaydate = `${year}-${formattedmonth}-${formattedday}`;
+
+    if (target.files.length > 1) {
+      alert('Multiple files are not allowed');
+      return;
+    }
+    else {
+      const file = target.files[0];
+      const reader: FileReader = new FileReader();
+      reader.onload = (e: any) => {
+        const bstr: string = e.target.result;
+        const wb: XLSX.WorkBook = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws: XLSX.WorkSheet = wb.Sheets[wsname];
+        let data:Array<Array<string>> = (XLSX.utils.sheet_to_json(ws, { header: 1 }));
+        console.log(data);
+
+        let itemsToDispatch: InventoryItem[] = [];
+        for(let csvIndex=1;csvIndex<data.length; csvIndex++){
+          // Skip empty rows
+          if (!data[csvIndex] || data[csvIndex].length === 0) continue;
+          
+          let insert_record = this.prepare_inventory_row_from_excel(data[0], data[csvIndex])          
+          
+          let barcode = insert_record["barcode"] ?? insert_record["productname"];
+          let labeleddate = insert_record["labeleddate"];
+          
+          if (!barcode || !labeleddate) {
+            console.log(`skipping row number ${csvIndex}: empty barcode or labeldate`, insert_record);
+            continue;
+          }
+
+          // Handle date format DD/MM/YYYY or YYYY-MM-DD
+          let tr_labeleddate = String(labeleddate);
+          if (tr_labeleddate.includes('/')) {
+            const parts = tr_labeleddate.split('/');
+            if (parts.length === 3) {
+              if (parts[2].length === 4) { // DD/MM/YYYY
+                tr_labeleddate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+              } else if (parts[0].length === 4) { // YYYY/MM/DD
+                tr_labeleddate = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+              }
+            }
+          }
+
+          const parseNum = (val: any) => {
+            const num = Number(val);
+            return isNaN(num) ? 0 : num;
+          };
+
+          const itemToDispatch: InventoryItem = {
+              productname: String(insert_record["productname"] || ''),
+              hsn: parseNum(insert_record["hsn"]),
+              quantity: parseNum(insert_record["quantity"]),
+              unit: String(insert_record["unit"] ?? 'Nos'),
+              cp: parseNum(insert_record["cp"]),
+              percentgst: parseNum(insert_record["percentgst"]),
+              netcp: parseNum(insert_record["netcp"]),
+              calculatedmrp: parseNum(insert_record["calculatedmrp"]),
+              mrp: parseNum(insert_record["mrp"]),
+              discount: parseNum(insert_record["discount"]),
+              fixedprofit: parseNum(insert_record["fixedprofit"]),
+              percentprofit: parseNum(insert_record["percentprofit"]),
+              labeleddate: tr_labeleddate,
+              vendor: String(insert_record["vendor"] ?? 'utsw'),
+              brand: String(insert_record["brand"] ?? 'utsw'),
+              shippingcost: parseNum(insert_record["shippingcost"]),
+              barcode: String(barcode),
+              qtyavailable: 0,
+              sold: 0,
+              netvalue: 0
+          };
+          itemsToDispatch.push(itemToDispatch);
+        }
+        this.store.dispatch(InventoryActions.uploadInventory({ items: itemsToDispatch }));
+        // Reset the input value so the same file can be uploaded again
+        evt.target.value = '';
+      }
+      reader.readAsBinaryString(file);
+    }
+  }
+
+  downloadInventory() {
+    const dataToExport = this.dataSource.data.map(item => {
+      return {
+        'productname': item.productname,
+        'hsn': item.hsn,
+        'quantity': item.qtyavailable, // Export current available quantity
+        'unit': item.unit,
+        'cp': item.cp,
+        'percentgst': item.percentgst,
+        'netcp': item.netcp,
+        'calculatedmrp': item.calculatedmrp,
+        'mrp': item.mrp,
+        'discount': item.discount,
+        'fixedprofit': item.fixedprofit,
+        'percentprofit': item.percentprofit,
+        'labeleddate': item.labeleddate,
+        'vendor': item.vendor,
+        'brand': item.brand,
+        'shippingcost': item.shippingcost,
+        'barcode': item.barcode
+      };
+    });
+
+    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook: XLSX.WorkBook = { Sheets: { 'Inventory': worksheet }, SheetNames: ['Inventory'] };
+    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    
+    this.saveAsExcelFile(excelBuffer, 'Current_Inventory');
+  }
+
+  private saveAsExcelFile(buffer: any, fileName: string): void {
+    const data: Blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
+    });
+    const url = window.URL.createObjectURL(data);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName + '_' + new Date().getTime() + '.xlsx';
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
+
   filter_clicked() {
     this.userPreferenceService.setInventoryDateRange({
       start: this.range.controls['start'].value, 
@@ -242,15 +414,7 @@ export class ListInventoryComponent implements OnInit, OnChanges, AfterViewInit,
     let tr_start_date:string = this.datePipe.transform(startDate,'yyyy-MM-dd')??'2024-01-13';
     let tr_end_date:string = this.datePipe.transform(endDate,'yyyy-MM-dd')??'2099-01-13';
     
-    this._dataService.getInvoiceSoldItemsFromServer(tr_start_date, tr_end_date).subscribe((d:any) => {       
-      d.forEach((val:any)=>{
-        let sold_key = `${val["barcode"]}` 
-                        + (typeof val["labeldate"] != 'undefined' ? `::${val["labeldate"]}` : '')
-                        + (typeof val["brand"] != 'undefined' ? `::${val["brand"]}` : '');
-        this.allsoldItems[ sold_key ]= (this.allsoldItems[ sold_key ]??0) + val["quantity"];
-      })
-      this.calculateTableHeight(); // Recalculate height after data loads
-    });
+    this.store.dispatch(InvoiceSoldItemsActions.loadInvoiceSoldItems({ startDate: tr_start_date, endDate: tr_end_date }));
   }
 
   announceSortChange(sortState: Sort) {

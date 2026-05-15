@@ -85,6 +85,10 @@
     z-index: 12;
 }
 
+.panel-divider {
+    border-left: 4px solid #dee2e6 !important; /* Thicker light grey border */
+}
+
 @keyframes scan {
     0% { top: 0%; }
     50% { top: 100%; }

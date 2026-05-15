@@ -14,6 +14,7 @@ export interface InOfficePrice{
     netvalue:number;
     quantity:number;
     total:number;
+    store_id?:number;
 };
 
 export interface InOfficeCat{
