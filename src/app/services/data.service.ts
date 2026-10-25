@@ -190,9 +190,7 @@ import { CustomerSummary } from "../models/customer";
     if (!query || query.trim().length < 3) {
       return of([]);
     }
-    let params = new HttpParams().set('query', query.trim());
-    params = params.append('posuserid', '9999');
-    params = params.append('posuserpswd', '8888');
+    const params = new HttpParams().set('query', query.trim());
     return this._http.get<CustomerSummary[]>(environment.apiBackend + this.customerSearchUrl, { params }).pipe(
       catchError(this.handleError<CustomerSummary[]>('searchCustomers', []))
     );
