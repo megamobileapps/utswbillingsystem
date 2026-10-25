@@ -158,7 +158,7 @@ export class DirectinvoiceFormComponent implements OnInit, AfterViewInit, OnDest
 
     subscribeToInventory(): void {
       this.store.select(selectInventoryStatus).subscribe(status => {
-        this.loading = status === 'loading';
+        // Do not disable PUSH TO CART button when inventory is syncing in background
       });
 
       this.store.select(selectAllInventory).subscribe(inventory => {

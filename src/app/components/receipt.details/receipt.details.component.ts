@@ -70,6 +70,9 @@ export class ReceiptDetailsComponent implements OnInit {
                 this.printableTotalAmount += item.quantity * item.productPrice;
                 this.printableGrossAmount += item.quantity * item.initialPrice;
               });
+              if (this.printableBill && this.printableBill.discount) {
+                this.printableTotalAmount -= Number(this.printableBill.discount);
+              }
             }
           } catch (error) {
             console.error('Error parsing invoicedata for printing:', error);

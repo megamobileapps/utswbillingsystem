@@ -7,6 +7,7 @@ import { environment } from "src/environments/environment";
 import { param } from "jquery";
 import { InvoiceDataItem, InvoiceSoldItems } from "../models/invoice-data-item";
 import { Store } from "../models/store";
+import { CustomerSummary } from "../models/customer";
 
 @Injectable({
     providedIn: 'root'
@@ -20,6 +21,7 @@ import { Store } from "../models/store";
     addItemUrl='/in/ci/Inofficerates/additem/';//add item in inofficerate
     getsoldinventoryitemsbackend='/in/ci/analyze/get_all_inventory_sold_items/';//add item in inofficerate
     getStoresUrl = '/in/ci/stores/';
+    customerSearchUrl = '/in/ci/Posinvoice/customers/';
     private readonly valid_user = "9999";
 
     private invoiceListCache = new Map<string, InvoiceDataItem[]>();
@@ -181,6 +183,18 @@ import { Store } from "../models/store";
     return this._http.get<Store[]>(environment.apiBackend + this.getStoresUrl).pipe(
       tap(_ => this.log('fetched stores')),
       catchError(this.handleError<Store[]>('getStores', []))
+    );
+  }
+
+  searchCustomers(query: string): Observable<CustomerSummary[]> {
+    if (!query || query.trim().length < 3) {
+      return of([]);
+    }
+    let params = new HttpParams().set('query', query.trim());
+    params = params.append('posuserid', '9999');
+    params = params.append('posuserpswd', '8888');
+    return this._http.get<CustomerSummary[]>(environment.apiBackend + this.customerSearchUrl, { params }).pipe(
+      catchError(this.handleError<CustomerSummary[]>('searchCustomers', []))
     );
   }
 }

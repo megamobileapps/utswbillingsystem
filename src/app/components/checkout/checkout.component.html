@@ -6,31 +6,29 @@
             action="">
 
             <div class="row g-2 mb-2">
-                <div class="form-group col-6">
+                <div class="form-group col-6 position-relative">
                     <!-- <label for="cPayname" class="control-label">Name:*</label> -->
 
                     <input id="cPayname" name="cPayname" class="input form-control form-control-sm" type="text"
                         placeholder="Name" formControlName="cPayname"
+                        [matAutocomplete]="autoCustomer"
+                        autocomplete="off"
                         [(ngModel)]="currentCart!.username"
                         [ngClass]="{ 'is-invalid': submitted && f['cPayname'].errors }" required="">
+                    <mat-autocomplete #autoCustomer="matAutocomplete" [displayWith]="displayCustomerFn" (optionSelected)="onCustomerSelected($event)">
+                        <mat-option *ngFor="let customer of customerSuggestions$ | async" [value]="customer">
+                            <div class="d-flex justify-content-between align-items-center w-100 py-1">
+                                <span class="fw-semibold text-truncate text-capitalize me-2" style="max-width: 140px;">{{ customer.username }}</span>
+                                <span class="badge bg-light text-dark border flex-shrink-0 font-monospace">{{ customer.phonenumber }}</span>
+                            </div>
+                        </mat-option>
+                    </mat-autocomplete>
                     <div *ngIf="submitted && f['cPayname'].errors" class="invalid-feedback">
                         <div *ngIf="f['cPayname'].errors['required']">Name required</div>
                     </div>
 
                 </div>
 
-                <div class="form-group col-6">
-                    <!-- <label for="cPayEmail" class="control-label"> Email:</label> -->
-
-                    <input name="cPayEmail" formControlName="cPayEmail" id="cPayEmail"
-                    [(ngModel)]="currentCart!.emailid"
-                        [ngClass]="{ 'is-invalid': submitted && f['cPayEmail'].errors }" class="input form-control form-control-sm"
-                        type="text" placeholder="Email" value="">
-
-                </div>
-            </div>
-
-            <div class="row g-2 mb-2">
                 <div class="form-group col-6">
                     <!-- <label for="cPayMobile" class="control-label">Ph.<span style="color:red;"></span>:*</label> -->
 
@@ -42,12 +40,27 @@
                         value="" required="">
 
                 </div>
+            </div>
+
+            <div class="row g-2 mb-2">
+                <div class="form-group col-6">
+                    <div class="input-group input-group-sm">
+                        <input name="cDiscount" formControlName="cDiscount" id="cDiscount"
+                        [(ngModel)]="discountPctInput" (input)="onPctInput(discountPctInput)"
+                            [ngClass]="{ 'is-invalid': submitted && f['cDiscount'].errors }" class="form-control"
+                            type="text" placeholder="Discount">
+                        <span class="input-group-text bg-light text-muted fw-bold">%</span>
+                    </div>
+                </div>
 
                 <div class="form-group col-6">
-                    <input name="cDiscount" formControlName="cDiscount" id="cDiscount"
-                    [(ngModel)]="currentCart!.discount"
-                        [ngClass]="{ 'is-invalid': submitted && f['cDiscount'].errors }" class="input form-control form-control-sm"
-                        type="text" placeholder="Disc" value="">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light text-muted fw-bold">₹</span>
+                        <input name="cDiscountVal" formControlName="cDiscountVal" id="cDiscountVal"
+                        [(ngModel)]="discountValInput" (input)="onValInput(discountValInput)"
+                            [ngClass]="{ 'is-invalid': submitted && f['cDiscountVal'].errors }" class="form-control"
+                            type="text" placeholder="Discount">
+                    </div>
                 </div>
             </div>
 
